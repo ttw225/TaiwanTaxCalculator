@@ -67,6 +67,69 @@ pnpm -v
 | `pnpm test:watch` | 測試監看模式 |
 | `pnpm lint` | ESLint |
 
+## Deploy previews
+
+正式網站部署在 Cloudflare Pages；GitHub Pages 僅作為測試站與 PR preview。
+
+| 目標 | URL | 觸發 |
+|------|-----|------|
+| 測試站 | <https://ttw225.github.io/TaiwanTaxCalculator/dev/> | push 到 `dev` branch |
+| PR preview | `https://ttw225.github.io/TaiwanTaxCalculator/pr-preview/pr-<number>/` | PR opened / synchronized / reopened |
+
+GitHub repository 的 Pages 設定需使用 `gh-pages` branch、`/(root)` 作為 publishing source。Workflow 會保留同一個 Pages site 內的不同資料夾：
+
+```text
+dev/
+pr-preview/pr-123/
+```
+
+測試站與 PR preview build 會注入 `VITE_BASE_PATH`，避免 GitHub Pages 子路徑載入資產時壞掉；畫面上也會顯示 `DEV` 或 `PR #123` 標籤。
+
+### 本地測試 GitHub Pages 子路徑
+
+<details>
+<summary>子路徑 build／preview 指令與本機網址</summary>
+
+本地測試時，`pnpm build` 和 `pnpm preview` 都要帶同一個 `VITE_BASE_PATH`，否則 preview server 會把子路徑 asset request fallback 成 HTML，瀏覽器會顯示空白頁。
+
+測試站：
+
+```bash
+VITE_BASE_PATH=/TaiwanTaxCalculator/dev/ \
+VITE_DEPLOY_CONTEXT=dev \
+VITE_DEPLOY_LABEL=DEV \
+VITE_COMMIT_SHA=$(git rev-parse HEAD) \
+pnpm build
+
+VITE_BASE_PATH=/TaiwanTaxCalculator/dev/ pnpm preview
+```
+
+打開：
+
+```text
+http://localhost:4173/TaiwanTaxCalculator/dev/
+```
+
+PR preview：
+
+```bash
+VITE_BASE_PATH=/TaiwanTaxCalculator/pr-preview/pr-123/ \
+VITE_DEPLOY_CONTEXT=pr-preview \
+VITE_PR_NUMBER=123 \
+VITE_COMMIT_SHA=$(git rev-parse HEAD) \
+pnpm build
+
+VITE_BASE_PATH=/TaiwanTaxCalculator/pr-preview/pr-123/ pnpm preview
+```
+
+打開：
+
+```text
+http://localhost:4173/TaiwanTaxCalculator/pr-preview/pr-123/
+```
+
+</details>
+
 ## Project layout
 
 - `src/components/` — 介面元件  
