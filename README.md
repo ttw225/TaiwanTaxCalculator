@@ -79,9 +79,12 @@ pnpm -v
 GitHub repository 的 Pages 設定需使用 `gh-pages` branch、`/(root)` 作為 publishing source。Workflow 會保留同一個 Pages site 內的不同資料夾：
 
 ```text
+index.html
 dev/
 pr-preview/pr-123/
 ```
+
+<https://ttw225.github.io/TaiwanTaxCalculator/> 會顯示一個簡單入口頁，列出 production、dev 與目前存在的 PR preview。入口頁由 `.github/scripts/render-pages-index.sh` 在部署與 cleanup 時重新產生。
 
 測試站與 PR preview build 會注入 `VITE_BASE_PATH`，避免 GitHub Pages 子路徑載入資產時壞掉；畫面上也會顯示 `DEV` 或 `PR #123` 標籤。
 
