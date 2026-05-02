@@ -241,9 +241,7 @@ describe('ChecklistResult traceability UI', () => {
       totalSelected: SITUATIONS.length,
       selectedSituations: [],
       cardInputMap: {},
-      cardStatusMap: {},
       onCardInputChange: () => undefined,
-      onCardStatusChange: () => undefined,
       onOpenPersonalized: () => undefined,
       onReset: () => undefined,
     }),
@@ -282,9 +280,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         totalSelected: selectedSituations.length,
         selectedSituations,
         cardInputMap: {},
-        cardStatusMap: {},
         onCardInputChange: () => undefined,
-        onCardStatusChange: () => undefined,
         onOpenPersonalized: () => undefined,
         onReset: () => undefined,
       }),
@@ -427,9 +423,7 @@ describe('ChecklistResult export panel', () => {
       totalSelected: SITUATIONS.length,
       selectedSituations: [],
       cardInputMap: {},
-      cardStatusMap: {},
       onCardInputChange: () => undefined,
-      onCardStatusChange: () => undefined,
       onOpenPersonalized: () => undefined,
       onReset: () => undefined,
     }),
@@ -441,9 +435,7 @@ describe('ChecklistResult export panel', () => {
       totalSelected: 0,
       selectedSituations: [],
       cardInputMap: {},
-      cardStatusMap: {},
       onCardInputChange: () => undefined,
-      onCardStatusChange: () => undefined,
       onOpenPersonalized: () => undefined,
       onReset: () => undefined,
     }),
@@ -711,28 +703,27 @@ describe('DeductionCard inline input fields', () => {
   })
 })
 
-// ── DeductionCard status markers ──────────────────────────────────────────────
+// ── DeductionCard badges ─────────────────────────────────────────────────────
 
-describe('DeductionCard status markers (three-state)', () => {
-  it('shows action buttons when status is unset', () => {
+describe('DeductionCard badges', () => {
+  it('does not show the low-risk document preparation badge', () => {
     const html = renderToStaticMarkup(
-      createElement(DeductionCard, { item: makeItem(), status: 'unset', onStatusChange: () => undefined }),
+      createElement(DeductionCard, { item: makeItem({ disclaimer_level: 'low' }) }),
     )
-    expect(html).toContain('確認適用')
-    expect(html).toContain('不適用')
+    expect(html).not.toContain('文件準備')
   })
 
-  it('shows confirmed badge when status is confirmed', () => {
+  it('shows medium-risk badge', () => {
     const html = renderToStaticMarkup(
-      createElement(DeductionCard, { item: makeItem(), status: 'confirmed' }),
+      createElement(DeductionCard, { item: makeItem({ disclaimer_level: 'medium' }) }),
     )
-    expect(html).toContain('確認適用')
+    expect(html).toContain('建議確認')
   })
 
-  it('shows na badge when status is na', () => {
+  it('shows high-risk badge', () => {
     const html = renderToStaticMarkup(
-      createElement(DeductionCard, { item: makeItem(), status: 'na' }),
+      createElement(DeductionCard, { item: makeItem({ disclaimer_level: 'high' }) }),
     )
-    expect(html).toContain('不適用')
+    expect(html).toContain('需進一步確認')
   })
 })

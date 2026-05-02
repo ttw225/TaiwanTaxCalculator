@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type {
   CardInputMap,
-  CardStatusMap,
   Situation,
   SituationId,
 } from '../types/content'
@@ -35,10 +34,8 @@ interface Props {
   itemSourceSituationLabelsById?: Record<string, string[]>
   addableSituationGroups?: AddableSituationGroup[]
   cardInputMap: CardInputMap
-  cardStatusMap: CardStatusMap
   pendingRemovalImpact?: RemovalImpactPreview | null
   onCardInputChange: (itemId: string, fieldId: string, value: string) => void
-  onCardStatusChange: (itemId: string, status: 'confirmed' | 'na') => void
   onOpenPersonalized: () => void
   onReset?: () => void
   onAddSituations?: (ids: SituationId[]) => void
@@ -277,7 +274,7 @@ function RemoveImpactDialog({
 
           {impact.hasInputLoss && (
             <p className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-amber-700">
-              此次移除會清除已填寫的資料或已設定的卡片狀態。
+              此次移除會清除已填寫的資料。
             </p>
           )}
         </div>
@@ -400,10 +397,8 @@ export function ChecklistResult({
   itemSourceSituationLabelsById = {},
   addableSituationGroups = [],
   cardInputMap,
-  cardStatusMap,
   pendingRemovalImpact,
   onCardInputChange,
-  onCardStatusChange,
   onOpenPersonalized,
   onAddSituations,
   onRemoveItem,
@@ -550,11 +545,9 @@ export function ChecklistResult({
                     item={item}
                     inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
                     inputValues={cardInputMap[item.id] ?? {}}
-                    status={cardStatusMap[item.id] ?? 'unset'}
                     sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
                     removable
                     onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
-                    onStatusChange={(status) => onCardStatusChange(item.id, status)}
                     onRemove={() => onRemoveItem?.(item.id)}
                   />
                 </div>

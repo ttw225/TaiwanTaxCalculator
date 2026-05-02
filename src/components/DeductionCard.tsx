@@ -1,27 +1,19 @@
-import type { CardInlineField, CardStatus, ChecklistItem, DisclaimerLevel } from '../types/content'
+import type { CardInlineField, ChecklistItem, DisclaimerLevel } from '../types/content'
 import { getNumber } from '../lib/numbers'
 
 interface Props {
   item: ChecklistItem
   inlineFields?: CardInlineField[]
   inputValues?: Record<string, string>
-  status?: CardStatus
   sourceSituationLabels?: string[]
   removable?: boolean
   onInputChange?: (fieldId: string, value: string) => void
-  onStatusChange?: (status: 'confirmed' | 'na') => void
   onRemove?: () => void
 }
 
-const DISCLAIMER_BADGE: Record<DisclaimerLevel, { label: string; className: string }> = {
-  low: { label: '文件準備', className: 'bg-gray-100 text-gray-600' },
+const DISCLAIMER_BADGE: Partial<Record<DisclaimerLevel, { label: string; className: string }>> = {
   medium: { label: '建議確認', className: 'bg-yellow-100 text-yellow-700' },
   high: { label: '需進一步確認', className: 'bg-orange-100 text-orange-700' },
-}
-
-const STATUS_BADGE: Record<'confirmed' | 'na', { label: string; className: string }> = {
-  confirmed: { label: '確認適用', className: 'bg-green-100 text-green-700' },
-  na: { label: '不適用', className: 'bg-gray-100 text-gray-400' },
 }
 
 const HIGH_RISK_NOTICE = '此項涉及個人條件或排富規定，請以財政部電子申報系統與官方資料確認。'
@@ -66,11 +58,9 @@ export function DeductionCard({
   item,
   inlineFields = [],
   inputValues = {},
-  status = 'unset',
   sourceSituationLabels = [],
   removable = false,
   onInputChange,
-  onStatusChange,
   onRemove,
 }: Props) {
   const badge = DISCLAIMER_BADGE[item.disclaimer_level]
@@ -83,14 +73,11 @@ export function DeductionCard({
       <div className="flex items-start gap-2 mb-2">
         <h3 className="font-medium text-gray-900 flex-1 text-sm">{item.title}</h3>
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          {status !== 'unset' && (
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[status].className}`}>
-              {STATUS_BADGE[status].label}
+          {badge && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${badge.className}`}>
+              {badge.label}
             </span>
           )}
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${badge.className}`}>
-            {badge.label}
-          </span>
           {removable && onRemove && (
             <button
               type="button"
@@ -184,27 +171,6 @@ export function DeductionCard({
         <p className="text-xs font-medium text-blue-700 mb-1">→ {item.next_action}</p>
         {item.disclaimer_level === 'high' && (
           <p className="mb-2 text-xs text-orange-700">{HIGH_RISK_NOTICE}</p>
-        )}
-
-        {status === 'unset' && onStatusChange && (
-          <div className="flex gap-2 mb-2">
-            <button
-              type="button"
-              onClick={() => onStatusChange('confirmed')}
-              data-testid={`card-status-confirmed-${item.id}`}
-              className="text-xs px-2.5 py-1 rounded border border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
-            >
-              確認適用
-            </button>
-            <button
-              type="button"
-              onClick={() => onStatusChange('na')}
-              data-testid={`card-status-na-${item.id}`}
-              className="text-xs px-2.5 py-1 rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
-            >
-              不適用
-            </button>
-          </div>
         )}
 
         <details className="group">
