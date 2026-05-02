@@ -16,11 +16,6 @@ export function DeployBadge({ deployInfo }: Props) {
       title={deployInfo.detail ? `Commit ${deployInfo.detail}` : undefined}
     >
       <span>{deployInfo.label}</span>
-      {deployInfo.detail && (
-        <span className="hidden font-mono text-[11px] opacity-70 sm:inline">
-          {deployInfo.detail}
-        </span>
-      )}
     </span>
   )
 }
