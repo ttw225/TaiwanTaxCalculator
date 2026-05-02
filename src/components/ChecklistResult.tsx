@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type {
   CardInputMap,
   CardStatusMap,
+  Situation,
   SituationId,
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
@@ -11,16 +12,40 @@ import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
 
+export interface RemovalImpactPreview {
+  itemId: string
+  itemTitle: string
+  affectedSituationLabels: string[]
+  removedItemTitles: string[]
+  hasInputLoss: boolean
+}
+
+export interface AddableSituationGroup {
+  id: string
+  title: string
+  description: string
+  situations: Situation[]
+}
+
 interface Props {
   groups: CategoryGroup[]
   totalSelected: number
   selectedSituations: SituationId[]
+  itemSourceSituationLabelsById?: Record<string, string[]>
+  addableSituationGroups?: AddableSituationGroup[]
   cardInputMap: CardInputMap
   cardStatusMap: CardStatusMap
+  pendingRemovalImpact?: RemovalImpactPreview | null
   onCardInputChange: (itemId: string, fieldId: string, value: string) => void
   onCardStatusChange: (itemId: string, status: 'confirmed' | 'na') => void
   onOpenPersonalized: () => void
-  onReset: () => void
+  onReset?: () => void
+  onAddSituations?: (ids: SituationId[]) => void
+  onRemoveItem?: (itemId: string) => void
+  onCancelRemoveItem?: () => void
+  onConfirmRemoveItem?: () => void
+  scrollToItemId?: string | null
+  onScrollHandled?: () => void
 }
 
 const STANDARD_DEDUCTION_SOURCE = {
@@ -112,6 +137,173 @@ function StandardItemizedEducationPanel({
 
 type CopyState = 'idle' | 'success' | 'error'
 
+type AddSituationModalProps = {
+  groups: AddableSituationGroup[]
+  isOpen: boolean
+  pendingSituationIds: SituationId[]
+  onToggleSituation: (id: SituationId) => void
+  onCancel: () => void
+  onConfirm: () => void
+}
+
+function AddSituationModal({
+  groups,
+  isOpen,
+  pendingSituationIds,
+  onToggleSituation,
+  onCancel,
+  onConfirm,
+}: AddSituationModalProps) {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-gray-900/40 p-4 no-print">
+      <div className="w-full max-w-2xl rounded-lg border border-gray-200 bg-white shadow-xl">
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">新增項目</h2>
+            <p className="mt-0.5 text-xs text-gray-500">依第一頁邏輯選擇情境後，系統會自動帶入相關卡片</p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-100"
+            aria-label="關閉新增情境視窗"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="max-h-96 overflow-y-auto px-4 py-4">
+          {groups.length === 0 && (
+            <p className="py-8 text-center text-sm text-gray-400">目前沒有可新增的情境</p>
+          )}
+          {groups.map((group) => (
+            <section key={group.id} className="mb-5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{group.title}</p>
+              <p className="mb-2 text-xs text-gray-400">{group.description}</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {group.situations.map((situation) => {
+                  const isChecked = pendingSituationIds.includes(situation.id)
+                  return (
+                    <label
+                      key={situation.id}
+                      className={[
+                        'flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 transition-colors',
+                        isChecked
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-gray-200 bg-white hover:border-gray-300',
+                      ].join(' ')}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => onToggleSituation(situation.id)}
+                        data-testid={`add-situation-checkbox-${situation.id}`}
+                        className="mt-0.5"
+                      />
+                      <span>
+                        <span className="block text-sm font-medium text-gray-900">{situation.label}</span>
+                        <span className="mt-0.5 block text-xs text-gray-500">{situation.description}</span>
+                      </span>
+                    </label>
+                  )
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            data-testid="cancel-add-situations-btn"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={pendingSituationIds.length === 0}
+            data-testid="confirm-add-situations-btn"
+            className={[
+              'rounded px-3 py-1.5 text-xs font-medium transition-colors',
+              pendingSituationIds.length > 0
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'cursor-not-allowed bg-gray-100 text-gray-400',
+            ].join(' ')}
+          >
+            新增
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RemoveImpactDialog({
+  impact,
+  onCancel,
+  onConfirm,
+}: {
+  impact: RemovalImpactPreview
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  const previewTitles = impact.removedItemTitles.slice(0, 3)
+  const hasMore = impact.removedItemTitles.length > previewTitles.length
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 p-4 no-print">
+      <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white shadow-xl">
+        <div className="border-b border-gray-100 px-4 py-3">
+          <h2 className="text-sm font-semibold text-gray-900">確認移除此項目</h2>
+          <p className="mt-1 text-xs text-gray-500">{impact.itemTitle}</p>
+        </div>
+
+        <div className="space-y-3 px-4 py-3 text-xs text-gray-600">
+          <div>
+            <p className="mb-1">會一併移除的項目（{impact.removedItemTitles.length}）：</p>
+            <ul className="list-disc space-y-0.5 pl-4 text-gray-700">
+              {previewTitles.map((title) => (
+                <li key={title}>{title}</li>
+              ))}
+              {hasMore && <li>...</li>}
+            </ul>
+          </div>
+
+          {impact.hasInputLoss && (
+            <p className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-amber-700">
+              此次移除會清除已填寫的資料或已設定的卡片狀態。
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            data-testid="cancel-remove-item-btn"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+            data-testid="confirm-remove-item-btn"
+          >
+            確認移除
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ExportPanel({
   groups,
   totalSelected,
@@ -165,16 +357,16 @@ function ExportPanel({
         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
 
   return (
-    <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-      <p className="text-xs font-medium text-blue-800 mb-1">匯出清單</p>
-      <p className="text-xs text-blue-700 mb-3" data-testid="export-privacy-notice">
+    <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
+      <p className="mb-1 text-xs font-medium text-blue-800">匯出清單</p>
+      <p className="mb-3 text-xs text-blue-700" data-testid="export-privacy-notice">
         本清單在您的瀏覽器中產生，未上傳至伺服器。下載或複製後，檔案可能包含個人稅務情境，請自行保管。
       </p>
-      <div className="flex gap-2 flex-wrap no-print">
+      <div className="no-print flex flex-wrap gap-2">
         <button
           type="button"
           onClick={handleCopy}
-          className={`text-xs px-3 py-1.5 rounded border font-medium transition-colors ${copyClass}`}
+          className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors ${copyClass}`}
           data-testid="copy-checklist-btn"
         >
           {copyLabel}
@@ -182,7 +374,7 @@ function ExportPanel({
         <button
           type="button"
           onClick={handleDownload}
-          className="text-xs px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 font-medium"
+          className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
           data-testid="download-checklist-btn"
         >
           下載 Markdown
@@ -190,7 +382,7 @@ function ExportPanel({
         <button
           type="button"
           onClick={handlePrint}
-          className="text-xs px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 font-medium"
+          className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
           data-testid="print-checklist-btn"
         >
           列印 / 另存 PDF
@@ -204,30 +396,97 @@ export function ChecklistResult({
   groups,
   totalSelected,
   selectedSituations,
+  itemSourceSituationLabelsById = {},
+  addableSituationGroups = [],
   cardInputMap,
   cardStatusMap,
+  pendingRemovalImpact,
   onCardInputChange,
   onCardStatusChange,
   onOpenPersonalized,
-  onReset,
+  onAddSituations,
+  onRemoveItem,
+  onCancelRemoveItem,
+  onConfirmRemoveItem,
+  scrollToItemId,
+  onScrollHandled,
 }: Props) {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [pendingSituationIds, setPendingSituationIds] = useState<SituationId[]>([])
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
+  const itemRefs = useRef<Record<string, HTMLElement | null>>({})
   const totalItems = groups.reduce((sum, g) => sum + g.items.length, 0)
   const hasResults = totalItems > 0
+  const canAddMore = addableSituationGroups.length > 0
+
+  useEffect(() => {
+    if (!scrollToItemId) return
+    const target = itemRefs.current[scrollToItemId]
+    if (target) {
+      target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+    }
+    onScrollHandled?.()
+  }, [onScrollHandled, scrollToItemId])
+
+  function openAddModal() {
+    setPendingSituationIds([])
+    setIsAddModalOpen(true)
+  }
+
+  function handleTogglePendingSituation(id: SituationId) {
+    setPendingSituationIds((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    )
+  }
+
+  function handleCancelAdd() {
+    setPendingSituationIds([])
+    setIsAddModalOpen(false)
+  }
+
+  function handleConfirmAdd() {
+    onAddSituations?.(pendingSituationIds)
+    setPendingSituationIds([])
+    setIsAddModalOpen(false)
+  }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 print-container">
-      <div className="flex items-center gap-3 mb-2 no-print">
+    <div className="mx-auto max-w-2xl px-4 py-8 print-container">
+      <AddSituationModal
+        groups={addableSituationGroups}
+        isOpen={isAddModalOpen}
+        pendingSituationIds={pendingSituationIds}
+        onToggleSituation={handleTogglePendingSituation}
+        onCancel={handleCancelAdd}
+        onConfirm={handleConfirmAdd}
+      />
+      {pendingRemovalImpact && (
+        <RemoveImpactDialog
+          impact={pendingRemovalImpact}
+          onCancel={() => onCancelRemoveItem?.()}
+          onConfirm={() => onConfirmRemoveItem?.()}
+        />
+      )}
+
+      <div className="mb-1 flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-gray-900">節稅清單</h1>
         <button
           type="button"
-          onClick={onReset}
-          className="text-sm text-gray-500 hover:text-gray-700"
+          onClick={openAddModal}
+          disabled={!canAddMore}
+          data-testid="open-add-situation-modal-btn"
+          className={[
+            'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium transition-colors',
+            canAddMore
+              ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
+              : 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300',
+          ].join(' ')}
         >
-          ← 重新選擇
+          <span aria-hidden="true">+</span>
+          <span>新增項目</span>
         </button>
       </div>
-
-      <h1 className="text-xl font-semibold text-gray-900 mb-1">節稅清單</h1>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="mb-4 text-sm text-gray-500">
         根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
       </p>
 
@@ -255,36 +514,53 @@ export function ChecklistResult({
       <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
 
       {!hasResults && (
-        <div className="text-center py-12 text-gray-400">
-          <p>沒有符合條件的項目</p>
+        <div className="py-12 text-center text-gray-400">
+          <p>目前清單中沒有項目</p>
+          <p className="mt-2 text-xs text-gray-400">可使用右上角「新增項目」加入要確認的情境</p>
         </div>
       )}
 
       <div className="space-y-8">
         {groups.map((group) => (
-          <section key={group.category}>
-            <h2 className="text-base font-semibold text-gray-700 mb-3 pb-1 border-b border-gray-200">
+          <section
+            key={group.category}
+            ref={(element) => {
+              sectionRefs.current[group.category] = element
+            }}
+            data-testid={`checklist-section-${group.category}`}
+          >
+            <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700">
               {group.label}
             </h2>
             <div className="space-y-3">
               {group.items.map((item) => (
-                <DeductionCard
+                <div
                   key={item.id}
-                  item={item}
-                  inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
-                  inputValues={cardInputMap[item.id] ?? {}}
-                  status={cardStatusMap[item.id] ?? 'unset'}
-                  onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
-                  onStatusChange={(status) => onCardStatusChange(item.id, status)}
-                />
+                  ref={(element) => {
+                    itemRefs.current[item.id] = element
+                  }}
+                  data-testid={`checklist-item-${item.id}`}
+                >
+                  <DeductionCard
+                    item={item}
+                    inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
+                    inputValues={cardInputMap[item.id] ?? {}}
+                    status={cardStatusMap[item.id] ?? 'unset'}
+                    sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
+                    removable
+                    onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
+                    onStatusChange={(status) => onCardStatusChange(item.id, status)}
+                    onRemove={() => onRemoveItem?.(item.id)}
+                  />
+                </div>
               ))}
             </div>
           </section>
         ))}
       </div>
 
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-xs text-gray-500 leading-relaxed">
+      <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
+        <p className="text-xs leading-relaxed text-gray-500">
           <strong className="text-gray-700">使用提醒：</strong>
           本清單協助整理可能適用的申報項目，根據114年度相關法規與官方資料整理。
           正式申報結果及稅負計算請以財政部電子申報系統為準，並視個人情況向稅務機關或記帳士確認。
