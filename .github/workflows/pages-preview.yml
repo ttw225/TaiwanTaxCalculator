@@ -75,8 +75,9 @@ jobs:
           mkdir -p pages-worktree/dev
           cp -R dist/. pages-worktree/dev/
           touch pages-worktree/.nojekyll
+          bash .github/scripts/render-pages-index.sh pages-worktree
           cd pages-worktree
-          git add .nojekyll dev
+          git add .nojekyll index.html dev
           if git diff --cached --quiet; then
             echo "No dev test site changes to deploy."
           else
@@ -143,8 +144,9 @@ jobs:
           mkdir -p "$preview_path"
           cp -R dist/. "$preview_path/"
           touch pages-worktree/.nojekyll
+          bash .github/scripts/render-pages-index.sh pages-worktree
           cd pages-worktree
-          git add .nojekyll pr-preview/pr-${{ github.event.pull_request.number }}
+          git add .nojekyll index.html pr-preview/pr-${{ github.event.pull_request.number }}
           if git diff --cached --quiet; then
             echo "No PR preview changes to deploy."
           else
@@ -215,8 +217,9 @@ jobs:
             exit 0
           fi
           rm -rf "$preview_path"
+          bash .github/scripts/render-pages-index.sh pages-worktree
           cd pages-worktree
-          git add -A pr-preview
+          git add -A index.html pr-preview
           if git diff --cached --quiet; then
             echo "No PR preview changes to clean up."
           else
