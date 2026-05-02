@@ -1,0 +1,32 @@
+name: Bug report / 錯誤回報
+description: Report something broken or confusing / 回報壞掉或令人困惑的地方
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened? / 發生了什麼？
+      description: Describe the issue clearly. Do not include personal tax data. / 請清楚描述問題，請勿包含個人稅務資料。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect? / 你原本預期會發生什麼？
+    validations:
+      required: false
+  - type: input
+    id: browser
+    attributes:
+      label: Browser or device / 瀏覽器或裝置
+      placeholder: Chrome, Safari, mobile, desktop, etc. / Chrome、Safari、手機、桌機等
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / 截圖
+      description: Add screenshots or screen recordings if helpful. / 如果有幫助，可以附上截圖或錄影。
+    validations:
+      required: false

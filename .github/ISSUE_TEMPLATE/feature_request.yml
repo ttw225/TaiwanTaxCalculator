@@ -1,0 +1,18 @@
+name: Feature request / 功能建議
+description: Suggest an improvement or new capability / 建議改善或新功能
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this solve? / 這想解決什麼問題？
+      description: Describe the user need. Do not include personal tax data. / 請描述使用者需求，請勿包含個人稅務資料。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested approach / 建議做法
+    validations:
+      required: false

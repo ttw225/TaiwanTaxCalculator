@@ -1,0 +1,40 @@
+name: Design task / 設計任務
+description: Track a design update, UI proposal, or visual QA item / 追蹤設計調整、UI 提案或視覺 QA
+title: "[Design]: "
+labels: ["design"]
+body:
+  - type: textarea
+    id: background
+    attributes:
+      label: Background / 背景
+      description: What context or problem motivates this design work? / 這個設計任務的背景、問題或情境為何？
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope / 範圍
+      description: Which page, component, or user flow is included? / 包含哪些頁面、元件或使用流程？
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: References / 參考資料
+      description: Add Figma links, screenshots, notes, or related issues. / 可附上 Figma 連結、截圖、筆記或相關 issue。
+    validations:
+      required: false
+  - type: textarea
+    id: states
+    attributes:
+      label: States to consider / 需要考慮的狀態
+      description: Empty, loading, error, mobile, desktop, hover, focus, etc. / 空狀態、載入、錯誤、手機、桌機、hover、focus 等。
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria / 完成條件
+      description: What should be true when this design task is done? / 這個設計任務完成時，應該符合哪些條件？
+    validations:
+      required: false
