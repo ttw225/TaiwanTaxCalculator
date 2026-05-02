@@ -14,8 +14,8 @@ Vite、React 19、TypeScript、Tailwind CSS、Vitest、ESLint（flat config）�
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/) **20.19+** or **22.12+** (Vite 8; see `engines` in [`package.json`](./package.json))
-- [pnpm](https://pnpm.io/) **9+** (lockfile v9 in this repo; see `engines` in [`package.json`](./package.json))
+- [Node.js](https://nodejs.org/) **24+** (Vite 8; see `engines` in [`package.json`](./package.json))
+- [pnpm](https://pnpm.io/) **11+** (see `engines` and `packageManager` in [`package.json`](./package.json))
 
 ### 基本安裝流程（nvm → Node → pnpm）
 
@@ -37,20 +37,20 @@ source ~/.zshrc    # zsh
 # source ~/.bashrc # bash
 ```
 
-**2. 安裝並使用 Node**（以目前 LTS 主線 **22** 為例）
+**2. 安裝並使用 Node**（以 **24** 為例）
 
 ```bash
-nvm install 22
-nvm use 22
-nvm alias default 22   # 可選：預設開啟終端機時使用此版本
+nvm install 24
+nvm use 24
+nvm alias default 24   # 可選：預設開啟終端機時使用此版本
 node -v
 ```
 
-**3. 安裝 pnpm**（**9+**）
+**3. 安裝 pnpm**（**11+**）
 
 ```bash
 corepack enable
-corepack prepare pnpm@latest --activate
+corepack prepare pnpm@11.0.3 --activate
 pnpm -v
 ```
 
