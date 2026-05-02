@@ -19,12 +19,12 @@ Vite、React 19、TypeScript、Tailwind CSS、Vitest、ESLint（flat config）�
 
 ### 基本安裝流程（nvm → Node → pnpm）
 
-以下為 **macOS / Linux** 常見指令；`nvm` 安裝腳本版本請以 [nvm 安裝說明](https://github.com/nvm-sh/nvm#installing-and-updating) 為準（下列 URL 中的 tag 可替換為 release 最新版）。
+以下為 **macOS / Linux** 常見指令。
+
+推薦使用 nvm 管理本機 node 版本；
+如不使用 nvm，可改由 [Node.js 官網](https://nodejs.org/) 安裝程式取得符合版本的 Node，並跳至 **步驟 3** 。
 
 **1. 安裝 nvm**
-
-推薦使用 nvm 管理本機 node 版本
-如不使用 nvm，可改由 [Node.js 官網](https://nodejs.org/) 安裝程式取得符合版本的 Node，並跳至 **步驟 3** 。
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
