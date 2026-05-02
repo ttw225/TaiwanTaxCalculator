@@ -34,6 +34,7 @@ import type { RemovalImpactPreview } from './components/ChecklistResult'
 import { PersonalizedTaxPage } from './components/PersonalizedTaxPage'
 import { SiteHeader } from './components/SiteHeader'
 import { SiteFooter } from './components/SiteFooter'
+import { BackToTopButton } from './components/BackToTopButton'
 
 const PUBLISHED_ITEMS = applyPublicationGate(CHECKLIST_ITEMS)
 const SITUATION_IDS = SITUATIONS.map((s) => s.id)
@@ -427,6 +428,7 @@ function App() {
         {content}
       </main>
       <SiteFooter />
+      <BackToTopButton />
     </div>
   )
 }

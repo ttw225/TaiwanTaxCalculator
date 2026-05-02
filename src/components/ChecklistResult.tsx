@@ -8,6 +8,7 @@ import type {
 import type { CategoryGroup } from '../lib/checklist'
 import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import { getNumber } from '../lib/numbers'
+import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
@@ -423,7 +424,11 @@ export function ChecklistResult({
     if (!scrollToItemId) return
     const target = itemRefs.current[scrollToItemId]
     if (target) {
-      target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+      const targetRect = target.getBoundingClientRect()
+      const targetCenterY = targetRect.top + window.scrollY + targetRect.height / 2
+      const viewportCenterY = window.innerHeight / 2
+      const targetY = Math.max(0, Math.round(targetCenterY - viewportCenterY))
+      animateScrollToY(targetY)
     }
     onScrollHandled?.()
   }, [onScrollHandled, scrollToItemId])

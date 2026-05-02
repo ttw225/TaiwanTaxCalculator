@@ -8,20 +8,97 @@ const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
 
 let container: HTMLDivElement
 let scrollToSpy: ReturnType<typeof vi.fn>
-let scrollIntoViewSpy: ReturnType<typeof vi.fn>
-let lastScrollTargetTestId: string | null
+let scrollYValue = 0
+let rafCallbacks: Array<FrameRequestCallback | undefined>
+let requestAnimationFrameSpy: ReturnType<typeof vi.fn>
+
+const DONATION_TARGET_TOP = 900
+const DONATION_TARGET_HEIGHT = 120
+const VIEWPORT_HEIGHT = 800
+
+function runNextAnimationFrame(timestamp: number) {
+  const callback = rafCallbacks.find((cb) => cb !== undefined)
+  const callbackIndex = rafCallbacks.findIndex((cb) => cb !== undefined)
+  if (!callback || callbackIndex < 0) return
+  rafCallbacks[callbackIndex] = undefined
+  callback(timestamp)
+}
 
 beforeEach(() => {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
   localStorage.clear()
-  scrollToSpy = vi.fn()
-  lastScrollTargetTestId = null
-  scrollIntoViewSpy = vi.fn(function (this: HTMLElement) {
-    lastScrollTargetTestId = this.getAttribute('data-testid')
+  scrollYValue = 0
+  Object.defineProperty(window, 'scrollY', {
+    get: () => scrollYValue,
+    configurable: true,
+  })
+
+  scrollToSpy = vi.fn((x: number, y: number) => {
+    void x
+    scrollYValue = y
   })
   Object.defineProperty(window, 'scrollTo', { value: scrollToSpy, configurable: true })
-  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
-    value: scrollIntoViewSpy,
+
+  rafCallbacks = []
+  requestAnimationFrameSpy = vi.fn((cb: FrameRequestCallback) => {
+    rafCallbacks.push(cb)
+    return rafCallbacks.length
+  })
+  Object.defineProperty(window, 'requestAnimationFrame', {
+    value: requestAnimationFrameSpy,
+    configurable: true,
+  })
+  Object.defineProperty(window, 'cancelAnimationFrame', {
+    value: vi.fn((id: number) => {
+      if (id > 0 && id <= rafCallbacks.length) rafCallbacks[id - 1] = undefined
+    }),
+    configurable: true,
+  })
+  Object.defineProperty(window, 'matchMedia', {
+    value: vi.fn((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+    configurable: true,
+  })
+  Object.defineProperty(window, 'innerHeight', {
+    value: VIEWPORT_HEIGHT,
+    configurable: true,
+  })
+  Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
+    value: function (this: HTMLElement) {
+      const testId = this.getAttribute('data-testid')
+      if (testId === 'checklist-item-donations-deduction') {
+        return {
+          x: 0,
+          y: DONATION_TARGET_TOP,
+          top: DONATION_TARGET_TOP,
+          left: 0,
+          bottom: DONATION_TARGET_TOP + DONATION_TARGET_HEIGHT,
+          right: 640,
+          width: 640,
+          height: DONATION_TARGET_HEIGHT,
+          toJSON: () => '',
+        }
+      }
+      return {
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        right: 0,
+        width: 0,
+        height: 0,
+        toJSON: () => '',
+      }
+    },
     configurable: true,
   })
   container = document.createElement('div')
@@ -77,8 +154,14 @@ describe('situation single-source flow', () => {
     clickByTestId('add-situation-checkbox-rent')
     clickByTestId('add-situation-checkbox-donations')
     clickByTestId('confirm-add-situations-btn')
-    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ block: 'center', inline: 'nearest', behavior: 'smooth' })
-    expect(lastScrollTargetTestId).toBe('checklist-item-donations-deduction')
+    act(() => {
+      runNextAnimationFrame(0)
+      runNextAnimationFrame(500)
+      runNextAnimationFrame(1000)
+    })
+    const expectedTargetY = DONATION_TARGET_TOP + DONATION_TARGET_HEIGHT / 2 - VIEWPORT_HEIGHT / 2
+    expect(requestAnimationFrameSpy).toHaveBeenCalled()
+    expect(scrollToSpy).toHaveBeenLastCalledWith(0, expectedTargetY)
     expect(container.textContent).toContain('房屋租金扣除額（需進一步確認）')
     expect(container.textContent).toContain('捐贈扣除額')
 
@@ -124,7 +207,7 @@ describe('situation single-source flow', () => {
     clickByTestId('add-situation-checkbox-rent')
     clickByTestId('cancel-add-situations-btn')
 
-    expect(scrollIntoViewSpy).not.toHaveBeenCalled()
+    expect(requestAnimationFrameSpy).not.toHaveBeenCalled()
     expect(container.textContent).not.toContain('房屋租金扣除額（需進一步確認）')
   })
 
