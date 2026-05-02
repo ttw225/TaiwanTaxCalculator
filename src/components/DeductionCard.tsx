@@ -6,8 +6,11 @@ interface Props {
   inlineFields?: CardInlineField[]
   inputValues?: Record<string, string>
   status?: CardStatus
+  sourceSituationLabels?: string[]
+  removable?: boolean
   onInputChange?: (fieldId: string, value: string) => void
   onStatusChange?: (status: 'confirmed' | 'na') => void
+  onRemove?: () => void
 }
 
 const DISCLAIMER_BADGE: Record<DisclaimerLevel, { label: string; className: string }> = {
@@ -64,11 +67,16 @@ export function DeductionCard({
   inlineFields = [],
   inputValues = {},
   status = 'unset',
+  sourceSituationLabels = [],
+  removable = false,
   onInputChange,
   onStatusChange,
+  onRemove,
 }: Props) {
   const badge = DISCLAIMER_BADGE[item.disclaimer_level]
   const hasFields = inlineFields.length > 0
+  const visibleSourceLabels = sourceSituationLabels.slice(0, 2)
+  const hiddenSourceCount = sourceSituationLabels.length - visibleSourceLabels.length
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 bg-white print-card">
@@ -83,10 +91,31 @@ export function DeductionCard({
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${badge.className}`}>
             {badge.label}
           </span>
+          {removable && onRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              aria-label={`移除項目：${item.title}`}
+              data-testid={`remove-item-${item.id}`}
+              className="no-print inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700"
+            >
+              ×
+            </button>
+          )}
         </div>
       </div>
 
       <p className="text-sm text-gray-700 mb-3">{item.why_it_matters}</p>
+      {sourceSituationLabels.length > 0 && (
+        <p
+          className="mb-3 text-xs text-indigo-700"
+          data-testid={`card-source-situations-${item.id}`}
+          title={`情境：${sourceSituationLabels.join('、')}`}
+        >
+          情境：{visibleSourceLabels.join('、')}
+          {hiddenSourceCount > 0 ? ` +${hiddenSourceCount}` : ''}
+        </p>
+      )}
 
       {item.eligibility_cues.length > 0 && (
         <Section label="適用條件">
@@ -131,6 +160,7 @@ export function DeductionCard({
                   min="0"
                   value={inputValues[field.id] ?? ''}
                   onChange={(e) => onInputChange?.(field.id, e.target.value)}
+                  data-testid={`card-input-${item.id}-${field.id}`}
                   className="w-36 rounded border border-gray-300 px-2 py-1 text-xs text-gray-800 focus:border-blue-400 focus:outline-none"
                   placeholder="輸入金額"
                 />
@@ -161,6 +191,7 @@ export function DeductionCard({
             <button
               type="button"
               onClick={() => onStatusChange('confirmed')}
+              data-testid={`card-status-confirmed-${item.id}`}
               className="text-xs px-2.5 py-1 rounded border border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
             >
               確認適用
@@ -168,6 +199,7 @@ export function DeductionCard({
             <button
               type="button"
               onClick={() => onStatusChange('na')}
+              data-testid={`card-status-na-${item.id}`}
               className="text-xs px-2.5 py-1 rounded border border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
             >
               不適用
