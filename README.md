@@ -50,7 +50,7 @@ node -v
 
 ```bash
 corepack enable
-corepack prepare pnpm@latest --activate
+corepack prepare pnpm@11.0.3 --activate
 pnpm -v
 ```
 

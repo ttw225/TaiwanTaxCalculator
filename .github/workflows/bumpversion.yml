@@ -20,6 +20,11 @@ jobs:
         with:
           token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
           fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: pnpm
       - name: Create bump and changelog
         uses: commitizen-tools/commitizen-action@master
         with:
