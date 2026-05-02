@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react'
+import { getDeployInfo } from '../lib/deployInfo'
 import { SITE_CONFIG } from '../lib/siteConfig'
 
 export function SiteFooter() {
@@ -6,6 +7,7 @@ export function SiteFooter() {
     name, nameEn, taxYear, dataYear, lastUpdated,
     buyMeCoffeeUrl, githubNewIssueUrl, officialLinks,
   } = SITE_CONFIG
+  const deployInfo = getDeployInfo()
 
   return (
     <footer className="mt-16 border-t border-gray-200 bg-white">
@@ -117,6 +119,12 @@ export function SiteFooter() {
           <span>資料年度：{taxYear} 年度（{dataYear} 年 5 月申報）</span>
           <span className="hidden sm:inline">·</span>
           <span>最後更新：{lastUpdated}</span>
+          {deployInfo && (
+            <>
+              <span className="hidden sm:inline">·</span>
+              <span>{deployInfo.label}{deployInfo.detail ? ` · ${deployInfo.detail}` : ''}</span>
+            </>
+          )}
         </div>
       </div>
     </footer>

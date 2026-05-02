@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { NAV_ITEMS, SITE_CONFIG } from '../lib/siteConfig'
+import { getDeployInfo } from '../lib/deployInfo'
 import { ComingSoonNavItem } from './ComingSoonNavItem'
+import { DeployBadge } from './DeployBadge'
 
 interface Props {
   currentFeatureId: string
@@ -9,6 +11,7 @@ interface Props {
 
 export function SiteHeader({ currentFeatureId }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const deployInfo = getDeployInfo()
 
   // Close on Escape
   useEffect(() => {
@@ -32,13 +35,16 @@ export function SiteHeader({ currentFeatureId }: Props) {
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
 
         {/* Logo — left-aligned on all viewports (Task 1.2) */}
-        <div className="flex flex-col leading-tight">
-          <span className="font-semibold text-gray-900 text-base tracking-tight">
-            {SITE_CONFIG.name}
-          </span>
-          <span className="text-xs text-gray-400 hidden sm:block">
-            {SITE_CONFIG.nameEn}
-          </span>
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate font-semibold text-gray-900 text-base tracking-tight">
+              {SITE_CONFIG.name}
+            </span>
+            <span className="hidden text-xs text-gray-400 sm:block">
+              {SITE_CONFIG.nameEn}
+            </span>
+          </div>
+          {deployInfo && <DeployBadge deployInfo={deployInfo} />}
         </div>
 
         {/* Desktop nav */}
