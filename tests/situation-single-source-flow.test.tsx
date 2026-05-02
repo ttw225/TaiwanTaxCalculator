@@ -136,6 +136,16 @@ function clickByTestId(testId: string) {
   })
 }
 
+function changeInputByTestId(testId: string, value: string) {
+  const input = container.querySelector<HTMLInputElement>(`[data-testid="${testId}"]`)
+  if (!input) throw new Error(`Missing input with data-testid "${testId}"`)
+  const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
+  act(() => {
+    valueSetter?.call(input, value)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+}
+
 describe('situation single-source flow', () => {
   it('supports grouped situation add modal and synchronized removal', () => {
     renderApp()
@@ -211,11 +221,11 @@ describe('situation single-source flow', () => {
     expect(container.textContent).not.toContain('房屋租金扣除額（需進一步確認）')
   })
 
-  it('shows confirmation when removing a card with existing status', () => {
+  it('shows confirmation when removing a card with existing input', () => {
     renderApp()
     clickButtonByText('租屋居住')
     clickButtonByText('產生節稅清單')
-    clickByTestId('card-status-confirmed-rent-deduction')
+    changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 
     clickByTestId('remove-item-rent-deduction')
     expect(container.textContent).toContain('確認移除此項目')

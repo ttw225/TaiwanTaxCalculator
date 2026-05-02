@@ -68,10 +68,6 @@ export interface CardInlineField {
 
 export type CardInputMap = Record<string, Record<string, string>>
 
-export type CardStatus = 'unset' | 'confirmed' | 'na'
-
-export type CardStatusMap = Record<string, CardStatus>
-
 export type DecisionToolId = 'dividend' | 'couple_filing' | 'amt'
 
 export type AmountRange = 'none' | 'low' | 'medium' | 'high'

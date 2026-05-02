@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CardInputMap,
-  CardStatusMap,
   ChecklistItem,
   Situation,
   SituationId,
@@ -101,22 +100,11 @@ function getAddableSituationGroups(
 function hasCardData(
   itemId: string,
   cardInputMap: CardInputMap,
-  cardStatusMap: CardStatusMap,
 ): boolean {
-  const hasInput = Object.values(cardInputMap[itemId] ?? {}).some((value) => value !== '')
-  const hasStatus = (cardStatusMap[itemId] ?? 'unset') !== 'unset'
-  return hasInput || hasStatus
+  return Object.values(cardInputMap[itemId] ?? {}).some((value) => value !== '')
 }
 
 function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInputMap {
-  const next = { ...map }
-  for (const itemId of itemIds) {
-    delete next[itemId]
-  }
-  return next
-}
-
-function omitIdsFromCardStatusMap(map: CardStatusMap, itemIds: string[]): CardStatusMap {
   const next = { ...map }
   for (const itemId of itemIds) {
     delete next[itemId]
@@ -181,7 +169,6 @@ function App() {
   const [appState, setAppState] = useState<AppState>('selecting')
   const [selected, setSelected] = useState<SituationId[]>(() => loadSavedSituationSelection(SITUATION_IDS))
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>({})
-  const [cardStatusMap, setCardStatusMap] = useState<CardStatusMap>({})
   const [taxProfile, setTaxProfile] = useState<TaxProfile>(() => loadSavedTaxProfile())
   const [profilePersistence, setProfilePersistence] = useState<TaxProfilePersistenceMode>(() =>
     hasSavedTaxProfile() ? 'local' : 'session',
@@ -240,7 +227,6 @@ function App() {
   function handleReset() {
     setAppState('selecting')
     setCardInputMap({})
-    setCardStatusMap({})
     setSortedCardInputMap({})
     setPendingRemovalEffect(null)
     setScrollToItemId(null)
@@ -250,7 +236,6 @@ function App() {
     setSelected([])
     setAppState('selecting')
     setCardInputMap({})
-    setCardStatusMap({})
     setSortedCardInputMap({})
     setPendingRemovalEffect(null)
     setScrollToItemId(null)
@@ -284,7 +269,7 @@ function App() {
       .map((id) => SITUATION_LABEL_BY_ID.get(id) ?? id)
     const removedItemTitles = removedItemIds
       .map((id) => ITEM_BY_ID.get(id)?.title ?? id)
-    const hasInputLoss = removedItemIds.some((id) => hasCardData(id, cardInputMap, cardStatusMap))
+    const hasInputLoss = removedItemIds.some((id) => hasCardData(id, cardInputMap))
 
     return {
       nextSelected,
@@ -303,7 +288,6 @@ function App() {
   function applyRemovalEffect(effect: RemovalEffect) {
     setSelected(effect.nextSelected)
     setCardInputMap((prev) => omitIdsFromCardInputMap(prev, effect.removedItemIds))
-    setCardStatusMap((prev) => omitIdsFromCardStatusMap(prev, effect.removedItemIds))
     setSortedCardInputMap((prev) => omitIdsFromCardInputMap(prev, effect.removedItemIds))
     if (effect.nextSelected.length === 0) {
       // Keep this behavior as the canonical UX: empty checklist returns to page one.
@@ -348,10 +332,6 @@ function App() {
     })
   }, [])
 
-  function handleCardStatusChange(itemId: string, status: 'confirmed' | 'na') {
-    setCardStatusMap((prev) => ({ ...prev, [itemId]: status }))
-  }
-
   function handleTaxProfileChange(patch: Partial<TaxProfile>) {
     setTaxProfile((prev) => normalizeTaxProfile({ ...prev, ...patch }))
   }
@@ -395,10 +375,8 @@ function App() {
           itemSourceSituationLabelsById={itemSourceSituationLabelsById}
           addableSituationGroups={addableSituationGroups}
           cardInputMap={cardInputMap}
-          cardStatusMap={cardStatusMap}
           pendingRemovalImpact={pendingRemovalEffect?.preview ?? null}
           onCardInputChange={handleCardInputChange}
-          onCardStatusChange={handleCardStatusChange}
           onOpenPersonalized={() => setAppState('personalized')}
           onAddSituations={handleAddSituations}
           onRemoveItem={handleRemoveItem}
