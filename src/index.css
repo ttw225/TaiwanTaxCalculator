@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #111827 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-container {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  section,
+  .print-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+
+  details:not([open]) > *:not(summary) {
+    display: block;
+  }
+
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}

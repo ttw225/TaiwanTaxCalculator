@@ -1,0 +1,79 @@
+{
+  "valid_year": 114,
+  "filing_year": 2026,
+  "filing_window": "2026-05-01_to_2026-06-01",
+  "items": [
+    {
+      "key": "exemption_general",
+      "value": 97000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "114年度綜合所得稅及所得基本稅額相關免稅額、扣除額、課稅級距公告",
+      "source_url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0340003"
+    },
+    {
+      "key": "exemption_senior_70",
+      "value": 145500,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "同上",
+      "source_url": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0340003"
+    },
+    {
+      "key": "standard_deduction_single",
+      "value": 131000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "114年度綜合所得稅公告",
+      "source_url": "https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf"
+    },
+    {
+      "key": "standard_deduction_married",
+      "value": 262000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "114年度綜合所得稅公告",
+      "source_url": "https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf"
+    },
+    {
+      "key": "special_deduction_salary",
+      "value": 218000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "114年度綜合所得稅公告",
+      "source_url": "https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf"
+    },
+    {
+      "key": "special_deduction_disability",
+      "value": 218000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "114年度綜合所得稅公告",
+      "source_url": "https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf"
+    },
+    {
+      "key": "special_deduction_long_term_care",
+      "value": 180000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "114年度綜合所得稅結算申報報稅新措施總整理",
+      "source_url": "https://www.mof.gov.tw/singlehtml/384fb3077bb349ea973e7fc6f13b6974?cntId=1303f6fa4c0446fa8568d30915166ae6"
+    },
+    {
+      "key": "basic_living_expense",
+      "value": 213000,
+      "unit": "TWD",
+      "basis_law": "納稅者權利保護法及相關公告",
+      "basis_announcement": "114年度綜合所得稅結算申報報稅新措施總整理",
+      "source_url": "https://www.mof.gov.tw/singlehtml/384fb3077bb349ea973e7fc6f13b6974?cntId=1303f6fa4c0446fa8568d30915166ae6"
+    }
+  ],
+  "brackets": [
+    { "up_to": 590000, "rate": 0.05, "quick_deduction": 0 },
+    { "up_to": 1330000, "rate": 0.12, "quick_deduction": 41300 },
+    { "up_to": 2660000, "rate": 0.20, "quick_deduction": 147700 },
+    { "up_to": 4980000, "rate": 0.30, "quick_deduction": 413700 },
+    { "up_to": null, "rate": 0.40, "quick_deduction": 911700 }
+  ]
+}
+

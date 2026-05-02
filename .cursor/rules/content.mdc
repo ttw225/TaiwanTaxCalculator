@@ -1,0 +1,12 @@
+---
+description: Structured content and copy under src/content
+globs: "src/content/**"
+alwaysApply: false
+---
+
+# Content modules (`src/content/`)
+
+- Keep product naming and tax year consistent with `src/lib/siteConfig.ts` (`taxYear`, `dataYear`, `lastUpdated`, site name).
+- Tax figures referenced in copy should align with `src/data/numbers_2026.json` / `src/lib/numbers.ts` when citing amounts or brackets.
+- Preserve existing TypeScript export shapes consumed by components (`types/content.ts`, consumers in `src/components/`); update tests if schemas change.
+- Keep tone factual and cautious; avoid definitive legal advice phrasing unless the existing pattern already allows it.

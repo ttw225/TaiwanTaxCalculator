@@ -1,0 +1,738 @@
+import { describe, it, expect } from 'vitest'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from '../src/content/deductions'
+import {
+  applyPublicationGate,
+  filterBySituations,
+  groupByCategory,
+  CATEGORY_LABELS,
+} from '../src/lib/checklist'
+import { formatChecklistMarkdown } from '../src/lib/exportChecklist'
+import { ChecklistResult } from '../src/components/ChecklistResult'
+import { DeductionCard } from '../src/components/DeductionCard'
+import type { CardInlineField, ChecklistItem } from '../src/types/content'
+
+function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
+  return {
+    id: 'test-item',
+    title: 'Test',
+    category: 'general_deductions',
+    situations: ['salary_income'],
+    why_it_matters: 'test',
+    eligibility_cues: [],
+    documents_to_prepare: [],
+    limitations: [],
+    source_refs: [{ source_id: 'src', label: 'Label', authority: 'Auth' }],
+    verification_status: 'verified',
+    disclaimer_level: 'low',
+    next_action: 'Do it',
+    ...overrides,
+  }
+}
+
+// ── Publication gate ──────────────────────────────────────────────────────────
+
+describe('applyPublicationGate', () => {
+  it('excludes unverified items', () => {
+    const items = applyPublicationGate(CHECKLIST_ITEMS)
+    expect(items.every((i) => i.verification_status !== 'unverified')).toBe(true)
+  })
+
+  it('keeps verified items', () => {
+    const items = applyPublicationGate(CHECKLIST_ITEMS)
+    expect(items.some((i) => i.verification_status === 'verified')).toBe(true)
+  })
+
+  it('keeps partially_verified items', () => {
+    const items = applyPublicationGate(CHECKLIST_ITEMS)
+    expect(items.some((i) => i.verification_status === 'partially_verified')).toBe(true)
+  })
+})
+
+// ── Situation-to-item mapping ─────────────────────────────────────────────────
+
+describe('filterBySituations', () => {
+  const published = applyPublicationGate(CHECKLIST_ITEMS)
+
+  it('returns empty array when no situations selected', () => {
+    expect(filterBySituations(published, [])).toHaveLength(0)
+  })
+
+  it('salary_income returns standard deduction and salary special deduction', () => {
+    const items = filterBySituations(published, ['salary_income'])
+    const ids = items.map((i) => i.id)
+    expect(ids).toContain('standard-deduction-single')
+    expect(ids).toContain('salary-special-deduction')
+  })
+
+  it('married returns married standard deduction', () => {
+    const items = filterBySituations(published, ['married'])
+    const ids = items.map((i) => i.id)
+    expect(ids).toContain('standard-deduction-married')
+  })
+
+  it('married with salary_income does not return single standard deduction', () => {
+    const items = filterBySituations(published, ['married', 'salary_income'])
+    const ids = items.map((i) => i.id)
+    expect(ids).toContain('standard-deduction-married')
+    expect(ids).not.toContain('standard-deduction-single')
+  })
+
+  it('medical_expenses returns medical deduction item', () => {
+    const items = filterBySituations(published, ['medical_expenses'])
+    const ids = items.map((i) => i.id)
+    expect(ids).toContain('medical-deduction')
+  })
+
+  it('rent returns rent deduction item', () => {
+    const items = filterBySituations(published, ['rent'])
+    const ids = items.map((i) => i.id)
+    expect(ids).toContain('rent-deduction')
+  })
+
+  it('overseas_income returns AMT item', () => {
+    const items = filterBySituations(published, ['overseas_income'])
+    const ids = items.map((i) => i.id)
+    expect(ids).toContain('overseas-income-amt')
+  })
+
+  it('dependents returns general exemption item', () => {
+    const items = filterBySituations(published, ['dependents'])
+    const ids = items.map((i) => i.id)
+    expect(ids).toContain('exemption-general')
+  })
+
+  it('multiple situations return union of matching items', () => {
+    const single = filterBySituations(published, ['donations'])
+    const combined = filterBySituations(published, ['donations', 'insurance'])
+    expect(combined.length).toBeGreaterThan(single.length)
+  })
+
+  it('insurance returns insurance deduction item', () => {
+    const ids = filterBySituations(published, ['insurance']).map((i) => i.id)
+    expect(ids).toContain('insurance-deduction')
+  })
+
+  it('disability returns disability special deduction', () => {
+    const ids = filterBySituations(published, ['disability']).map((i) => i.id)
+    expect(ids).toContain('disability-special-deduction')
+  })
+
+  it('long_term_care returns long-term care deduction', () => {
+    const ids = filterBySituations(published, ['long_term_care']).map((i) => i.id)
+    expect(ids).toContain('long-term-care-deduction')
+  })
+
+  it('mortgage_interest returns mortgage interest deduction', () => {
+    const ids = filterBySituations(published, ['mortgage_interest']).map((i) => i.id)
+    expect(ids).toContain('mortgage-interest-deduction')
+  })
+
+  it('childcare returns childcare deduction', () => {
+    const ids = filterBySituations(published, ['childcare']).map((i) => i.id)
+    expect(ids).toContain('childcare-deduction')
+  })
+
+  it('dividends returns dividends tax choice item', () => {
+    const ids = filterBySituations(published, ['dividends']).map((i) => i.id)
+    expect(ids).toContain('dividends-tax-choice')
+  })
+
+  it('every SITUATIONS id maps to at least one published item', () => {
+    for (const situation of SITUATIONS) {
+      const items = filterBySituations(published, [situation.id])
+      expect(items.length, `situation "${situation.id}" has no published items`).toBeGreaterThan(0)
+    }
+  })
+})
+
+// ── Category grouping ─────────────────────────────────────────────────────────
+
+describe('groupByCategory', () => {
+  const published = applyPublicationGate(CHECKLIST_ITEMS)
+
+  it('returns groups in priority order: exemptions before general before special before further_check', () => {
+    const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
+    const groups = groupByCategory(all)
+    const categories = groups.map((g) => g.category)
+    const exemptIdx = categories.indexOf('exemptions')
+    const generalIdx = categories.indexOf('general_deductions')
+    const specialIdx = categories.indexOf('special_deductions')
+    const furtherIdx = categories.indexOf('further_check')
+    expect(exemptIdx).toBeLessThan(generalIdx)
+    expect(generalIdx).toBeLessThan(specialIdx)
+    expect(specialIdx).toBeLessThan(furtherIdx)
+  })
+
+  it('each group has a human-readable label', () => {
+    const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
+    const groups = groupByCategory(all)
+    for (const group of groups) {
+      expect(group.label).toBeTruthy()
+    }
+  })
+
+  it('further_check items have disclaimer_level high', () => {
+    const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
+    const groups = groupByCategory(all)
+    const fc = groups.find((g) => g.category === 'further_check')
+    if (fc) {
+      expect(fc.items.every((i) => i.disclaimer_level === 'high')).toBe(true)
+    }
+  })
+})
+
+// ── Source requirements ───────────────────────────────────────────────────────
+
+describe('checklist item source integrity', () => {
+  it('every item has at least one source_ref', () => {
+    for (const item of CHECKLIST_ITEMS) {
+      expect(item.source_refs.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('every source_ref has a non-empty source_id and label', () => {
+    for (const item of CHECKLIST_ITEMS) {
+      for (const ref of item.source_refs) {
+        expect(ref.source_id).toBeTruthy()
+        expect(ref.label).toBeTruthy()
+      }
+    }
+  })
+
+  it('every item has a non-empty next_action', () => {
+    for (const item of CHECKLIST_ITEMS) {
+      expect(item.next_action).toBeTruthy()
+    }
+  })
+
+  it('every item has a non-empty why_it_matters', () => {
+    for (const item of CHECKLIST_ITEMS) {
+      expect(item.why_it_matters).toBeTruthy()
+    }
+  })
+
+  it('all source_ids use stable public identifiers', () => {
+    for (const item of CHECKLIST_ITEMS) {
+      for (const ref of item.source_refs) {
+        expect(ref.source_id).toMatch(/^[a-z0-9_:-]+$/)
+      }
+    }
+  })
+
+  it('every source_ref has public source detail text', () => {
+    for (const item of CHECKLIST_ITEMS) {
+      for (const ref of item.source_refs) {
+        expect(ref.label).toBeTruthy()
+        expect(ref.authority).toBeTruthy()
+      }
+    }
+  })
+})
+
+// ── User-facing traceability ─────────────────────────────────────────────────
+
+describe('ChecklistResult traceability UI', () => {
+  const groups = groupByCategory(applyPublicationGate(CHECKLIST_ITEMS))
+  const html = renderToStaticMarkup(
+    createElement(ChecklistResult, {
+      groups,
+      totalSelected: SITUATIONS.length,
+      selectedSituations: [],
+      cardInputMap: {},
+      cardStatusMap: {},
+      onCardInputChange: () => undefined,
+      onCardStatusChange: () => undefined,
+      onOpenPersonalized: () => undefined,
+      onReset: () => undefined,
+    }),
+  )
+
+  it('shows public reference and filing reminder wording', () => {
+    expect(html).toContain('來源與官方參考')
+    expect(html).toContain('使用提醒')
+    expect(html).toContain('財政部電子申報系統')
+  })
+
+  it('does not expose internal verification status labels', () => {
+    expect(html).not.toContain('已驗證')
+    expect(html).not.toContain('部分驗證')
+    expect(html).not.toContain('研究待補')
+    expect(html).not.toContain('verified')
+    expect(html).not.toContain('partially_verified')
+    expect(html).not.toContain('unverified')
+  })
+
+  it('shows high-risk official confirmation language', () => {
+    expect(html).toContain('請以財政部電子申報系統與官方資料確認')
+  })
+})
+
+// ── Standard vs itemized filing reminder panel ────────────────────────────────
+
+describe('ChecklistResult standard vs itemized filing reminder panel', () => {
+  const published = applyPublicationGate(CHECKLIST_ITEMS)
+
+  function renderResult(selectedSituations: Parameters<typeof filterBySituations>[1]) {
+    const groups = groupByCategory(filterBySituations(published, selectedSituations))
+    return renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: selectedSituations.length,
+        selectedSituations,
+        cardInputMap: {},
+        cardStatusMap: {},
+        onCardInputChange: () => undefined,
+        onCardStatusChange: () => undefined,
+        onOpenPersonalized: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+  }
+
+  it('shows the single standard deduction baseline for non-married users', () => {
+    const html = renderResult(['salary_income'])
+    expect(html).toContain('data-testid="standard-itemized-panel"')
+    expect(html).toContain('單身標準扣除額')
+    expect(html).toContain('131,000 元')
+  })
+
+  it('shows the married standard deduction baseline and hides the single standard item for married users', () => {
+    const html = renderResult(['married', 'salary_income'])
+    expect(html).toContain('配偶合併申報標準扣除額')
+    expect(html).toContain('262,000 元')
+    expect(html).toContain('標準扣除額（配偶合併申報）')
+    expect(html).not.toContain('標準扣除額（單身）')
+  })
+
+  it('shows document prompts for selected itemizable situations', () => {
+    const html = renderResult(['donations', 'medical_expenses', 'mortgage_interest', 'rent'])
+    expect(html).toContain('已選情境的列舉文件提示')
+    expect(html).toContain('正式捐贈收據')
+    expect(html).toContain('醫療收據正本')
+    expect(html).toContain('銀行房貸年度利息繳納證明')
+    expect(html).toContain('租賃契約書影本')
+  })
+
+  it('stays visible with an empty itemized prompt state', () => {
+    const html = renderResult(['salary_income'])
+    expect(html).toContain('data-testid="standard-itemized-panel"')
+    expect(html).toContain('目前沒有選到列舉扣除相關情境')
+  })
+
+  it('includes source and official confirmation language without best-choice claims', () => {
+    const html = renderResult(['donations'])
+    expect(html).toContain('114年度申報書說明')
+    expect(html).toContain('財政部電子申報系統')
+    expect(html).toContain('不計算或宣稱哪一種較適合')
+    expect(html).not.toContain('最佳選擇')
+    expect(html).not.toContain('最划算')
+  })
+})
+
+// ── Annual numbers from canonical source ──────────────────────────────────────
+
+describe('annual number sourcing', () => {
+  it('standard_deduction_single item why_it_matters contains 131,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'standard-deduction-single')
+    expect(item?.why_it_matters).toContain('131,000')
+  })
+
+  it('standard_deduction_married item why_it_matters contains 262,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'standard-deduction-married')
+    expect(item?.why_it_matters).toContain('262,000')
+  })
+
+  it('exemption-general item why_it_matters contains 97,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'exemption-general')
+    expect(item?.why_it_matters).toContain('97,000')
+  })
+
+  it('long-term-care item why_it_matters contains 180,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'long-term-care-deduction')
+    expect(item?.why_it_matters).toContain('180,000')
+  })
+
+  it('salary-special-deduction why_it_matters contains 218,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'salary-special-deduction')
+    expect(item?.why_it_matters).toContain('218,000')
+  })
+
+  it('disability-special-deduction why_it_matters contains 218,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'disability-special-deduction')
+    expect(item?.why_it_matters).toContain('218,000')
+  })
+})
+
+// ── CATEGORY_LABELS coverage ──────────────────────────────────────────────────
+
+describe('CATEGORY_LABELS', () => {
+  it('covers all categories used in CHECKLIST_ITEMS', () => {
+    const usedCategories = new Set(CHECKLIST_ITEMS.map((i) => i.category))
+    for (const cat of usedCategories) {
+      expect(CATEGORY_LABELS[cat]).toBeTruthy()
+    }
+  })
+})
+
+// ── SITUATION_GROUPS coverage ─────────────────────────────────────────────────
+
+describe('SITUATION_GROUPS', () => {
+  const allGroupedIds = SITUATION_GROUPS.flatMap((g) => g.situationIds)
+  const allSituationIds = SITUATIONS.map((s) => s.id)
+
+  it('contains exactly 4 groups', () => {
+    expect(SITUATION_GROUPS).toHaveLength(4)
+  })
+
+  it('groups are in filing order: filing-method, income-sources, family-dependents, itemizable-expenses', () => {
+    expect(SITUATION_GROUPS.map((g) => g.id)).toEqual([
+      'filing-method',
+      'income-sources',
+      'family-dependents',
+      'itemizable-expenses',
+    ])
+  })
+
+  it('union of all situationIds equals all 13 SITUATIONS ids', () => {
+    expect(allGroupedIds.sort()).toEqual(allSituationIds.sort())
+  })
+
+  it('no situationId appears in more than one group', () => {
+    const seen = new Set<string>()
+    for (const id of allGroupedIds) {
+      expect(seen.has(id), `duplicate situationId "${id}"`).toBe(false)
+      seen.add(id)
+    }
+  })
+
+  it('each group has a non-empty title and description', () => {
+    for (const group of SITUATION_GROUPS) {
+      expect(group.title).toBeTruthy()
+      expect(group.description).toBeTruthy()
+    }
+  })
+})
+
+// ── ChecklistResult export UI ─────────────────────────────────────────────────
+
+describe('ChecklistResult export panel', () => {
+  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const allGroups = groupByCategory(filterBySituations(published, SITUATIONS.map((s) => s.id)))
+
+  const htmlWithResults = renderToStaticMarkup(
+    createElement(ChecklistResult, {
+      groups: allGroups,
+      totalSelected: SITUATIONS.length,
+      selectedSituations: [],
+      cardInputMap: {},
+      cardStatusMap: {},
+      onCardInputChange: () => undefined,
+      onCardStatusChange: () => undefined,
+      onOpenPersonalized: () => undefined,
+      onReset: () => undefined,
+    }),
+  )
+
+  const htmlEmpty = renderToStaticMarkup(
+    createElement(ChecklistResult, {
+      groups: [],
+      totalSelected: 0,
+      selectedSituations: [],
+      cardInputMap: {},
+      cardStatusMap: {},
+      onCardInputChange: () => undefined,
+      onCardStatusChange: () => undefined,
+      onOpenPersonalized: () => undefined,
+      onReset: () => undefined,
+    }),
+  )
+
+  it('non-empty result shows copy checklist button', () => {
+    expect(htmlWithResults).toContain('data-testid="copy-checklist-btn"')
+  })
+
+  it('non-empty result shows download checklist button', () => {
+    expect(htmlWithResults).toContain('data-testid="download-checklist-btn"')
+  })
+
+  it('non-empty result shows print or save as PDF button', () => {
+    expect(htmlWithResults).toContain('data-testid="print-checklist-btn"')
+    expect(htmlWithResults).toContain('列印 / 另存 PDF')
+  })
+
+  it('non-empty result shows local-processing notice', () => {
+    expect(htmlWithResults).toContain('瀏覽器中產生')
+  })
+
+  it('result page links to the independent personalized worksheet page', () => {
+    expect(htmlWithResults).toContain('data-testid="open-personalized-page-btn"')
+    expect(htmlWithResults).toContain('開啟工作表')
+  })
+
+  it('result page does not show the removed income type radio group', () => {
+    expect(htmlWithResults).not.toContain('name="income_type"')
+    expect(htmlWithResults).not.toContain('你的主要收入來源是？')
+  })
+
+  it('non-empty result shows user-managed storage notice', () => {
+    expect(htmlWithResults).toContain('請自行保管')
+  })
+
+  it('non-empty result still shows usage reminder', () => {
+    expect(htmlWithResults).toContain('使用提醒')
+    expect(htmlWithResults).toContain('財政部電子申報系統')
+  })
+
+  it('non-empty result still shows official confirmation language', () => {
+    expect(htmlWithResults).toContain('請以財政部電子申報系統與官方資料確認')
+  })
+
+  it('empty result does not show copy button', () => {
+    expect(htmlEmpty).not.toContain('data-testid="copy-checklist-btn"')
+  })
+
+  it('empty result does not show download button', () => {
+    expect(htmlEmpty).not.toContain('data-testid="download-checklist-btn"')
+  })
+
+  it('empty result does not show print button', () => {
+    expect(htmlEmpty).not.toContain('data-testid="print-checklist-btn"')
+  })
+
+  it('empty result does not show export privacy notice', () => {
+    expect(htmlEmpty).not.toContain('data-testid="export-privacy-notice"')
+  })
+
+  it('rendered markup includes print stylesheet hook classes', () => {
+    expect(htmlWithResults).toContain('print-container')
+    expect(htmlWithResults).toContain('print-card')
+    expect(htmlWithResults).toContain('no-print')
+  })
+})
+
+// ── formatChecklistMarkdown ───────────────────────────────────────────────────
+
+describe('formatChecklistMarkdown', () => {
+  const medicalItem = {
+    id: 'medical-deduction',
+    title: 'Medical expense deduction',
+    category: 'general_deductions' as const,
+    situations: ['medical_expenses' as const],
+    why_it_matters: 'Reduces taxable income for qualifying medical costs.',
+    eligibility_cues: [],
+    documents_to_prepare: ['Medical receipts'],
+    limitations: ['Only qualifying expenses apply'],
+    source_refs: [
+      { source_id: 'ntbt_medical_expenses', label: 'MOF filing guide', authority: '財政部' },
+    ],
+    verification_status: 'verified' as const,
+    disclaimer_level: 'medium' as const,
+    next_action: '申報時填入醫療費用',
+  }
+
+  const groups = [
+    {
+      category: 'general_deductions' as const,
+      label: 'General deductions',
+      items: [medicalItem],
+    },
+  ]
+
+  const md = formatChecklistMarkdown(groups, { totalSelected: 1 })
+
+  // Requirement: Markdown Export Content — section/content
+  it('contains the category label as a heading', () => {
+    expect(md).toContain('General deductions')
+  })
+
+  it('contains the item title', () => {
+    expect(md).toContain('Medical expense deduction')
+  })
+
+  it('contains the document to prepare as a checklist bullet', () => {
+    expect(md).toContain('Medical receipts')
+  })
+
+  it('contains the limitation as a caution bullet', () => {
+    expect(md).toContain('Only qualifying expenses apply')
+  })
+
+  it('contains the public source label', () => {
+    expect(md).toContain('MOF filing guide')
+  })
+
+  it('contains the source authority', () => {
+    expect(md).toContain('財政部')
+  })
+
+  it('includes the next action', () => {
+    expect(md).toContain('申報時填入醫療費用')
+  })
+
+  it('includes reminder wording about confirming in official filing system', () => {
+    expect(md).toContain('財政部電子申報系統')
+  })
+
+  it('includes selected situation count', () => {
+    expect(md).toContain('1 項')
+  })
+
+  // Requirement: Internal Metadata Exclusion
+  it('does not contain verification_status field name', () => {
+    expect(md).not.toContain('verification_status')
+  })
+
+  it('does not contain internal verification labels', () => {
+    expect(md).not.toContain('verified')
+    expect(md).not.toContain('partially_verified')
+    expect(md).not.toContain('unverified')
+  })
+
+  it('does not contain raw source_id', () => {
+    expect(md).not.toContain('ntbt_medical_expenses')
+  })
+
+  // Requirement: Export Privacy Notice — local generation and user-managed storage wording
+  it('includes local-generation wording', () => {
+    expect(md).toContain('瀏覽器中產生')
+  })
+
+  it('includes user-managed storage wording', () => {
+    expect(md).toContain('請自行保管')
+  })
+})
+
+// ── DeductionCard inline input ────────────────────────────────────────────────
+
+describe('DeductionCard inline input fields', () => {
+  const salaryField: CardInlineField = {
+    id: 'salary_amount',
+    label: '今年薪資所得總額',
+    type: 'number',
+    unit: '元',
+    capKey: 'special_deduction_salary',
+  }
+
+  const noCapField: CardInlineField = {
+    id: 'donation_amount',
+    label: '捐贈金額',
+    type: 'number',
+    unit: '元',
+    capKey: null,
+  }
+
+  it('renders without input area when inlineFields is empty', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, { item: makeItem(), inlineFields: [] }),
+    )
+    expect(html).not.toContain('type="number"')
+  })
+
+  it('renders labeled number input for each inline field', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [salaryField],
+        inputValues: {},
+      }),
+    )
+    expect(html).toContain('type="number"')
+    expect(html).toContain('今年薪資所得總額')
+    expect(html).toContain('元')
+  })
+
+  it('shows within-cap feedback when value <= cap', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [salaryField],
+        inputValues: { salary_amount: '100000' },
+      }),
+    )
+    expect(html).toContain('填入金額在可申報範圍內')
+    expect(html).toContain('218,000')
+  })
+
+  it('shows exceeds-cap feedback when value > cap', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [salaryField],
+        inputValues: { salary_amount: '300000' },
+      }),
+    )
+    expect(html).toContain('填入金額超過上限')
+    expect(html).toContain('218,000')
+  })
+
+  it('shows no feedback when field is empty', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [salaryField],
+        inputValues: { salary_amount: '' },
+      }),
+    )
+    expect(html).not.toContain('填入金額在可申報範圍內')
+    expect(html).not.toContain('填入金額超過上限')
+  })
+
+  it('shows no feedback when capKey is null', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [noCapField],
+        inputValues: { donation_amount: '50000' },
+      }),
+    )
+    expect(html).not.toContain('填入金額在可申報範圍內')
+    expect(html).not.toContain('填入金額超過上限')
+  })
+
+  it('shows privacy notice and disclaimer when inlineFields is non-empty', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [noCapField],
+        inputValues: {},
+      }),
+    )
+    expect(html).toContain('資料僅在您的瀏覽器處理，不會傳送至任何伺服器')
+    expect(html).toContain('實際可申報金額請以官方系統確認')
+  })
+
+  it('no privacy notice when inlineFields is empty', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, { item: makeItem(), inlineFields: [] }),
+    )
+    expect(html).not.toContain('資料僅在您的瀏覽器處理')
+  })
+})
+
+// ── DeductionCard status markers ──────────────────────────────────────────────
+
+describe('DeductionCard status markers (three-state)', () => {
+  it('shows action buttons when status is unset', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, { item: makeItem(), status: 'unset', onStatusChange: () => undefined }),
+    )
+    expect(html).toContain('確認適用')
+    expect(html).toContain('不適用')
+  })
+
+  it('shows confirmed badge when status is confirmed', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, { item: makeItem(), status: 'confirmed' }),
+    )
+    expect(html).toContain('確認適用')
+  })
+
+  it('shows na badge when status is na', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, { item: makeItem(), status: 'na' }),
+    )
+    expect(html).toContain('不適用')
+  })
+})
