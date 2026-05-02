@@ -54,14 +54,19 @@ jobs:
           VITE_COMMIT_SHA: ${{ github.sha }}
 
       - name: Deploy dev test site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin gh-pages:refs/remotes/origin/gh-pages || true
-          if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
-            git worktree add pages-worktree origin/gh-pages
+          remote_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git clone --branch gh-pages --single-branch "$remote_url" pages-worktree
           else
-            git worktree add --orphan gh-pages pages-worktree
+            mkdir pages-worktree
+            git -C pages-worktree init
+            git -C pages-worktree checkout -b gh-pages
+            git -C pages-worktree remote add origin "$remote_url"
           fi
           mkdir -p pages-worktree/dev
           rm -rf pages-worktree/dev
@@ -114,14 +119,19 @@ jobs:
           VITE_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Deploy PR preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin gh-pages:refs/remotes/origin/gh-pages || true
-          if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
-            git worktree add pages-worktree origin/gh-pages
+          remote_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git clone --branch gh-pages --single-branch "$remote_url" pages-worktree
           else
-            git worktree add --orphan gh-pages pages-worktree
+            mkdir pages-worktree
+            git -C pages-worktree init
+            git -C pages-worktree checkout -b gh-pages
+            git -C pages-worktree remote add origin "$remote_url"
           fi
           preview_path="pages-worktree/pr-preview/pr-${{ github.event.pull_request.number }}"
           mkdir -p "$preview_path"
@@ -182,15 +192,17 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
 
       - name: Remove PR preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin gh-pages:refs/remotes/origin/gh-pages || true
-          if ! git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
+          remote_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if ! git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
             echo "No gh-pages branch exists; nothing to clean up."
             exit 0
           fi
-          git worktree add pages-worktree origin/gh-pages
+          git clone --branch gh-pages --single-branch "$remote_url" pages-worktree
           preview_path="pages-worktree/pr-preview/pr-${{ github.event.pull_request.number }}"
           if [ ! -d "$preview_path" ]; then
             echo "No PR preview directory exists; nothing to clean up."
