@@ -28,7 +28,7 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          tag: v${{ env.REVISION }}
+          tag: ${{ env.REVISION }}
           bodyFile: "body.md"
           skipIfReleaseExists: true
         env:
