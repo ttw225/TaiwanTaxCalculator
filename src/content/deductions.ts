@@ -182,14 +182,13 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     title: '綜合所得總額',
     category: 'gross_income',
     situations: ['salary_income'],
-    why_it_matters: `填入去年（114年1月至12月）本人與親屬**薪資收入**。\n系統自動套用「薪資所得特別扣除額」（每人最多 ${n('special_deduction_salary')} 元），計算出綜合所得總額。`,
+    why_it_matters: `填入去年（114年1月至12月）本人與親屬的「薪資收入」。系統自動套用「薪資所得特別扣除額」（每人最多 ${n('special_deduction_salary')} 元），計算出綜合所得總額。`,
     eligibility_cues: [
       '有薪資收入的納稅義務人、配偶及申報受扶養親屬均需申報',
-      '薪資所得特別扣除額每人最高 218,000 元，不超過實際薪資收入',
+      `薪資所得特別扣除額每人最高 ${n('special_deduction_salary')} 元，不超過實際薪資收入`,
     ],
     documents_to_prepare: [],
     limitations: [
-      '本試算以薪資所得為範圍；如有利息、租賃、執行業務等其他所得，需另行申報',
       '申報系統通常自動帶入薪資資料，請確認金額正確',
     ],
     source_refs: [SRC_ITA, SRC_MANUAL],
