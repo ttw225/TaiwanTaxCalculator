@@ -510,8 +510,6 @@ export function ChecklistResult({
         <DecisionToolsPanel selectedSituations={selectedSituations} />
       </div>
 
-      <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
-
       {!hasResults && (
         <div className="py-12 text-center text-gray-400">
           <p>目前清單中沒有項目</p>
@@ -531,6 +529,9 @@ export function ChecklistResult({
             <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700">
               {group.label}
             </h2>
+            {group.category === 'general_deductions' && (
+              <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
+            )}
             <div className="space-y-3">
               {group.items.map((item) => (
                 <div

@@ -362,6 +362,19 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     expect(html).toContain('131,000 元')
   })
 
+  it('renders the standard vs itemized panel inside the general deductions section', () => {
+    const html = renderResult(['salary_income'])
+    const generalSectionIndex = html.indexOf('data-testid="checklist-section-general_deductions"')
+    const generalLabelIndex = html.indexOf('一般扣除額（標準或列舉擇一）', generalSectionIndex)
+    const panelIndex = html.indexOf('data-testid="standard-itemized-panel"', generalSectionIndex)
+    const specialSectionIndex = html.indexOf('data-testid="checklist-section-special_deductions"')
+
+    expect(generalSectionIndex).toBeGreaterThanOrEqual(0)
+    expect(generalLabelIndex).toBeGreaterThan(generalSectionIndex)
+    expect(panelIndex).toBeGreaterThan(generalLabelIndex)
+    expect(specialSectionIndex === -1 || panelIndex < specialSectionIndex).toBe(true)
+  })
+
   it('shows the married standard deduction baseline and hides the single standard item for married users', () => {
     const html = renderResult(['married', 'salary_income'])
     expect(html).toContain('配偶合併申報標準扣除額')
