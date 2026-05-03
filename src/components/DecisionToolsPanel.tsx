@@ -1,4 +1,4 @@
-import type { DecisionToolId, SituationId, TaxProfile } from '../types/content'
+import type { DecisionToolId, SituationId } from '../types/content'
 import { DividendTool } from './tools/DividendTool'
 import { CoupleFilingTool } from './tools/CoupleFilingTool'
 import { AmtTool } from './tools/AmtTool'
@@ -12,7 +12,7 @@ interface DecisionTool {
   id: DecisionToolId
   meta: { title: string; subtitle: string }
   trigger: SituationId
-  component: React.ComponentType<{ taxProfile?: TaxProfile }>
+  component: React.ComponentType
 }
 
 const TOOLS: DecisionTool[] = [
@@ -38,13 +38,11 @@ const TOOLS: DecisionTool[] = [
 
 interface Props {
   selectedSituations: SituationId[]
-  taxProfile?: TaxProfile
 }
 
-export function DecisionToolsPanel({ selectedSituations, taxProfile }: Props) {
+export function DecisionToolsPanel({ selectedSituations }: Props) {
   const visibleTools = TOOLS.filter((t) => selectedSituations.includes(t.trigger))
   if (visibleTools.length === 0) return null
-  const profileKey = JSON.stringify(taxProfile ?? {})
 
   return (
     <details className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
@@ -67,7 +65,7 @@ export function DecisionToolsPanel({ selectedSituations, taxProfile }: Props) {
             <section key={tool.id} className="border-t border-amber-200 pt-4 first:border-t-0 first:pt-0">
               <h3 className="text-sm font-semibold text-gray-800 mb-0.5">{tool.meta.title}</h3>
               <p className="text-xs text-gray-500 mb-3">{tool.meta.subtitle}</p>
-              <Component key={`${tool.id}-${profileKey}`} taxProfile={taxProfile} />
+              <Component />
             </section>
           )
         })}

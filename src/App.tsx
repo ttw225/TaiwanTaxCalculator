@@ -5,21 +5,10 @@ import type {
   Situation,
   SituationId,
   SituationGroup,
-  TaxProfile,
-  TaxProfilePersistenceMode,
 } from './types/content'
 import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from './content/deductions'
 import { applyPublicationGate, filterBySituations, groupByCategory, sortByTriage } from './lib/checklist'
 import type { CategoryGroup } from './lib/checklist'
-import {
-  clearSavedTaxProfile,
-  createPersonalizedReport,
-  EMPTY_TAX_PROFILE,
-  hasSavedTaxProfile,
-  loadSavedTaxProfile,
-  normalizeTaxProfile,
-  saveTaxProfile,
-} from './lib/personalizedReport'
 import {
   clearSavedSituationSelection,
   loadSavedSituationSelection,
@@ -30,7 +19,6 @@ import {
 import { SituationSelector } from './components/SituationSelector'
 import { ChecklistResult } from './components/ChecklistResult'
 import type { RemovalImpactPreview } from './components/ChecklistResult'
-import { PersonalizedTaxPage } from './components/PersonalizedTaxPage'
 import { SiteHeader } from './components/SiteHeader'
 import { SiteFooter } from './components/SiteFooter'
 import { BackToTopButton } from './components/BackToTopButton'
@@ -41,7 +29,7 @@ const ITEM_BY_ID = new Map(PUBLISHED_ITEMS.map((item) => [item.id, item]))
 const SITUATION_LABEL_BY_ID = new Map(SITUATIONS.map((s) => [s.id, s.label]))
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
 
-type AppState = 'selecting' | 'results' | 'personalized'
+type AppState = 'selecting' | 'results'
 
 interface EffectiveState {
   effectiveItemIds: Set<string>
@@ -169,10 +157,6 @@ function App() {
   const [appState, setAppState] = useState<AppState>('selecting')
   const [selected, setSelected] = useState<SituationId[]>(() => loadSavedSituationSelection(SITUATION_IDS))
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>({})
-  const [taxProfile, setTaxProfile] = useState<TaxProfile>(() => loadSavedTaxProfile())
-  const [profilePersistence, setProfilePersistence] = useState<TaxProfilePersistenceMode>(() =>
-    hasSavedTaxProfile() ? 'local' : 'session',
-  )
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [sortedCardInputMap, setSortedCardInputMap] = useState<CardInputMap>({})
@@ -201,14 +185,6 @@ function App() {
     return () => window.removeEventListener('storage', handleStorage)
   }, [])
 
-  useEffect(() => {
-    if (profilePersistence === 'local') {
-      saveTaxProfile(taxProfile)
-    } else {
-      clearSavedTaxProfile()
-    }
-  }, [profilePersistence, taxProfile])
-
   function toggleSituation(id: SituationId) {
     setPendingRemovalEffect(null)
     setSelected((prev) =>
@@ -222,14 +198,6 @@ function App() {
       setAppState('results')
       window.scrollTo(0, 0)
     }
-  }
-
-  function handleReset() {
-    setAppState('selecting')
-    setCardInputMap({})
-    setSortedCardInputMap({})
-    setPendingRemovalEffect(null)
-    setScrollToItemId(null)
   }
 
   function handleClearSelections() {
@@ -332,39 +300,12 @@ function App() {
     })
   }, [])
 
-  function handleTaxProfileChange(patch: Partial<TaxProfile>) {
-    setTaxProfile((prev) => normalizeTaxProfile({ ...prev, ...patch }))
-  }
-
-  function handleTaxProfileClear() {
-    setTaxProfile(EMPTY_TAX_PROFILE)
-    setProfilePersistence('session')
-    clearSavedTaxProfile()
-  }
-
   const content = (() => {
     const { effectiveItems } = getEffectiveState(selected)
     const grouped = groupByCategory(effectiveItems)
     const groups = sortByTriage(grouped, sortedCardInputMap)
     const addableSituationGroups = getAddableSituationGroups(SITUATION_GROUPS, SITUATIONS, selected)
     const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
-    const personalizedReport = createPersonalizedReport(taxProfile, groups)
-
-    if (appState === 'personalized') {
-      return (
-        <PersonalizedTaxPage
-          taxProfile={taxProfile}
-          personalizedReport={personalizedReport}
-          profilePersistence={profilePersistence}
-          hasChecklist={selected.length > 0}
-          onTaxProfileChange={handleTaxProfileChange}
-          onProfilePersistenceChange={setProfilePersistence}
-          onTaxProfileClear={handleTaxProfileClear}
-          onBackToChecklist={() => setAppState(selected.length > 0 ? 'results' : 'selecting')}
-          onBackToSelection={handleReset}
-        />
-      )
-    }
 
     if (appState === 'results') {
       return (
@@ -377,7 +318,6 @@ function App() {
           cardInputMap={cardInputMap}
           pendingRemovalImpact={pendingRemovalEffect?.preview ?? null}
           onCardInputChange={handleCardInputChange}
-          onOpenPersonalized={() => setAppState('personalized')}
           onAddSituations={handleAddSituations}
           onRemoveItem={handleRemoveItem}
           onCancelRemoveItem={handleCancelRemoveItem}

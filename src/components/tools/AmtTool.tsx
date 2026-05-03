@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import type { TaxProfile } from '../../types/content'
 import { checkAmtThreshold } from '../../lib/decisions'
 import { AMT_TOOL_META, AMT_CHECKLIST_STEPS } from '../../content/decision-tools'
 import { ToolSourceRefs } from './ToolSourceRefs'
@@ -14,10 +13,8 @@ function parseAmount(s: string): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null
 }
 
-export function AmtTool({ taxProfile }: { taxProfile?: TaxProfile }) {
-  const [incomeStr, setIncomeStr] = useState(
-    taxProfile?.overseasIncome === undefined ? '' : String(taxProfile.overseasIncome),
-  )
+export function AmtTool() {
+  const [incomeStr, setIncomeStr] = useState('')
 
   const overseasIncome = parseAmount(incomeStr)
   const result = overseasIncome !== null ? checkAmtThreshold(overseasIncome) : null
