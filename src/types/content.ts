@@ -32,6 +32,7 @@ export interface SituationGroup {
 }
 
 export type CategoryId =
+  | 'gross_income'
   | 'exemptions'
   | 'general_deductions'
   | 'special_deductions'

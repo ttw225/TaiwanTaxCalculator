@@ -180,7 +180,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   {
     id: 'salary-special-deduction',
     title: '薪資所得特別扣除額',
-    category: 'special_deductions',
+    category: 'gross_income',
     situations: ['salary_income'],
     why_it_matters: `有薪資所得即可每人扣除 ${n('special_deduction_salary')} 元，夫妻各自計算，無需憑證`,
     eligibility_cues: [

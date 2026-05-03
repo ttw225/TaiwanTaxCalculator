@@ -168,17 +168,26 @@ describe('filterBySituations', () => {
 describe('groupByCategory', () => {
   const published = applyPublicationGate(CHECKLIST_ITEMS)
 
-  it('returns groups in priority order: exemptions before general before special before further_check', () => {
+  it('returns groups in priority order: gross income before exemptions before general before special before further_check', () => {
     const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
     const groups = groupByCategory(all)
     const categories = groups.map((g) => g.category)
+    const grossIdx = categories.indexOf('gross_income')
     const exemptIdx = categories.indexOf('exemptions')
     const generalIdx = categories.indexOf('general_deductions')
     const specialIdx = categories.indexOf('special_deductions')
     const furtherIdx = categories.indexOf('further_check')
+    expect(grossIdx).toBeLessThan(exemptIdx)
     expect(exemptIdx).toBeLessThan(generalIdx)
     expect(generalIdx).toBeLessThan(specialIdx)
     expect(specialIdx).toBeLessThan(furtherIdx)
+  })
+
+  it('groups salary special deduction under gross income', () => {
+    const groups = groupByCategory(filterBySituations(published, ['salary_income']))
+    const gross = groups.find((g) => g.category === 'gross_income')
+    expect(gross?.label).toBe('綜合所得總額')
+    expect(gross?.items.map((i) => i.id)).toContain('salary-special-deduction')
   })
 
   it('each group has a human-readable label', () => {
