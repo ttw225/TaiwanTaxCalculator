@@ -48,5 +48,6 @@ Site name, nav, and tax-year labels: **`src/lib/siteConfig.ts`**.
 ## Related entry points
 
 - **`CLAUDE.md`** — short pointer for Claude Code (same policies as this file).
+- **`ai-context/README.md`** — English AI-oriented knowledge base (stack, domain, CI); keep it updated when contracts change (see `ai-context/17-update-protocol.md`).
 - **`.cursor/rules/*.mdc`** — Cursor rule snippets (scopes and globs).
 - **`AGENTS.local.md.example`** — optional; copy to gitignored **`AGENTS.local.md`** if you reference a separate private research repo on your machine.

@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "generated": "manual",
+  "repository": "tax-web",
+  "topics": [
+    {
+      "id": "overview",
+      "file": "01-overview.md",
+      "keywords": ["product", "deployment", "Cloudflare", "GitHub Pages", "scope"]
+    },
+    {
+      "id": "stack",
+      "file": "02-stack-and-tooling.md",
+      "keywords": ["Vite", "React", "TypeScript", "Tailwind", "Vitest", "ESLint", "pnpm", "Node"]
+    },
+    {
+      "id": "layout",
+      "file": "03-repo-layout.md",
+      "keywords": ["directory", "src", "tests", "public", "github"]
+    },
+    {
+      "id": "domain-model",
+      "file": "04-domain-model.md",
+      "keywords": ["SituationId", "ChecklistItem", "CategoryId", "SourceRef", "CardInlineField"]
+    },
+    {
+      "id": "tax-numbers",
+      "file": "05-tax-numbers.md",
+      "keywords": ["numbers_2026.json", "getNumber", "getBrackets", "TWD", "brackets"]
+    },
+    {
+      "id": "content",
+      "file": "06-content-modules.md",
+      "keywords": ["deductions.ts", "CHECKLIST_ITEMS", "SITUATIONS", "inlineFields", "decision-tools"]
+    },
+    {
+      "id": "app-flow",
+      "file": "07-app-flow-and-state.md",
+      "keywords": ["App.tsx", "selecting", "results", "removal", "scroll"]
+    },
+    {
+      "id": "checklist-engine",
+      "file": "08-checklist-engine.md",
+      "keywords": ["applyPublicationGate", "filterBySituations", "groupByCategory", "sortByTriage", "CARD_SORT_RULES"]
+    },
+    {
+      "id": "decision-tools",
+      "file": "09-decision-tools.md",
+      "keywords": ["dividend", "couple filing", "AMT", "decisions.ts", "calcBracketTax"]
+    },
+    {
+      "id": "ui-components",
+      "file": "10-ui-components.md",
+      "keywords": ["ChecklistResult", "DeductionCard", "SiteHeader", "print", "a11y"]
+    },
+    {
+      "id": "storage",
+      "file": "11-storage-and-persistence.md",
+      "keywords": ["localStorage", "situationSelection", "BASE_URL", "storage event"]
+    },
+    {
+      "id": "styling",
+      "file": "12-styling-and-print.md",
+      "keywords": ["index.css", "Tailwind", "print", "no-print", "A4"]
+    },
+    {
+      "id": "testing",
+      "file": "13-testing.md",
+      "keywords": ["Vitest", "jsdom", "tests/", "invariants", "mock"]
+    },
+    {
+      "id": "ci-deploy",
+      "file": "14-ci-and-deploy.md",
+      "keywords": ["ci.yml", "pages-preview", "VITE_BASE_PATH", "gh-pages"]
+    },
+    {
+      "id": "release",
+      "file": "15-release-process.md",
+      "keywords": ["commitizen", "bumpversion", "cz.toml", "main", "dev"]
+    },
+    {
+      "id": "policies",
+      "file": "16-conventions-and-policies.md",
+      "keywords": ["zh-TW", "AGENTS", "cursor rules", "no invented numbers"]
+    },
+    {
+      "id": "update-protocol",
+      "file": "17-update-protocol.md",
+      "keywords": ["documentation", "sync", "PR checklist", "ai-context"]
+    }
+  ]
+}
