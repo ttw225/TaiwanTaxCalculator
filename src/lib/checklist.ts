@@ -18,15 +18,17 @@ export function filterBySituations(
 
 // Display order for categories
 const CATEGORY_ORDER: Record<CategoryId, number> = {
-  exemptions: 0,
-  general_deductions: 1,
-  special_deductions: 2,
-  further_check: 3,
+  gross_income: 0,
+  exemptions: 1,
+  general_deductions: 2,
+  special_deductions: 3,
+  further_check: 4,
 }
 
 // 標準扣除額 and 列舉扣除額 are mutually exclusive filing choices shown together
 // so that users understand both options before deciding; items note the exclusivity
 export const CATEGORY_LABELS: Record<CategoryId, string> = {
+  gross_income: '綜合所得總額',
   exemptions: '免稅額',
   general_deductions: '一般扣除額（標準或列舉擇一）',
   special_deductions: '特別扣除額',
@@ -50,7 +52,6 @@ export const CARD_SORT_RULES: CardSortRule[] = [
   { fieldId: 'rent_amount',              situationId: 'rent',              boost: -2 },
   { fieldId: 'medical_amount',           situationId: 'medical_expenses',  boost: -2 },
   { fieldId: 'donation_amount',          situationId: 'donations',         boost: -1 },
-  { fieldId: 'dependents_count',         situationId: 'dependents',        boost: -2 },
 ]
 
 // Heuristic stable sort of items within each category based on per-card inputs.

@@ -46,13 +46,4 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       capKey: 'special_deduction_salary',
     },
   ],
-  'exemption-general': [
-    {
-      id: 'dependents_count',
-      label: '受扶養親屬人數（不含本人）',
-      type: 'number',
-      unit: '人',
-      capKey: null,
-    },
-  ],
 }

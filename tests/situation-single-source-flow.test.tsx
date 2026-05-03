@@ -149,7 +149,7 @@ function changeInputByTestId(testId: string, value: string) {
 describe('situation single-source flow', () => {
   it('supports grouped situation add modal and synchronized removal', () => {
     renderApp()
-    clickButtonByText('有薪資收入')
+    clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
     expect(container.textContent).toContain('節稅清單')
@@ -160,7 +160,8 @@ describe('situation single-source flow', () => {
 
     clickByTestId('open-add-situation-modal-btn')
     expect(container.textContent).toContain('申報方式')
-    expect(container.textContent).toContain('費用與支出（可列舉）')
+    expect(container.textContent).toContain('一般扣除額')
+    expect(container.textContent).toContain('特別扣除額')
     clickByTestId('add-situation-checkbox-rent')
     clickByTestId('add-situation-checkbox-donations')
     clickByTestId('confirm-add-situations-btn')
@@ -172,7 +173,7 @@ describe('situation single-source flow', () => {
     const expectedTargetY = DONATION_TARGET_TOP + DONATION_TARGET_HEIGHT / 2 - VIEWPORT_HEIGHT / 2
     expect(requestAnimationFrameSpy).toHaveBeenCalled()
     expect(scrollToSpy).toHaveBeenLastCalledWith(0, expectedTargetY)
-    expect(container.textContent).toContain('房屋租金扣除額（需進一步確認）')
+    expect(container.textContent).toContain('房屋租金支出')
     expect(container.textContent).toContain('捐贈扣除額')
 
     clickByTestId('remove-item-standard-deduction-single')
@@ -185,18 +186,18 @@ describe('situation single-source flow', () => {
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
   })
 
-  it('shows situation labels with prefix when an item is triggered by selected situations', () => {
+  it('shows situation labels with prefix when the merged exemption item is triggered by multiple income sources', () => {
     renderApp()
-    clickButtonByText('有薪資收入')
-    clickButtonByText('扶養親屬')
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
     clickButtonByText('產生節稅清單')
 
     const multiSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-exemption-general"]')
-    expect(multiSource?.textContent).toContain('情境：有薪資收入、有扶養親屬')
+    expect(multiSource?.textContent).toContain('情境：薪資收入、股利收入')
     expect(multiSource?.textContent).not.toContain('來源')
 
     const singleSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-salary-special-deduction"]')
-    expect(singleSource?.textContent).toContain('情境：有薪資收入')
+    expect(singleSource?.textContent).toContain('情境：薪資收入')
   })
 
   it('hides situation labels for standalone one-to-one situations', () => {
@@ -210,7 +211,7 @@ describe('situation single-source flow', () => {
 
   it('cancel add in modal does not apply selection', () => {
     renderApp()
-    clickButtonByText('有薪資收入')
+    clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
     clickByTestId('open-add-situation-modal-btn')
@@ -218,12 +219,12 @@ describe('situation single-source flow', () => {
     clickByTestId('cancel-add-situations-btn')
 
     expect(requestAnimationFrameSpy).not.toHaveBeenCalled()
-    expect(container.textContent).not.toContain('房屋租金扣除額（需進一步確認）')
+    expect(container.textContent).not.toContain('房屋租金支出')
   })
 
   it('shows confirmation when removing a card with existing input', () => {
     renderApp()
-    clickButtonByText('租屋居住')
+    clickButtonByText('房屋租金支出')
     clickButtonByText('產生節稅清單')
     changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 

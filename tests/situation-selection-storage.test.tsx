@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from '../src/App'
 import {
+  createSituationSelectionStorageKey,
   loadSavedSituationSelection,
   parseSavedSituationSelection,
   saveSituationSelection,
@@ -45,6 +46,16 @@ function clickButtonByText(text: string) {
 }
 
 describe('situation selection storage', () => {
+  it('keeps localhost storage key stable and scopes GitHub Pages previews by base path', () => {
+    expect(createSituationSelectionStorageKey('/')).toBe('tax.situationSelection.v1')
+    expect(createSituationSelectionStorageKey('/TaiwanTaxCalculator/dev/')).toBe(
+      'tax.situationSelection.v1:/TaiwanTaxCalculator/dev/',
+    )
+    expect(createSituationSelectionStorageKey('/TaiwanTaxCalculator/pr-preview/pr-13/')).toBe(
+      'tax.situationSelection.v1:/TaiwanTaxCalculator/pr-preview/pr-13/',
+    )
+  })
+
   it('roundtrips selected situation ids', () => {
     saveSituationSelection(['rent', 'salary_income'])
 

@@ -5,7 +5,6 @@ export type DisclaimerLevel = 'low' | 'medium' | 'high'
 export type SituationId =
   | 'salary_income'
   | 'married'
-  | 'dependents'
   | 'disability'
   | 'long_term_care'
   | 'donations'
@@ -14,6 +13,8 @@ export type SituationId =
   | 'mortgage_interest'
   | 'rent'
   | 'childcare'
+  | 'education_tuition'
+  | 'savings_investment'
   | 'dividends'
   | 'overseas_income'
 
@@ -31,6 +32,7 @@ export interface SituationGroup {
 }
 
 export type CategoryId =
+  | 'gross_income'
   | 'exemptions'
   | 'general_deductions'
   | 'special_deductions'

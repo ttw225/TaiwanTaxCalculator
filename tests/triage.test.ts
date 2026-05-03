@@ -29,8 +29,8 @@ function makeGroup(category: ChecklistItem['category'], items: ChecklistItem[]):
 // ── CARD_SORT_RULES ───────────────────────────────────────────────────────────
 
 describe('CARD_SORT_RULES', () => {
-  it('contains at least 5 rules', () => {
-    expect(CARD_SORT_RULES.length).toBeGreaterThanOrEqual(5)
+  it('contains at least 4 rules', () => {
+    expect(CARD_SORT_RULES.length).toBeGreaterThanOrEqual(4)
   })
 
   it('all boost values are negative integers', () => {
@@ -40,13 +40,13 @@ describe('CARD_SORT_RULES', () => {
     }
   })
 
-  it('contains the required 5 fieldId rules', () => {
+  it('contains the required fieldId rules', () => {
     const fieldIds = CARD_SORT_RULES.map((r) => r.fieldId)
     expect(fieldIds).toContain('mortgage_interest_amount')
     expect(fieldIds).toContain('rent_amount')
     expect(fieldIds).toContain('medical_amount')
     expect(fieldIds).toContain('donation_amount')
-    expect(fieldIds).toContain('dependents_count')
+    expect(fieldIds).not.toContain('dependents_count')
   })
 })
 
@@ -96,7 +96,7 @@ describe('sortByTriage', () => {
   })
 
   it('category isolation — boost in one category does not affect another', () => {
-    const exemptItem = makeItem('E1', ['dependents'], 'exemptions')
+    const exemptItem = makeItem('E1', ['dividends'], 'exemptions')
     const exemptItem2 = makeItem('E2', ['salary_income'], 'exemptions')
     const specialItem = makeItem('S1', ['medical_expenses'], 'special_deductions')
     const groups = [
@@ -111,7 +111,7 @@ describe('sortByTriage', () => {
 
   it('category order in output matches input order', () => {
     const groups = [
-      makeGroup('exemptions', [makeItem('E', ['dependents'])]),
+      makeGroup('exemptions', [makeItem('E', ['dividends'])]),
       makeGroup('special_deductions', [makeItem('S', ['mortgage_interest'])]),
     ]
     const cardInputMap: CardInputMap = { card: { mortgage_interest_amount: '100000' } }

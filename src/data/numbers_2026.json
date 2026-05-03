@@ -60,6 +60,54 @@
       "source_url": "https://www.mof.gov.tw/singlehtml/384fb3077bb349ea973e7fc6f13b6974?cntId=1303f6fa4c0446fa8568d30915166ae6"
     },
     {
+      "key": "itemized_deduction_mortgage_interest",
+      "value": 300000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "國稅節稅手冊：扣除額篇",
+      "source_url": "https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/k2Jbgrp"
+    },
+    {
+      "key": "special_deduction_childcare_first",
+      "value": 150000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "國稅節稅手冊：扣除額篇",
+      "source_url": "https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/k2Jbgrp"
+    },
+    {
+      "key": "special_deduction_childcare_additional",
+      "value": 225000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "國稅節稅手冊：扣除額篇",
+      "source_url": "https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/k2Jbgrp"
+    },
+    {
+      "key": "special_deduction_rent",
+      "value": 180000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "國稅節稅手冊：扣除額篇",
+      "source_url": "https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/k2Jbgrp"
+    },
+    {
+      "key": "special_deduction_education_tuition",
+      "value": 25000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "國稅節稅手冊：扣除額篇",
+      "source_url": "https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/k2Jbgrp"
+    },
+    {
+      "key": "special_deduction_savings_investment",
+      "value": 270000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "國稅節稅手冊：扣除額篇",
+      "source_url": "https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/k2Jbgrp"
+    },
+    {
       "key": "basic_living_expense",
       "value": 213000,
       "unit": "TWD",
@@ -76,4 +124,3 @@
     { "up_to": null, "rate": 0.40, "quick_deduction": 911700 }
   ]
 }
-
