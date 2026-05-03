@@ -197,6 +197,27 @@ describe('groupByCategory', () => {
       expect(fc.items.every((i) => i.disclaimer_level === 'high')).toBe(true)
     }
   })
+
+  it('keeps selected special deduction result cards in homepage order', () => {
+    const selected = [
+      'savings_investment',
+      'disability',
+      'childcare',
+      'education_tuition',
+      'long_term_care',
+      'rent',
+    ] as const
+    const groups = groupByCategory(filterBySituations(published, [...selected]))
+    const special = groups.find((g) => g.category === 'special_deductions')
+    expect(special?.items.map((i) => i.id)).toEqual([
+      'savings-investment-deduction',
+      'disability-special-deduction',
+      'childcare-deduction',
+      'education-tuition-deduction',
+      'long-term-care-deduction',
+      'rent-deduction',
+    ])
+  })
 })
 
 // ── Source requirements ───────────────────────────────────────────────────────
@@ -430,6 +451,18 @@ describe('SITUATION_GROUPS', () => {
       'income-sources',
       'general-deductions',
       'special-deductions',
+    ])
+  })
+
+  it('orders special deduction situations by the requested homepage order', () => {
+    const special = SITUATION_GROUPS.find((g) => g.id === 'special-deductions')
+    expect(special?.situationIds).toEqual([
+      'savings_investment',
+      'disability',
+      'childcare',
+      'education_tuition',
+      'long_term_care',
+      'rent',
     ])
   })
 
