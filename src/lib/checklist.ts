@@ -50,7 +50,6 @@ export const CARD_SORT_RULES: CardSortRule[] = [
   { fieldId: 'rent_amount',              situationId: 'rent',              boost: -2 },
   { fieldId: 'medical_amount',           situationId: 'medical_expenses',  boost: -2 },
   { fieldId: 'donation_amount',          situationId: 'donations',         boost: -1 },
-  { fieldId: 'dependents_count',         situationId: 'dependents',        boost: -2 },
 ]
 
 // Heuristic stable sort of items within each category based on per-card inputs.

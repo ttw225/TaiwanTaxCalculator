@@ -192,11 +192,11 @@ export function createPersonalizedReport(
   if (hasPositive(profile.childcareAmount)) {
     addRecommendation(recommendations, {
       id: 'childcare',
-      title: '幼兒學前特別扣除檢查年齡與排富',
-      reason: `已填幼兒照顧支出 NT$${fmt(profile.childcareAmount)}，建議確認子女年齡、扶養狀態與排富限制。`,
+      title: '幼兒學前特別扣除檢查年齡',
+      reason: `已填幼兒照顧支出 NT$${fmt(profile.childcareAmount)}，建議確認子女年齡與扶養狀態。`,
       priority: 35,
       documents: findDocuments(groups, 'childcare-deduction', ['子女身分資料', '幼兒園或托育資料']),
-      warning: '幼兒學前特別扣除有排富條款，請以官方系統確認。',
+      warning: '幼兒學前特別扣除第一人與第二人起額度不同，請以官方系統確認。',
     })
   }
 

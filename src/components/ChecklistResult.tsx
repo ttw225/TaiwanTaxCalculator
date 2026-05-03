@@ -57,7 +57,6 @@ const ITEMIZED_EDUCATION_ITEM_IDS = new Set([
   'insurance-deduction',
   'medical-deduction',
   'mortgage-interest-deduction',
-  'rent-deduction',
 ])
 
 function formatTwd(value: number) {

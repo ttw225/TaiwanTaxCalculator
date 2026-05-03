@@ -59,9 +59,10 @@ describe('filterBySituations', () => {
     expect(filterBySituations(published, [])).toHaveLength(0)
   })
 
-  it('salary_income returns standard deduction and salary special deduction', () => {
+  it('salary_income returns exemption, standard deduction, and salary special deduction', () => {
     const items = filterBySituations(published, ['salary_income'])
     const ids = items.map((i) => i.id)
+    expect(ids).toContain('exemption-general')
     expect(ids).toContain('standard-deduction-single')
     expect(ids).toContain('salary-special-deduction')
   })
@@ -97,10 +98,15 @@ describe('filterBySituations', () => {
     expect(ids).toContain('overseas-income-amt')
   })
 
-  it('dependents returns general exemption item', () => {
-    const items = filterBySituations(published, ['dependents'])
-    const ids = items.map((i) => i.id)
-    expect(ids).toContain('exemption-general')
+  it('any income source returns the merged exemption item', () => {
+    for (const id of ['salary_income', 'dividends', 'overseas_income'] as const) {
+      const ids = filterBySituations(published, [id]).map((i) => i.id)
+      expect(ids).toContain('exemption-general')
+    }
+  })
+
+  it('does not include the removed senior exemption item', () => {
+    expect(published.map((i) => i.id)).not.toContain('exemption-senior-70')
   })
 
   it('multiple situations return union of matching items', () => {
@@ -132,6 +138,16 @@ describe('filterBySituations', () => {
   it('childcare returns childcare deduction', () => {
     const ids = filterBySituations(published, ['childcare']).map((i) => i.id)
     expect(ids).toContain('childcare-deduction')
+  })
+
+  it('education_tuition returns education tuition deduction', () => {
+    const ids = filterBySituations(published, ['education_tuition']).map((i) => i.id)
+    expect(ids).toContain('education-tuition-deduction')
+  })
+
+  it('savings_investment returns savings investment deduction', () => {
+    const ids = filterBySituations(published, ['savings_investment']).map((i) => i.id)
+    expect(ids).toContain('savings-investment-deduction')
   })
 
   it('dividends returns dividends tax choice item', () => {
@@ -308,7 +324,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     expect(html).toContain('正式捐贈收據')
     expect(html).toContain('醫療收據正本')
     expect(html).toContain('銀行房貸年度利息繳納證明')
-    expect(html).toContain('租賃契約書影本')
+    expect(html).not.toContain('房屋租金支出特別扣除額：租賃契約書影本')
   })
 
   it('stays visible with an empty itemized prompt state', () => {
@@ -345,9 +361,35 @@ describe('annual number sourcing', () => {
     expect(item?.why_it_matters).toContain('97,000')
   })
 
+  it('mortgage-interest item why_it_matters contains 300,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'mortgage-interest-deduction')
+    expect(item?.why_it_matters).toContain('300,000')
+  })
+
   it('long-term-care item why_it_matters contains 180,000', () => {
     const item = CHECKLIST_ITEMS.find((i) => i.id === 'long-term-care-deduction')
     expect(item?.why_it_matters).toContain('180,000')
+  })
+
+  it('childcare item why_it_matters contains 150,000 and 225,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'childcare-deduction')
+    expect(item?.why_it_matters).toContain('150,000')
+    expect(item?.why_it_matters).toContain('225,000')
+  })
+
+  it('rent item why_it_matters contains 180,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'rent-deduction')
+    expect(item?.why_it_matters).toContain('180,000')
+  })
+
+  it('education tuition item why_it_matters contains 25,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'education-tuition-deduction')
+    expect(item?.why_it_matters).toContain('25,000')
+  })
+
+  it('savings investment item why_it_matters contains 270,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'savings-investment-deduction')
+    expect(item?.why_it_matters).toContain('270,000')
   })
 
   it('salary-special-deduction why_it_matters contains 218,000', () => {
@@ -382,16 +424,17 @@ describe('SITUATION_GROUPS', () => {
     expect(SITUATION_GROUPS).toHaveLength(4)
   })
 
-  it('groups are in filing order: filing-method, income-sources, family-dependents, itemizable-expenses', () => {
+  it('groups are in filing order: filing-method, income-sources, general-deductions, special-deductions', () => {
     expect(SITUATION_GROUPS.map((g) => g.id)).toEqual([
       'filing-method',
       'income-sources',
-      'family-dependents',
-      'itemizable-expenses',
+      'general-deductions',
+      'special-deductions',
     ])
   })
 
-  it('union of all situationIds equals all 13 SITUATIONS ids', () => {
+  it('union of all situationIds equals all 14 SITUATIONS ids', () => {
+    expect(SITUATIONS).toHaveLength(14)
     expect(allGroupedIds.sort()).toEqual(allSituationIds.sort())
   })
 
