@@ -122,6 +122,19 @@ export type CardInputMap = Record<string, Record<string, string>>
 
 - Outer key: checklist **`item.id`**. Inner key: **`CardInlineField.id`**. Values are **string** (raw input).
 
+### Special encoding: `gross-income`
+
+The `gross-income` item does not use `ITEM_INLINE_FIELDS`; `GrossIncomeCard` manages its own fields:
+
+| fieldId | type | description |
+|---|---|---|
+| `self_income` | `string` (number) | 本人年薪 |
+| `persons_json` | JSON string | Array of `GrossIncomePerson` (excludes self): `[{id, label, income}]` |
+
+`id` values in `persons_json`: `"spouse"` (配偶, filtered by `isMarriedFiling`) and `"extra-N"` (N = 0, 1, …).
+
+Parse / serialize helpers: [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts) — `parseGrossIncomePersons`, `serializePersonsJson`.
+
 ## Decision tools
 
 ```ts

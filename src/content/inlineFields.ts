@@ -37,13 +37,4 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       capKey: null,
     },
   ],
-  'salary-special-deduction': [
-    {
-      id: 'salary_amount',
-      label: '今年薪資所得總額',
-      type: 'number',
-      unit: '元',
-      capKey: 'special_deduction_salary',
-    },
-  ],
 }

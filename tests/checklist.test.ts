@@ -64,7 +64,7 @@ describe('filterBySituations', () => {
     const ids = items.map((i) => i.id)
     expect(ids).toContain('exemption-general')
     expect(ids).toContain('standard-deduction-single')
-    expect(ids).toContain('salary-special-deduction')
+    expect(ids).toContain('gross-income')
   })
 
   it('married returns married standard deduction', () => {
@@ -187,7 +187,7 @@ describe('groupByCategory', () => {
     const groups = groupByCategory(filterBySituations(published, ['salary_income']))
     const gross = groups.find((g) => g.category === 'gross_income')
     expect(gross?.label).toBe('綜合所得總額')
-    expect(gross?.items.map((i) => i.id)).toContain('salary-special-deduction')
+    expect(gross?.items.map((i) => i.id)).toContain('gross-income')
   })
 
   it('each group has a human-readable label', () => {
@@ -455,8 +455,8 @@ describe('annual number sourcing', () => {
     expect(item?.why_it_matters).toContain('270,000')
   })
 
-  it('salary-special-deduction why_it_matters contains 218,000', () => {
-    const item = CHECKLIST_ITEMS.find((i) => i.id === 'salary-special-deduction')
+  it('gross-income why_it_matters contains 218,000', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'gross-income')
     expect(item?.why_it_matters).toContain('218,000')
   })
 

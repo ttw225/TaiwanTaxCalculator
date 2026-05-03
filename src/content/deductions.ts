@@ -176,26 +176,26 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     next_action: '向銀行申請年度貸款利息繳納證明',
   },
 
-  // ── Special deductions (特別) ──────────────────────────────────────────────
+  // ── Gross income (綜合所得總額) ─────────────────────────────────────────────
   {
-    id: 'salary-special-deduction',
-    title: '薪資所得特別扣除額',
+    id: 'gross-income',
+    title: '綜合所得總額',
     category: 'gross_income',
     situations: ['salary_income'],
-    why_it_matters: `有薪資所得即可每人扣除 ${n('special_deduction_salary')} 元，夫妻各自計算，無需憑證`,
+    why_it_matters: `填入去年（114年1月至12月）本人與親屬**薪資收入**。\n系統自動套用「薪資所得特別扣除額」（每人最多 ${n('special_deduction_salary')} 元），計算出綜合所得總額。`,
     eligibility_cues: [
-      '有薪資所得的納稅義務人與配偶各自適用',
-      '無其他資格限制',
+      '有薪資收入的納稅義務人、配偶及申報受扶養親屬均需申報',
+      '薪資所得特別扣除額每人最高 218,000 元，不超過實際薪資收入',
     ],
     documents_to_prepare: [],
     limitations: [
-      '扣除額不超過實際薪資所得金額',
-      '申報系統通常自動帶入，請確認金額正確',
+      '本試算以薪資所得為範圍；如有利息、租賃、執行業務等其他所得，需另行申報',
+      '申報系統通常自動帶入薪資資料，請確認金額正確',
     ],
     source_refs: [SRC_ITA, SRC_MANUAL],
     verification_status: 'verified',
     disclaimer_level: 'low',
-    next_action: '確認申報書薪資所得欄位及特別扣除額已正確帶入',
+    next_action: '確認申報書薪資所得欄位與薪資所得特別扣除額已正確帶入',
   },
   {
     id: 'savings-investment-deduction',
