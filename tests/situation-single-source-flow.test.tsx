@@ -149,7 +149,7 @@ function changeInputByTestId(testId: string, value: string) {
 describe('situation single-source flow', () => {
   it('supports grouped situation add modal and synchronized removal', () => {
     renderApp()
-    clickButtonByText('有薪資收入')
+    clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
     expect(container.textContent).toContain('節稅清單')
@@ -188,16 +188,16 @@ describe('situation single-source flow', () => {
 
   it('shows situation labels with prefix when the merged exemption item is triggered by multiple income sources', () => {
     renderApp()
-    clickButtonByText('有薪資收入')
-    clickButtonByText('有股利收入')
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
     clickButtonByText('產生節稅清單')
 
     const multiSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-exemption-general"]')
-    expect(multiSource?.textContent).toContain('情境：有薪資收入、有股利收入')
+    expect(multiSource?.textContent).toContain('情境：薪資收入、股利收入')
     expect(multiSource?.textContent).not.toContain('來源')
 
     const singleSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-salary-special-deduction"]')
-    expect(singleSource?.textContent).toContain('情境：有薪資收入')
+    expect(singleSource?.textContent).toContain('情境：薪資收入')
   })
 
   it('hides situation labels for standalone one-to-one situations', () => {
@@ -211,7 +211,7 @@ describe('situation single-source flow', () => {
 
   it('cancel add in modal does not apply selection', () => {
     renderApp()
-    clickButtonByText('有薪資收入')
+    clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
     clickByTestId('open-add-situation-modal-btn')

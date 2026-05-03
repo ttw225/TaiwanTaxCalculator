@@ -382,7 +382,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
 export const SITUATIONS: Situation[] = [
   {
     id: 'salary_income',
-    label: '有薪資收入',
+    label: '薪資收入',
     description: '任職公司、機關或個人受雇，每月領取薪水',
   },
   {
@@ -402,22 +402,22 @@ export const SITUATIONS: Situation[] = [
   },
   {
     id: 'donations',
-    label: '有捐贈',
+    label: '捐贈',
     description: '捐款給公益團體、學術機構或政府機關',
   },
   {
     id: 'insurance',
-    label: '有繳保險費',
+    label: '保險費',
     description: '繳納人身保險費（含壽險、意外險、健康險等）',
   },
   {
     id: 'medical_expenses',
-    label: '有醫療費用',
+    label: '醫療費用',
     description: '家庭成員在醫療機構就診或生育的自費支出',
   },
   {
     id: 'mortgage_interest',
-    label: '有購屋房貸利息',
+    label: '購屋房貸利息',
     description: '自住房屋的房貸每年需繳利息',
   },
   {
@@ -442,12 +442,12 @@ export const SITUATIONS: Situation[] = [
   },
   {
     id: 'dividends',
-    label: '有股利收入',
+    label: '股利收入',
     description: '持有台股或基金，收到股利或盈餘分配',
   },
   {
     id: 'overseas_income',
-    label: '有海外所得',
+    label: '海外所得',
     description: '全年海外所得超過100萬元，可能需申報最低稅負',
   },
 ]
