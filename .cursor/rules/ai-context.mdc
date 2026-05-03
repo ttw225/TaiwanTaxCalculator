@@ -1,0 +1,9 @@
+---
+description: Point agents to the English ai-context knowledge base for this repo
+globs: "**/*"
+alwaysApply: false
+---
+
+# AI context (`ai-context/`)
+
+For non-trivial changes (features, content schema, tax numbers, CI, or cross-cutting refactors), read **`ai-context/README.md`** first and follow the map to the numbered topic files. Update the relevant `ai-context/*.md` (and `MAP.json` keywords if needed) in the same PR when contracts change.

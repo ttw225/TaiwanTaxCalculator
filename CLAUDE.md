@@ -10,3 +10,4 @@ Policies in short:
 - Numeric tax data in this repo: **`src/data/numbers_2026.json`** / **`src/lib/numbers.ts`** — do not invent figures.
 - After substantive changes: **`pnpm test`** and **`pnpm lint`** when practical.
 - Cursor-specific snippets live in **`.cursor/rules/*.mdc`**.
+- English AI knowledge base: **`ai-context/README.md`** (update when changing contracts per `ai-context/17-update-protocol.md`).
