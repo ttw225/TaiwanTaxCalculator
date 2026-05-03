@@ -1,7 +1,14 @@
 import type { SituationId } from '../types/content'
 import { readLocal, removeLocal, writeLocal } from './storage'
 
-export const SITUATION_SELECTION_STORAGE_KEY = 'tax.situationSelection.v1'
+const BASE_STORAGE_KEY = 'tax.situationSelection.v1'
+
+export function createSituationSelectionStorageKey(basePath: string | undefined = import.meta.env.BASE_URL): string {
+  if (!basePath || basePath === '/') return BASE_STORAGE_KEY
+  return `${BASE_STORAGE_KEY}:${basePath}`
+}
+
+export const SITUATION_SELECTION_STORAGE_KEY = createSituationSelectionStorageKey()
 
 interface SavedSituationSelection {
   selected: SituationId[]
