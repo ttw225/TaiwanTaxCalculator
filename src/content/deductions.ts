@@ -110,7 +110,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'insurance-deduction',
-    title: '保險費扣除額',
+    title: '人身保險費',
     category: 'general_deductions',
     situations: ['insurance'],
     why_it_matters: '人身保險費可列舉扣除（每人有年度上限），全民健保費另計可全額扣除；金額請查閱申報書說明',
@@ -131,7 +131,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'medical-deduction',
-    title: '醫療及生育費用扣除額',
+    title: '醫藥及生育費',
     category: 'general_deductions',
     situations: ['medical_expenses'],
     why_it_matters: '公立或全民健保特約醫療機構的醫療費用及生育費用可全額列舉扣除，無金額上限',
@@ -152,7 +152,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'mortgage-interest-deduction',
-    title: '購屋借款利息扣除額',
+    title: '購屋借款利息',
     category: 'general_deductions',
     situations: ['mortgage_interest'],
     why_it_matters: `向金融機構借款購買自用住宅所支付的利息，扣除儲蓄投資特別扣除額後的餘額可列舉扣除，最高 ${n('itemized_deduction_mortgage_interest')} 元/戶`,
@@ -243,7 +243,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'childcare-deduction',
-    title: '幼兒學前特別扣除額',
+    title: '幼兒學前',
     category: 'special_deductions',
     situations: ['childcare'],
     why_it_matters: `申報扶養6歲（含）以下幼兒，第一人可扣除 ${n('special_deduction_childcare_first')} 元/人，第二人起每人 ${n('special_deduction_childcare_additional')} 元，無排富`,
@@ -264,7 +264,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'education-tuition-deduction',
-    title: '教育學費特別扣除額',
+    title: '教育學費',
     category: 'special_deductions',
     situations: ['education_tuition'],
     why_it_matters: `受扶養子女就讀經教育部認可之國內外大專院校，可扣除最高 ${n('special_deduction_education_tuition')} 元/人`,
@@ -285,7 +285,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'long-term-care-deduction',
-    title: '長照特別扣除額',
+    title: '長期照顧',
     category: 'special_deductions',
     situations: ['long_term_care'],
     why_it_matters: `每位符合長照資格者可扣除 ${n('special_deduction_long_term_care')} 元，但有排富條款，建議先確認是否適用`,
@@ -308,7 +308,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'rent-deduction',
-    title: '房屋租金支出特別扣除額',
+    title: '房屋租金支出',
     category: 'special_deductions',
     situations: ['rent'],
     why_it_matters: `納稅義務人、配偶及受扶養直系親屬在境內租屋自住，最高可扣除 ${n('special_deduction_rent')} 元/戶，但有排富條款`,
@@ -397,7 +397,7 @@ export const SITUATIONS: Situation[] = [
   },
   {
     id: 'long_term_care',
-    label: '長照',
+    label: '長期照顧',
     description: '家中有需要長照服務的成員',
   },
   {
@@ -407,27 +407,27 @@ export const SITUATIONS: Situation[] = [
   },
   {
     id: 'insurance',
-    label: '保險費',
+    label: '人身保險費',
     description: '繳納人身保險費（含壽險、意外險、健康險等）',
   },
   {
     id: 'medical_expenses',
-    label: '醫療費用',
+    label: '醫藥及生育費',
     description: '家庭成員在醫療機構就診或生育的自費支出',
   },
   {
     id: 'mortgage_interest',
-    label: '購屋房貸利息',
+    label: '購屋借款利息',
     description: '自住房屋的房貸每年需繳利息',
   },
   {
     id: 'rent',
-    label: '租屋',
+    label: '房屋租金支出',
     description: '本人及配偶在台灣租房居住，無自有房屋',
   },
   {
     id: 'childcare',
-    label: '幼兒',
+    label: '幼兒學前',
     description: '家中有6歲（含）以下幼兒',
   },
   {

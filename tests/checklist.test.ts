@@ -218,6 +218,28 @@ describe('groupByCategory', () => {
       'rent-deduction',
     ])
   })
+
+  it('keeps directly mapped result card titles aligned with homepage labels', () => {
+    const titleBySituation = new Map(
+      CHECKLIST_ITEMS
+        .filter((item) => item.situations.length === 1)
+        .map((item) => [item.situations[0], item.title]),
+    )
+    const directlyMappedIds = [
+      'insurance',
+      'medical_expenses',
+      'mortgage_interest',
+      'childcare',
+      'education_tuition',
+      'long_term_care',
+      'rent',
+    ] as const
+
+    for (const id of directlyMappedIds) {
+      const situation = SITUATIONS.find((s) => s.id === id)
+      expect(titleBySituation.get(id)).toBe(situation?.label)
+    }
+  })
 })
 
 // ── Source requirements ───────────────────────────────────────────────────────
@@ -345,7 +367,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     expect(html).toContain('正式捐贈收據')
     expect(html).toContain('醫療收據正本')
     expect(html).toContain('銀行房貸年度利息繳納證明')
-    expect(html).not.toContain('房屋租金支出特別扣除額：租賃契約書影本')
+    expect(html).not.toContain('房屋租金支出：租賃契約書影本')
   })
 
   it('stays visible with an empty itemized prompt state', () => {

@@ -173,7 +173,7 @@ describe('situation single-source flow', () => {
     const expectedTargetY = DONATION_TARGET_TOP + DONATION_TARGET_HEIGHT / 2 - VIEWPORT_HEIGHT / 2
     expect(requestAnimationFrameSpy).toHaveBeenCalled()
     expect(scrollToSpy).toHaveBeenLastCalledWith(0, expectedTargetY)
-    expect(container.textContent).toContain('房屋租金支出特別扣除額')
+    expect(container.textContent).toContain('房屋租金支出')
     expect(container.textContent).toContain('捐贈扣除額')
 
     clickByTestId('remove-item-standard-deduction-single')
@@ -219,12 +219,12 @@ describe('situation single-source flow', () => {
     clickByTestId('cancel-add-situations-btn')
 
     expect(requestAnimationFrameSpy).not.toHaveBeenCalled()
-    expect(container.textContent).not.toContain('房屋租金支出特別扣除額')
+    expect(container.textContent).not.toContain('房屋租金支出')
   })
 
   it('shows confirmation when removing a card with existing input', () => {
     renderApp()
-    clickButtonByText('租屋')
+    clickButtonByText('房屋租金支出')
     clickButtonByText('產生節稅清單')
     changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 
