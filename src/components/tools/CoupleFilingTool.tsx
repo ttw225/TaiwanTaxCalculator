@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import type { TaxProfile } from '../../types/content'
 import { calcCoupleFilingOptions } from '../../lib/decisions'
 import { COUPLE_FILING_TOOL_META } from '../../content/decision-tools'
 import { ToolSourceRefs } from './ToolSourceRefs'
@@ -14,13 +13,9 @@ function parseAmount(s: string): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null
 }
 
-export function CoupleFilingTool({ taxProfile }: { taxProfile?: TaxProfile }) {
-  const [husbandStr, setHusbandStr] = useState(
-    taxProfile?.selfSalary === undefined ? '' : String(taxProfile.selfSalary),
-  )
-  const [wifeStr, setWifeStr] = useState(
-    taxProfile?.spouseSalary === undefined ? '' : String(taxProfile.spouseSalary),
-  )
+export function CoupleFilingTool() {
+  const [husbandStr, setHusbandStr] = useState('')
+  const [wifeStr, setWifeStr] = useState('')
 
   const husbandSalary = parseAmount(husbandStr)
   const wifeSalary = parseAmount(wifeStr)

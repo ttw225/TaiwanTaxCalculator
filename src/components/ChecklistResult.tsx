@@ -36,7 +36,6 @@ interface Props {
   cardInputMap: CardInputMap
   pendingRemovalImpact?: RemovalImpactPreview | null
   onCardInputChange: (itemId: string, fieldId: string, value: string) => void
-  onOpenPersonalized: () => void
   onReset?: () => void
   onAddSituations?: (ids: SituationId[]) => void
   onRemoveItem?: (itemId: string) => void
@@ -398,7 +397,6 @@ export function ChecklistResult({
   cardInputMap,
   pendingRemovalImpact,
   onCardInputChange,
-  onOpenPersonalized,
   onAddSituations,
   onRemoveItem,
   onCancelRemoveItem,
@@ -488,23 +486,6 @@ export function ChecklistResult({
       <p className="mb-4 text-sm text-gray-500">
         根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
       </p>
-
-      <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 no-print">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium text-emerald-800">個人化工作表</p>
-            <p className="mt-1 text-xs text-gray-600">需要進一步整理個人資料時，可到獨立頁面產生行動報告。</p>
-          </div>
-          <button
-            type="button"
-            onClick={onOpenPersonalized}
-            className="rounded border border-emerald-300 bg-white px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-100"
-            data-testid="open-personalized-page-btn"
-          >
-            開啟工作表
-          </button>
-        </div>
-      </div>
 
       <div className="mb-6 no-print">
         <DecisionToolsPanel selectedSituations={selectedSituations} />

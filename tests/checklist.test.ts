@@ -310,7 +310,6 @@ describe('ChecklistResult traceability UI', () => {
       selectedSituations: [],
       cardInputMap: {},
       onCardInputChange: () => undefined,
-      onOpenPersonalized: () => undefined,
       onReset: () => undefined,
     }),
   )
@@ -349,7 +348,6 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         selectedSituations,
         cardInputMap: {},
         onCardInputChange: () => undefined,
-        onOpenPersonalized: () => undefined,
         onReset: () => undefined,
       }),
     )
@@ -544,7 +542,6 @@ describe('ChecklistResult export panel', () => {
       selectedSituations: [],
       cardInputMap: {},
       onCardInputChange: () => undefined,
-      onOpenPersonalized: () => undefined,
       onReset: () => undefined,
     }),
   )
@@ -556,7 +553,6 @@ describe('ChecklistResult export panel', () => {
       selectedSituations: [],
       cardInputMap: {},
       onCardInputChange: () => undefined,
-      onOpenPersonalized: () => undefined,
       onReset: () => undefined,
     }),
   )
@@ -578,9 +574,10 @@ describe('ChecklistResult export panel', () => {
     expect(htmlWithResults).toContain('瀏覽器中產生')
   })
 
-  it('result page links to the independent personalized worksheet page', () => {
-    expect(htmlWithResults).toContain('data-testid="open-personalized-page-btn"')
-    expect(htmlWithResults).toContain('開啟工作表')
+  it('result page does not show the removed personalized worksheet entry point', () => {
+    expect(htmlWithResults).not.toContain('data-testid="open-personalized-page-btn"')
+    expect(htmlWithResults).not.toContain('個人化工作表')
+    expect(htmlWithResults).not.toContain('開啟工作表')
   })
 
   it('result page does not show the removed income type radio group', () => {

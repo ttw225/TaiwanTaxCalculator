@@ -1,10 +1,8 @@
 import type { CategoryGroup } from './checklist'
-import type { PersonalizedReport } from '../types/content'
 
 export interface ExportOptions {
   totalSelected: number
   exportTime?: string
-  personalizedReport?: PersonalizedReport
 }
 
 const HEADER = `# 114 年度所得稅節稅清單
@@ -22,7 +20,7 @@ export function formatChecklistMarkdown(
   groups: CategoryGroup[],
   options: ExportOptions,
 ): string {
-  const { totalSelected, exportTime, personalizedReport } = options
+  const { totalSelected, exportTime } = options
   const totalItems = groups.reduce((sum, g) => sum + g.items.length, 0)
 
   const lines: string[] = [
@@ -33,48 +31,6 @@ export function formatChecklistMarkdown(
 
   if (exportTime) {
     lines.push(`**產生時間**：${exportTime}`)
-  }
-
-  if (personalizedReport && personalizedReport.recommendations.length > 0) {
-    lines.push(
-      '',
-      '---',
-      '',
-      '## 個人化行動報告',
-      '',
-      '> 本區塊依使用者手動輸入資料於瀏覽器內產生；未上傳至伺服器，供申報前整理與初步判斷。',
-    )
-
-    if (personalizedReport.summary.length > 0) {
-      lines.push('', '**摘要**')
-      for (const line of personalizedReport.summary) {
-        lines.push(`- ${line}`)
-      }
-    }
-
-    lines.push('', '**優先建議**')
-    for (const recommendation of personalizedReport.recommendations) {
-      lines.push('', `### ${recommendation.title}`, '', recommendation.reason)
-      if (recommendation.estimate) {
-        lines.push('', `**初步估算**：${recommendation.estimate}`)
-      }
-      if (recommendation.documents.length > 0) {
-        lines.push('', '**建議準備文件**')
-        for (const doc of recommendation.documents) {
-          lines.push(`- [ ] ${doc}`)
-        }
-      }
-      if (recommendation.warning) {
-        lines.push('', `> ${recommendation.warning}`)
-      }
-    }
-
-    if (personalizedReport.warnings.length > 0) {
-      lines.push('', '**官方確認提醒**')
-      for (const warning of personalizedReport.warnings) {
-        lines.push(`- ${warning}`)
-      }
-    }
   }
 
   for (const group of groups) {

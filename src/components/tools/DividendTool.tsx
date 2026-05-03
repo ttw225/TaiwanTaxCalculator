@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import type { TaxProfile } from '../../types/content'
 import { calcDividendOptions } from '../../lib/decisions'
 import { DIVIDEND_TOOL_META } from '../../content/decision-tools'
 import { ToolSourceRefs } from './ToolSourceRefs'
@@ -22,13 +21,9 @@ function parseAmount(s: string): number | null {
   return Number.isFinite(n) && n >= 0 ? n : null
 }
 
-export function DividendTool({ taxProfile }: { taxProfile?: TaxProfile }) {
-  const [dividendStr, setDividendStr] = useState(
-    taxProfile?.dividendAmount === undefined ? '' : String(taxProfile.dividendAmount),
-  )
-  const [bracketStr, setBracketStr] = useState(
-    taxProfile?.marginalRate === undefined ? '' : String(taxProfile.marginalRate),
-  )
+export function DividendTool() {
+  const [dividendStr, setDividendStr] = useState('')
+  const [bracketStr, setBracketStr] = useState('')
 
   const dividendAmount = parseAmount(dividendStr)
   const marginalRate = bracketStr !== '' ? Number(bracketStr) : null
