@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/*
+  Prevent iOS Safari from auto-zooming when tapping inputs.
+  font-size must be >= 16px to suppress the behavior.
+  Written outside @layer so it overrides Tailwind's text-xs utility.
+*/
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="search"],
+input[type="tel"],
+select,
+textarea {
+  font-size: 16px;
+}
+
 @media print {
   @page {
     size: A4;
