@@ -8,6 +8,7 @@ import {
   serializePersonsJson,
   type GrossIncomePerson,
 } from '../lib/grossIncome'
+import { ChecklistCardShell } from './checklist/ChecklistCardShell'
 
 interface Props {
   item: ChecklistItem
@@ -31,8 +32,8 @@ function parseRawIncome(raw: string): number {
 
 interface PersonRowProps {
   person: GrossIncomePerson
-  incomeRaw: string       // the string value being edited
-  isFixed: boolean        // 本人 or 配偶 — cannot be deleted or relabeled
+  incomeRaw: string
+  isFixed: boolean
   onIncomeChange: (value: string) => void
   onLabelChange?: (value: string) => void
   onRemove?: () => void
@@ -116,7 +117,6 @@ export function GrossIncomeCard({
   const total = calcTotalGrossIncome(persons)
   const hasAnyIncome = persons.some((p) => p.income > 0)
 
-  // Persons stored in persons_json: everyone except self
   const personsInJson = persons.filter((p) => p.id !== 'self')
 
   function updatePersonsJson(next: GrossIncomePerson[]) {
@@ -160,39 +160,13 @@ export function GrossIncomeCard({
   const selfRaw = inputValues['self_income'] ?? ''
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white print-card" data-testid={`checklist-card-${item.id}`}>
-      {/* Header */}
-      <div className="flex items-start gap-2 mb-2">
-        <h3 className="font-medium text-gray-900 flex-1 text-sm">{item.title}</h3>
-        {removable && onRemove && (
-          <button
-            type="button"
-            onClick={onRemove}
-            aria-label={`移除項目：${item.title}`}
-            data-testid={`remove-item-${item.id}`}
-            className="no-print inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700"
-          >
-            ×
-          </button>
-        )}
-      </div>
-
-      <p className="text-sm text-gray-700 mb-3">{item.why_it_matters}</p>
-
-      {sourceSituationLabels.length > 0 && (
-        <p
-          className="mb-3 text-xs text-indigo-700"
-          data-testid={`card-source-situations-${item.id}`}
-          title={`情境：${sourceSituationLabels.join('、')}`}
-        >
-          情境：{sourceSituationLabels.slice(0, 2).join('、')}
-          {sourceSituationLabels.length > 2 ? ` +${sourceSituationLabels.length - 2}` : ''}
-        </p>
-      )}
-
-      {/* Person rows */}
+    <ChecklistCardShell
+      item={item}
+      sourceSituationLabels={sourceSituationLabels}
+      removable={removable}
+      onRemove={onRemove}
+    >
       <div className="rounded border border-blue-100 bg-blue-50/40 p-3 space-y-0">
-        {/* Self row */}
         <PersonRow
           person={selfPerson}
           incomeRaw={selfRaw}
@@ -200,7 +174,6 @@ export function GrossIncomeCard({
           onIncomeChange={handleSelfIncomeChange}
         />
 
-        {/* Other persons (spouse + extras) from persons_json */}
         {personsInJson.map((person) => {
           const isFixed = person.id === 'spouse'
           const incomeRaw = String(person.income === 0 && !inputValues['persons_json'] ? '' : person.income || '')
@@ -218,7 +191,6 @@ export function GrossIncomeCard({
         })}
       </div>
 
-      {/* Add person button */}
       <button
         type="button"
         onClick={handleAddPerson}
@@ -229,76 +201,31 @@ export function GrossIncomeCard({
         <span>新增受扶養親屬</span>
       </button>
 
-      {/* Privacy notice */}
       <p className="mt-2 text-xs text-gray-400">
         資料僅在您的瀏覽器處理，不會傳送至任何伺服器
       </p>
 
-      {/* Result */}
-      <div className="mt-3 border-t border-gray-100 pt-3">
-        <div className="text-xs text-gray-500 space-y-0.5">
-          <p className="font-medium text-gray-700">綜合所得總額</p>
-          {hasAnyIncome ? (
-            <>
-              {persons
-                .filter((p) => p.income > 0)
-                .map((p, i) => (
-                  <div key={p.id} className="flex justify-between gap-4">
-                    <span>{i === 0 ? <span className="invisible">＋</span> : '＋'} {p.label}</span>
-                    <span className="tabular-nums">{formatTwd(calcPersonNetIncome(p.income))} 元</span>
-                  </div>
-                ))}
-              <div className="flex justify-between gap-4 font-semibold text-green-700 border-t border-gray-100 pt-0.5 mt-0.5" data-testid="gross-income-total">
-                <span>＝</span>
-                <span className="tabular-nums">{formatTwd(total)} 元</span>
-              </div>
-            </>
-          ) : (
-            <p className="font-semibold text-gray-300" data-testid="gross-income-total">—</p>
-          )}
-        </div>
+      <div className="mt-3 text-xs text-gray-500 space-y-0.5">
+        <p className="font-medium text-gray-700">綜合所得總額</p>
+        {hasAnyIncome ? (
+          <>
+            {persons
+              .filter((p) => p.income > 0)
+              .map((p, i) => (
+                <div key={p.id} className="flex justify-between gap-4">
+                  <span>{i === 0 ? <span className="invisible">＋</span> : '＋'} {p.label}</span>
+                  <span className="tabular-nums">{formatTwd(calcPersonNetIncome(p.income))} 元</span>
+                </div>
+              ))}
+            <div className="flex justify-between gap-4 font-semibold text-green-700 border-t border-gray-100 pt-0.5 mt-0.5" data-testid="gross-income-total">
+              <span>＝</span>
+              <span className="tabular-nums">{formatTwd(total)} 元</span>
+            </div>
+          </>
+        ) : (
+          <p className="font-semibold text-gray-300" data-testid="gross-income-total">—</p>
+        )}
       </div>
-
-      {/* Source refs */}
-      <div className="mt-3">
-        <details className="group">
-          <summary className="cursor-pointer select-none text-xs font-medium text-gray-500 hover:text-gray-700">
-            來源與官方參考
-          </summary>
-          <ul className="mt-2 space-y-1">
-            {item.source_refs.map((ref) => (
-              <li key={ref.source_id} className="text-xs text-gray-500">
-                {ref.url ? (
-                  <a
-                    href={ref.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-600 underline underline-offset-2 hover:text-gray-800"
-                  >
-                    {ref.label}
-                  </a>
-                ) : (
-                  <span className="text-gray-600">{ref.label}</span>
-                )}
-                {ref.authority && <span className="text-gray-400"> · {ref.authority}</span>}
-              </li>
-            ))}
-          </ul>
-        </details>
-      </div>
-
-      {/* Notes */}
-      <div className="mt-3">
-        <details className="group">
-          <summary className="cursor-pointer select-none text-xs font-medium text-gray-500 hover:text-gray-700">
-            注意事項
-          </summary>
-          <div className="mt-2 space-y-1.5 text-xs text-gray-500">
-            <p>納稅義務人、配偶或申報受扶養親屬有「薪資收入」者，應分別就「薪資所得特別扣除額」或「必要費用」2擇1減除，減除後的餘額為薪資所得。</p>
-            <p>本網站簡化此流程，統一採用「薪資所得特別扣除額」計算，還請海涵！</p>
-          </div>
-        </details>
-      </div>
-    </div>
+    </ChecklistCardShell>
   )
 }

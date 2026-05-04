@@ -54,7 +54,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認申報戶成員及是否有70歲以上者',
   },
 
@@ -70,7 +70,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     limitations: ['選擇標準扣除額後，不可再申報列舉扣除額（兩者擇一）'],
     source_refs: [SRC_ITA],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '申報書確認已選擇標準扣除額欄位',
   },
   {
@@ -84,7 +84,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     limitations: ['選擇標準扣除額後，不可再申報列舉扣除額（兩者擇一）'],
     source_refs: [SRC_ITA],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '申報書確認夫妻合併申報及標準扣除額欄位',
   },
   {
@@ -105,7 +105,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_MANUAL],
     verification_status: 'partially_verified',
-    disclaimer_level: 'medium',
+    show_wealth_clause_notice: false,
     next_action: '收集全年捐贈收據，確認受贈機構資格',
   },
   {
@@ -126,7 +126,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA],
     verification_status: 'partially_verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '向各保險公司索取年度繳費證明',
   },
   {
@@ -147,7 +147,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA],
     verification_status: 'partially_verified',
-    disclaimer_level: 'medium',
+    show_wealth_clause_notice: false,
     next_action: '收集全年度醫療機構收據，確認機構是否為特約院所',
   },
   {
@@ -172,7 +172,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'partially_verified',
-    disclaimer_level: 'medium',
+    show_wealth_clause_notice: false,
     next_action: '向銀行申請年度貸款利息繳納證明',
   },
 
@@ -190,10 +190,12 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     documents_to_prepare: [],
     limitations: [
       '申報系統通常自動帶入薪資資料，請確認金額正確',
+      '納稅義務人、配偶或申報受扶養親屬有「薪資收入」者，應分別就「薪資所得特別扣除額」或「必要費用」2擇1減除，減除後的餘額為薪資所得。',
+      '本網站簡化此流程，統一採用「薪資所得特別扣除額」計算。',
     ],
     source_refs: [SRC_ITA, SRC_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認申報書薪資所得欄位與薪資所得特別扣除額已正確帶入',
   },
   {
@@ -213,7 +215,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_MOF],
     verification_status: 'partially_verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '收集全年股利憑單，使用申報系統試算兩種計稅方式後再決定',
   },
   {
@@ -236,7 +238,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_AMT, SRC_MANUAL],
     verification_status: 'partially_verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '確認海外所得金額，如超過門檻建議諮詢稅務師',
   },
   {
@@ -257,7 +259,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認全年利息所得資料與申報系統帶入金額',
   },
   {
@@ -280,7 +282,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '備妥身心障礙手冊或重大傷病卡影本',
   },
   {
@@ -301,7 +303,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認幼兒年齡與申報扶養資料',
   },
   {
@@ -322,7 +324,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認子女就學資格並備妥學費繳費證明',
   },
   {
@@ -345,7 +347,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_MOF],
     verification_status: 'verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '確認長照資格及是否受排富條款影響，建議查閱申報書說明',
   },
   {
@@ -371,7 +373,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '確認租屋自住、境內無房屋及排富條件是否符合',
   },
 

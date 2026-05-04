@@ -1,7 +1,5 @@
 export type VerificationStatus = 'verified' | 'partially_verified' | 'unverified'
 
-export type DisclaimerLevel = 'low' | 'medium' | 'high'
-
 export type SituationId =
   | 'salary_income'
   | 'married'
@@ -55,7 +53,8 @@ export interface ChecklistItem {
   limitations: string[]
   source_refs: SourceRef[]
   verification_status: VerificationStatus
-  disclaimer_level: DisclaimerLevel
+  /** When true, card footer shows the standard wealth-clause / case notice. */
+  show_wealth_clause_notice: boolean
   next_action: string
 }
 

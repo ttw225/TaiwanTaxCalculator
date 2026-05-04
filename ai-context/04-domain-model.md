@@ -2,15 +2,14 @@
 
 Source: [`src/types/content.ts`](../src/types/content.ts).
 
-## Verification and disclaimer enums
+## Verification
 
 ```ts
 export type VerificationStatus = 'verified' | 'partially_verified' | 'unverified'
-export type DisclaimerLevel = 'low' | 'medium' | 'high'
 ```
 
 - **`verification_status`**: Used by publication gate — items with `'unverified'` are filtered out of the live checklist set ([`08-checklist-engine.md`](./08-checklist-engine.md)).
-- **`disclaimer_level`**: UI emphasis; high-risk items display the `需進一步確認` badge.
+- **`show_wealth_clause_notice`**: When `true`, the checklist card footer shows a standard notice that the item may involve personal conditions or wealth-based (排富) rules; see [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx) and copy in [`checklistCardCopy.ts`](../src/lib/checklistCardCopy.ts).
 
 ## Situations
 
@@ -92,7 +91,7 @@ export interface ChecklistItem {
   limitations: string[]
   source_refs: SourceRef[]
   verification_status: VerificationStatus
-  disclaimer_level: DisclaimerLevel
+  show_wealth_clause_notice: boolean
   next_action: string
 }
 ```
@@ -111,7 +110,7 @@ export interface CardInlineField {
 }
 ```
 
-- **`capKey`**: When non-null, must be a key in [`src/data/numbers_2026.json`](../src/data/numbers_2026.json) consumable by [`getNumber`](../src/lib/numbers.ts) for cap feedback in [`DeductionCard`](../src/components/DeductionCard.tsx).
+- **`capKey`**: When non-null, must be a key in [`src/data/numbers_2026.json`](../src/data/numbers_2026.json) consumable by [`getNumber`](../src/lib/numbers.ts) for cap feedback in [`ChecklistInlineAmountFields`](../src/components/checklist/ChecklistInlineAmountFields.tsx) (used from [`DeductionCard`](../src/components/DeductionCard.tsx)).
 
 ## Card input map
 

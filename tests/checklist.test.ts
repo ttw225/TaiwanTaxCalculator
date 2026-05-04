@@ -11,6 +11,7 @@ import {
 import { formatChecklistMarkdown } from '../src/lib/exportChecklist'
 import { ChecklistResult } from '../src/components/ChecklistResult'
 import { DeductionCard } from '../src/components/DeductionCard'
+import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS, WEALTH_CLAUSE_NOTICE } from '../src/lib/checklistCardCopy'
 import type { CardInlineField, ChecklistItem } from '../src/types/content'
 
 function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
@@ -25,7 +26,7 @@ function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
     limitations: [],
     source_refs: [{ source_id: 'src', label: 'Label', authority: 'Auth' }],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: 'Do it',
     ...overrides,
   }
@@ -640,7 +641,7 @@ describe('formatChecklistMarkdown', () => {
       { source_id: 'ntbt_medical_expenses', label: 'MOF filing guide', authority: '財政部' },
     ],
     verification_status: 'verified' as const,
-    disclaimer_level: 'medium' as const,
+    show_wealth_clause_notice: false,
     next_action: '申報時填入醫療費用',
   }
 
@@ -713,6 +714,12 @@ describe('formatChecklistMarkdown', () => {
 
   it('includes user-managed storage wording', () => {
     expect(md).toContain('請自行保管')
+  })
+
+  it('uses the updated usage reminder in header without removed badge wording', () => {
+    const headerMd = formatChecklistMarkdown([], { totalSelected: 0 })
+    expect(headerMd).toContain(CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS)
+    expect(headerMd).not.toContain('標示「需進一步確認」的項目')
   })
 })
 
@@ -823,27 +830,21 @@ describe('DeductionCard inline input fields', () => {
   })
 })
 
-// ── DeductionCard badges ─────────────────────────────────────────────────────
+// ── DeductionCard wealth-clause footer notice ─────────────────────────────────
 
-describe('DeductionCard badges', () => {
-  it('does not show the low-risk document preparation badge', () => {
+describe('DeductionCard show_wealth_clause_notice', () => {
+  it('does not show wealth-clause notice when false', () => {
     const html = renderToStaticMarkup(
-      createElement(DeductionCard, { item: makeItem({ disclaimer_level: 'low' }) }),
+      createElement(DeductionCard, { item: makeItem({ show_wealth_clause_notice: false }) }),
     )
-    expect(html).not.toContain('文件準備')
+    expect(html).not.toContain(WEALTH_CLAUSE_NOTICE)
   })
 
-  it('shows medium-risk badge', () => {
+  it('shows wealth-clause notice when true', () => {
     const html = renderToStaticMarkup(
-      createElement(DeductionCard, { item: makeItem({ disclaimer_level: 'medium' }) }),
+      createElement(DeductionCard, { item: makeItem({ show_wealth_clause_notice: true }) }),
     )
-    expect(html).toContain('建議確認')
-  })
-
-  it('shows high-risk badge', () => {
-    const html = renderToStaticMarkup(
-      createElement(DeductionCard, { item: makeItem({ disclaimer_level: 'high' }) }),
-    )
-    expect(html).toContain('需進一步確認')
+    expect(html).toContain(WEALTH_CLAUSE_NOTICE)
   })
 })
+
