@@ -21,15 +21,15 @@ Reused constants (`SRC_ITA`, `SRC_MOF`, `SRC_MANUAL`, `SRC_TAX_SAVING_MANUAL`, `
 | `insurance-deduction` | `general_deductions` | `insurance` |
 | `medical-deduction` | `general_deductions` | `medical_expenses` |
 | `mortgage-interest-deduction` | `general_deductions` | `mortgage_interest` |
-| `salary-special-deduction` | `gross_income` | `salary_income` |
+| `gross-income` | `gross_income` | `salary_income` |
+| `dividends-tax-choice` | `gross_income` | `dividends` |
+| `overseas-income-amt` | `gross_income` | `overseas_income` |
 | `savings-investment-deduction` | `special_deductions` | `savings_investment` |
 | `disability-special-deduction` | `special_deductions` | `disability` |
 | `childcare-deduction` | `special_deductions` | `childcare` |
 | `education-tuition-deduction` | `special_deductions` | `education_tuition` |
 | `long-term-care-deduction` | `special_deductions` | `long_term_care` |
 | `rent-deduction` | `special_deductions` | `rent` |
-| `dividends-tax-choice` | `further_check` | `dividends` |
-| `overseas-income-amt` | `further_check` | `overseas_income` |
 
 Numeric prose in `why_it_matters` uses `getNumber(...).toLocaleString('zh-TW')` via local helper `n(key)`.
 
@@ -70,7 +70,6 @@ Logic and inputs live in [`src/lib/decisions.ts`](../src/lib/decisions.ts) and [
 | `rent-deduction` | `rent_amount` | `null` |
 | `medical-deduction` | `medical_amount` | `null` |
 | `donations-deduction` | `donation_amount` | `null` |
-| `salary-special-deduction` | `salary_amount` | `special_deduction_salary` |
 
 All fields: `type: 'number'`, `unit: '元'`.
 

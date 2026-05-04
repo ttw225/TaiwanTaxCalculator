@@ -179,7 +179,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   // ── Gross income (綜合所得總額) ─────────────────────────────────────────────
   {
     id: 'gross-income',
-    title: '綜合所得總額',
+    title: '薪資收入',
     category: 'gross_income',
     situations: ['salary_income'],
     why_it_matters: `填入去年（114年1月至12月）本人與親屬的「薪資收入」。系統自動套用「薪資所得特別扣除額」（每人最多 ${n('special_deduction_salary')} 元），計算出綜合所得總額。`,
@@ -195,6 +195,49 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     verification_status: 'verified',
     disclaimer_level: 'low',
     next_action: '確認申報書薪資所得欄位與薪資所得特別扣除額已正確帶入',
+  },
+  {
+    id: 'dividends-tax-choice',
+    title: '股利收入',
+    category: 'gross_income',
+    situations: ['dividends'],
+    why_it_matters: '股利所得可選擇「合併計稅」或「28%分開計稅」，須依個人綜所稅率判斷哪種方式較有利',
+    eligibility_cues: [
+      '申報年度有收到股利或盈餘分配者',
+    ],
+    documents_to_prepare: ['股利分配通知書或扣繳憑單'],
+    limitations: [
+      '兩種計稅方式各有利弊，需依個人邊際稅率判斷',
+      '選擇分開計稅者不可再享股利可抵減稅額',
+      '建議使用財政部電子申報系統試算比較',
+    ],
+    source_refs: [SRC_ITA, SRC_MOF],
+    verification_status: 'partially_verified',
+    disclaimer_level: 'high',
+    next_action: '收集全年股利憑單，使用申報系統試算兩種計稅方式後再決定',
+  },
+  {
+    id: 'overseas-income-amt',
+    title: '海外所得',
+    category: 'gross_income',
+    situations: ['overseas_income'],
+    why_it_matters: '海外所得超過所得基本稅額條例規定門檻者須計入最低稅負制（AMT），計算方式與一般綜所稅不同，稅負較複雜',
+    eligibility_cues: [
+      '全年海外所得達到所得基本稅額條例規定申報門檻者',
+      '需確認是否達到最低稅負制申報門檻（詳見所得基本稅額條例及申報書說明）',
+    ],
+    documents_to_prepare: [
+      '境外所得相關文件（匯款紀錄、境外稅單等）',
+    ],
+    limitations: [
+      '計算方式較複雜，建議諮詢稅務師或記帳士',
+      '境外稅負可申請抵扣，但有相關限制',
+      '海外所得的範圍及認定依所得稅法定義，非所有境外收入均計入',
+    ],
+    source_refs: [SRC_AMT, SRC_MANUAL],
+    verification_status: 'partially_verified',
+    disclaimer_level: 'high',
+    next_action: '確認海外所得金額，如超過門檻建議諮詢稅務師',
   },
   {
     id: 'savings-investment-deduction',
@@ -332,50 +375,6 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     next_action: '確認租屋自住、境內無房屋及排富條件是否符合',
   },
 
-  // ── Further check items ────────────────────────────────────────────────────
-  {
-    id: 'dividends-tax-choice',
-    title: '股利所得課稅方式（需進一步確認）',
-    category: 'further_check',
-    situations: ['dividends'],
-    why_it_matters: '股利所得可選擇「合併計稅」或「28%分開計稅」，須依個人綜所稅率判斷哪種方式較有利',
-    eligibility_cues: [
-      '申報年度有收到股利或盈餘分配者',
-    ],
-    documents_to_prepare: ['股利分配通知書或扣繳憑單'],
-    limitations: [
-      '兩種計稅方式各有利弊，需依個人邊際稅率判斷',
-      '選擇分開計稅者不可再享股利可抵減稅額',
-      '建議使用財政部電子申報系統試算比較',
-    ],
-    source_refs: [SRC_ITA, SRC_MOF],
-    verification_status: 'partially_verified',
-    disclaimer_level: 'high',
-    next_action: '收集全年股利憑單，使用申報系統試算兩種計稅方式後再決定',
-  },
-  {
-    id: 'overseas-income-amt',
-    title: '海外所得與最低稅負（需進一步確認）',
-    category: 'further_check',
-    situations: ['overseas_income'],
-    why_it_matters: '海外所得超過所得基本稅額條例規定門檻者須計入最低稅負制（AMT），計算方式與一般綜所稅不同，稅負較複雜',
-    eligibility_cues: [
-      '全年海外所得達到所得基本稅額條例規定申報門檻者',
-      '需確認是否達到最低稅負制申報門檻（詳見所得基本稅額條例及申報書說明）',
-    ],
-    documents_to_prepare: [
-      '境外所得相關文件（匯款紀錄、境外稅單等）',
-    ],
-    limitations: [
-      '計算方式較複雜，建議諮詢稅務師或記帳士',
-      '境外稅負可申請抵扣，但有相關限制',
-      '海外所得的範圍及認定依所得稅法定義，非所有境外收入均計入',
-    ],
-    source_refs: [SRC_AMT, SRC_MANUAL],
-    verification_status: 'partially_verified',
-    disclaimer_level: 'high',
-    next_action: '確認海外所得金額，如超過門檻建議諮詢稅務師',
-  },
 ]
 
 export const SITUATIONS: Situation[] = [
