@@ -2,7 +2,6 @@ import type {
   ChecklistItem,
   SourceRef,
   VerificationStatus,
-  DisclaimerLevel,
 } from '../src/types/content'
 
 // Compile-time fixture: if any field is missing or wrong type, tsc --noEmit fails.
@@ -16,7 +15,6 @@ const sampleSource: SourceRef = {
 }
 
 const sampleVerification: VerificationStatus = 'verified'
-const sampleDisclaimer: DisclaimerLevel = 'low'
 
 const sampleItem: ChecklistItem = {
   id: 'deduction-standard-single',
@@ -29,7 +27,7 @@ const sampleItem: ChecklistItem = {
   limitations: ['夫妻合併申報請改用標準扣除額（已婚）'],
   source_refs: [sampleSource],
   verification_status: sampleVerification,
-  disclaimer_level: sampleDisclaimer,
+  show_wealth_clause_notice: false,
   next_action: '確認申報書已選擇標準扣除額',
 }
 

@@ -1,15 +1,10 @@
 import type { CategoryGroup } from './checklist'
+import { checklistExportMarkdownHeader } from './checklistCardCopy'
 
 export interface ExportOptions {
   totalSelected: number
   exportTime?: string
 }
-
-const HEADER = `# 114 年度所得稅節稅清單
-
-> **使用提醒：** 本清單協助整理可能適用的申報項目，根據114年度相關法規與官方資料整理。
-> 正式申報結果及稅負計算請以財政部電子申報系統為準，並視個人情況向稅務機關或記帳士確認。
-> 標示「需進一步確認」的項目因規定複雜或有排富條款，建議諮詢後再決定是否申報。`
 
 const FOOTER = `---
 
@@ -24,7 +19,7 @@ export function formatChecklistMarkdown(
   const totalItems = groups.reduce((sum, g) => sum + g.items.length, 0)
 
   const lines: string[] = [
-    HEADER,
+    checklistExportMarkdownHeader(),
     '',
     `**已選情境數**：${totalSelected} 項 **項目數**：${totalItems} 個`,
   ]

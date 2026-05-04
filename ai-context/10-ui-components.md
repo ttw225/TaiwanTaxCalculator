@@ -66,6 +66,10 @@ interface Props {
 - Scroll-to-item: `useEffect` on `scrollToItemId` → [`animateScrollToY`](../src/lib/scrollAnimation.ts) to center card in viewport → `onScrollHandled`.
 - Overlays / tool panel: `no-print` where appropriate.
 
+## Checklist card shell (`ChecklistCardShell.tsx`)
+
+Shared layout for checklist result cards: title, `why_it_matters`, situation labels, eligibility, documents, limitations, **`children`** (form or custom body), then footer `border-t` with `next_action`, optional wealth-clause notice when `item.show_wealth_clause_notice`, and collapsible sources. Root: `print-card`, `data-testid="checklist-card-${item.id}"`.
+
 ## `DeductionCard.tsx`
 
 ```ts
@@ -80,9 +84,8 @@ interface Props {
 }
 ```
 
-- Wrapper class `print-card`. Remove control `no-print`.
-- Optional inline numeric fields; if `capKey` set, compares parsed amount to `getNumber(capKey)` for green/orange feedback.
-- Collapsible sources `<details>`.
+- Composes [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx); **`children`** = [`ChecklistInlineAmountFields`](../src/components/checklist/ChecklistInlineAmountFields.tsx) when `inlineFields` non-empty (optional amounts + `capKey` feedback via `getNumber`).
+- Remove control `no-print` on remove button.
 
 ## `GrossIncomeCard.tsx`
 
@@ -103,9 +106,9 @@ interface Props {
 - State encoded in two `CardInputMap` fields: `self_income` (string number) and `persons_json` (JSON array of `GrossIncomePerson` excluding self).
 - Add/remove/update person: serializes full array to `persons_json` in a single `onInputChange` call (avoids debounce race).
 - Per-person feedback: shows 薪資所得特別扣除額 and net 薪資所得.
-- Bottom-right result: `綜合所得總額 X,XXX,XXX 元` (or `—` before input).
-- Source situation labels at top (parity with `DeductionCard`), `data-testid="card-source-situations-gross-income"`.
-- Outer div has `print-card` class.
+- Composes same [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx) (eligibility, limitations from content, shared footer).
+- **`children`**: multi-person income UI, add-person control, privacy line, then in-card `綜合所得總額` breakdown (`data-testid="gross-income-total"`).
+- Source situation labels: `data-testid="card-source-situations-gross-income"` (from shell).
 - Calculation logic: [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts).
 
 ## `TaxSummaryPanel.tsx`

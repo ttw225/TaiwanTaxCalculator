@@ -36,146 +36,6 @@ const SRC_AMT = {
 }
 
 export const CHECKLIST_ITEMS: ChecklistItem[] = [
-  // ── Exemptions ────────────────────────────────────────────────────────────
-  {
-    id: 'exemption-general',
-    title: '免稅額',
-    category: 'exemptions',
-    situations: ['salary_income', 'dividends', 'overseas_income'],
-    why_it_matters: `每位申報人及符合資格的家庭成員各享 ${n('exemption_general')} 元免稅額；年滿70歲者可適用 ${n('exemption_senior_70')} 元，直接減少課稅所得`,
-    eligibility_cues: [
-      '有綜合所得稅申報需求時，申報人本人、配偶及符合條件的家庭成員均可能適用',
-      '年滿70歲者適用較高免稅額，請確認出生年月日',
-    ],
-    documents_to_prepare: ['身分證或戶口名簿影本（如需確認家庭成員資格）'],
-    limitations: [
-      '家庭成員資格需符合所得稅法第17條規定',
-      '70歲以上者以實際出生年月日計算，非戶籍登記年齡',
-    ],
-    source_refs: [SRC_ITA],
-    verification_status: 'verified',
-    disclaimer_level: 'low',
-    next_action: '確認申報戶成員及是否有70歲以上者',
-  },
-
-  // ── General deductions (列舉) ──────────────────────────────────────────────
-  {
-    id: 'standard-deduction-single',
-    title: '標準扣除額（單身）',
-    category: 'general_deductions',
-    situations: ['salary_income'],
-    why_it_matters: `可直接扣除 ${n('standard_deduction_single')} 元，無需收集任何憑證，最省事的選擇`,
-    eligibility_cues: ['所有申報人均可適用，無資格限制'],
-    documents_to_prepare: [],
-    limitations: ['選擇標準扣除額後，不可再申報列舉扣除額（兩者擇一）'],
-    source_refs: [SRC_ITA],
-    verification_status: 'verified',
-    disclaimer_level: 'low',
-    next_action: '申報書確認已選擇標準扣除額欄位',
-  },
-  {
-    id: 'standard-deduction-married',
-    title: '標準扣除額（配偶合併申報）',
-    category: 'general_deductions',
-    situations: ['married'],
-    why_it_matters: `夫妻合併申報標準扣除額為 ${n('standard_deduction_married')} 元，不需準備任何憑證`,
-    eligibility_cues: ['配偶合併申報者適用'],
-    documents_to_prepare: [],
-    limitations: ['選擇標準扣除額後，不可再申報列舉扣除額（兩者擇一）'],
-    source_refs: [SRC_ITA],
-    verification_status: 'verified',
-    disclaimer_level: 'low',
-    next_action: '申報書確認夫妻合併申報及標準扣除額欄位',
-  },
-  {
-    id: 'donations-deduction',
-    title: '捐贈扣除額',
-    category: 'general_deductions',
-    situations: ['donations'],
-    why_it_matters: '對符合資格機構的捐贈可列舉扣除，一般上限為綜合所得總額20%',
-    eligibility_cues: [
-      '捐贈對象需為依法立案的公益社團、基金會、學術機構或政府',
-      '具有稅捐稽徵法第11條之4規定的捐贈收據',
-    ],
-    documents_to_prepare: ['正式捐贈收據（需含受贈機構統一編號及官方章戳）'],
-    limitations: [
-      '一般捐贈上限為綜合所得總額20%',
-      '捐贈給政府機關及指定機構（如國防、教育等）無上限限制',
-      '請確認受贈機構是否具備所得稅法扣除資格',
-    ],
-    source_refs: [SRC_ITA, SRC_MANUAL],
-    verification_status: 'partially_verified',
-    disclaimer_level: 'medium',
-    next_action: '收集全年捐贈收據，確認受贈機構資格',
-  },
-  {
-    id: 'insurance-deduction',
-    title: '人身保險費',
-    category: 'general_deductions',
-    situations: ['insurance'],
-    why_it_matters: '人身保險費可列舉扣除（每人有年度上限），全民健保費另計可全額扣除；金額請查閱申報書說明',
-    eligibility_cues: [
-      '本人、配偶及受扶養親屬繳納的人身保險費均可列舉',
-      '全民健保費可全額扣除',
-    ],
-    documents_to_prepare: ['保險公司年度繳費證明或收據'],
-    limitations: [
-      '人身保險每人每年有扣除上限，確切金額以114年度申報書說明為準',
-      '全民健保費無上限，可全額列舉',
-      '僅限本人、配偶及受扶養親屬的保費',
-    ],
-    source_refs: [SRC_ITA],
-    verification_status: 'partially_verified',
-    disclaimer_level: 'low',
-    next_action: '向各保險公司索取年度繳費證明',
-  },
-  {
-    id: 'medical-deduction',
-    title: '醫藥及生育費',
-    category: 'general_deductions',
-    situations: ['medical_expenses'],
-    why_it_matters: '公立或全民健保特約醫療機構的醫療費用及生育費用可全額列舉扣除，無金額上限',
-    eligibility_cues: [
-      '本人、配偶或受扶養親屬的醫療費用',
-      '僅限公立或全民健保特約醫療機構',
-    ],
-    documents_to_prepare: ['醫療收據正本（需含診療項目及金額）'],
-    limitations: [
-      '自費美容、整形或非必要手術不適用',
-      '已由保險公司或健保理賠的部分不可重複扣除',
-      '僅限公立或全民健保特約醫療機構，私立非特約院所不適用',
-    ],
-    source_refs: [SRC_ITA],
-    verification_status: 'partially_verified',
-    disclaimer_level: 'medium',
-    next_action: '收集全年度醫療機構收據，確認機構是否為特約院所',
-  },
-  {
-    id: 'mortgage-interest-deduction',
-    title: '購屋借款利息',
-    category: 'general_deductions',
-    situations: ['mortgage_interest'],
-    why_it_matters: `向金融機構借款購買自用住宅所支付的利息，扣除儲蓄投資特別扣除額後的餘額可列舉扣除，最高 ${n('itemized_deduction_mortgage_interest')} 元/戶`,
-    eligibility_cues: [
-      '向金融機構借款購買自用住宅所支付的利息',
-      '該住宅無出租、供營業或執行業務使用',
-    ],
-    documents_to_prepare: [
-      '銀行房貸年度利息繳納證明',
-      '戶籍謄本或其他自住證明',
-    ],
-    limitations: [
-      `最高 ${n('itemized_deduction_mortgage_interest')} 元/戶`,
-      '不得與租金扣除額同時適用',
-      '以實際支付利息扣除儲蓄投資特別扣除額後的餘額申報扣除',
-      '出租、供營業或執行業務使用的房屋不適用',
-    ],
-    source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
-    verification_status: 'partially_verified',
-    disclaimer_level: 'medium',
-    next_action: '向銀行申請年度貸款利息繳納證明',
-  },
-
   // ── Gross income (綜合所得總額) ─────────────────────────────────────────────
   {
     id: 'gross-income',
@@ -190,10 +50,11 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     documents_to_prepare: [],
     limitations: [
       '申報系統通常自動帶入薪資資料，請確認金額正確',
+      '本網站簡化扣除額流程，統一採用「薪資所得特別扣除額」計算，無「必要費用」選項。',
     ],
     source_refs: [SRC_ITA, SRC_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認申報書薪資所得欄位與薪資所得特別扣除額已正確帶入',
   },
   {
@@ -213,7 +74,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_MOF],
     verification_status: 'partially_verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '收集全年股利憑單，使用申報系統試算兩種計稅方式後再決定',
   },
   {
@@ -236,9 +97,152 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_AMT, SRC_MANUAL],
     verification_status: 'partially_verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '確認海外所得金額，如超過門檻建議諮詢稅務師',
   },
+
+  // ── Exemptions ────────────────────────────────────────────────────────────
+  {
+    id: 'exemption-general',
+    title: '免稅額',
+    category: 'exemptions',
+    situations: ['salary_income', 'dividends', 'overseas_income'],
+    why_it_matters: `每位申報人及符合資格的家庭成員各享 ${n('exemption_general')} 元免稅額；年滿70歲者可適用 ${n('exemption_senior_70')} 元，計入免稅額`,
+    eligibility_cues: [
+      '有綜合所得稅申報需求時，申報人本人、配偶及符合條件的家庭成員均可能適用',
+      '年滿70歲者適用較高免稅額',
+    ],
+    documents_to_prepare: ['身分證或戶口名簿影本（如需確認家庭成員資格）'],
+    limitations: [
+      '家庭成員資格需符合所得稅法第17條規定',
+      '70歲以上者以實際出生年月日計算，非戶籍登記年齡',
+    ],
+    source_refs: [SRC_ITA],
+    verification_status: 'verified',
+    show_wealth_clause_notice: false,
+    next_action: '確認申報戶成員及是否有70歲以上者',
+  },
+
+  // ── General deductions (標準) ──────────────────────────────────────────────
+  {
+    id: 'standard-deduction-single',
+    title: '標準扣除額（單身）',
+    category: 'general_deductions',
+    situations: ['salary_income'],
+    why_it_matters: `可直接扣除 ${n('standard_deduction_single')} 元，不需提供任何文件`,
+    eligibility_cues: ['所有申報人均可適用，無資格限制'],
+    documents_to_prepare: [],
+    limitations: ['選擇標準扣除額後，不可再申報列舉扣除額（兩者擇一）'],
+    source_refs: [SRC_ITA],
+    verification_status: 'verified',
+    show_wealth_clause_notice: false,
+    next_action: '申報書確認已選擇標準扣除額欄位',
+  },
+  {
+    id: 'standard-deduction-married',
+    title: '標準扣除額（配偶合併申報）',
+    category: 'general_deductions',
+    situations: ['married'],
+    why_it_matters: `夫妻合併申報標準扣除額為 ${n('standard_deduction_married')} 元，不需提供任何文件`,
+    eligibility_cues: ['配偶合併申報者適用'],
+    documents_to_prepare: [],
+    limitations: ['選擇標準扣除額後，不可再申報列舉扣除額（兩者擇一）'],
+    source_refs: [SRC_ITA],
+    verification_status: 'verified',
+    show_wealth_clause_notice: false,
+    next_action: '申報書確認夫妻合併申報及標準扣除額欄位',
+  },
+
+  // ── General deductions (列舉) ──────────────────────────────────────────────
+  {
+    id: 'donations-deduction',
+    title: '捐贈扣除額',
+    category: 'general_deductions',
+    situations: ['donations'],
+    why_it_matters: '對符合資格機構的捐贈可列舉，一般上限為每戶綜合所得總額20%',
+    eligibility_cues: [
+      '捐贈對象需為依法立案的公益社團、基金會、學術機構或政府',
+    ],
+    documents_to_prepare: ['正式捐贈收據（需含受贈機構統一編號及官方章戳）'],
+    limitations: [
+      '一般捐贈上限為綜合所得總額20%',
+      '捐贈給政府機關及指定機構（如國防、教育等）無上限限制',
+      '請確認受贈機構是否具備所得稅法扣除資格', 
+    ],
+    source_refs: [SRC_ITA, SRC_MANUAL],
+    verification_status: 'partially_verified',
+    show_wealth_clause_notice: false,
+    next_action: '收集全年捐贈收據，確認受贈機構資格',
+  },
+  {
+    id: 'insurance-deduction',
+    title: '人身保險費',
+    category: 'general_deductions',
+    situations: ['insurance'],
+    why_it_matters: `人身保險費可列舉，每人每年最高 ${n('itemized_deduction_personal_insurance')} 元；全民健保費無金額限制`,
+    eligibility_cues: [
+      '本人、配偶及受扶養親屬繳納的人身保險費均可列舉',
+      '全民健保費認列無金額限制',
+    ],
+    documents_to_prepare: ['保險公司年度繳費證明或收據'],
+    limitations: [
+      `人身保險費每人每年最高 ${n('itemized_deduction_personal_insurance')} 元`,
+      '全民健保費無上限，可全額列舉',
+      '僅限本人、配偶及受扶養親屬的保費',
+    ],
+    source_refs: [SRC_ITA, SRC_MANUAL],
+    verification_status: 'verified',
+    show_wealth_clause_notice: false,
+    next_action: '向各保險公司索取年度繳費證明',
+  },
+  {
+    id: 'medical-deduction',
+    title: '醫藥及生育費',
+    category: 'general_deductions',
+    situations: ['medical_expenses'],
+    why_it_matters: '符合資格的醫療機構費用扣除「保險給付」後的差額，可全額列舉，無金額上限',
+    eligibility_cues: [
+      '本人、配偶或受扶養親屬的醫療費用及生育費用',
+      '僅限公立或全民健保特約醫療機構',
+    ],
+    documents_to_prepare: ['醫療收據正本（需含診療項目及金額）'],
+    limitations: [
+      '自費美容、整形或非必要手術不適用',
+      '已由保險公司或健保理賠的部分不可重複扣除',
+      '僅限公立或全民健保特約醫療機構，私立非特約院所不適用',
+    ],
+    source_refs: [SRC_ITA],
+    verification_status: 'partially_verified',
+    show_wealth_clause_notice: false,
+    next_action: '收集全年度醫療機構收據，確認機構是否為特約院所',
+  },
+  {
+    id: 'mortgage-interest-deduction',
+    title: '購屋借款利息',
+    category: 'general_deductions',
+    situations: ['mortgage_interest'],
+    why_it_matters: `向金融機構借款購買「自用住宅」所支付的「利息」，扣除「儲蓄投資特別扣除額」後的餘額可列舉扣除，最高 ${n('itemized_deduction_mortgage_interest')} 元/戶`,
+    eligibility_cues: [
+      '向金融機構借款購買自用住宅所支付的利息',
+      '該住宅無出租、供營業或執行業務使用',
+    ],
+    documents_to_prepare: [
+      '銀行房貸年度利息繳納證明',
+      '戶籍謄本或其他自住證明',
+    ],
+    limitations: [
+      `最高 ${n('itemized_deduction_mortgage_interest')} 元/戶`,
+      '不得與租金扣除額同時適用',
+      '以實際支付利息扣除儲蓄投資特別扣除額後的餘額申報扣除',
+      '出租、供營業或執行業務使用的房屋不適用',
+    ],
+    source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
+    verification_status: 'partially_verified',
+    show_wealth_clause_notice: false,
+    next_action: '向銀行申請年度貸款利息繳納證明',
+  },
+
+  // ── Special deductions (列舉) ──────────────────────────────────────────────
   {
     id: 'savings-investment-deduction',
     title: '儲蓄投資特別扣除額',
@@ -253,11 +257,11 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     limitations: [
       `最高 ${n('special_deduction_savings_investment')} 元/戶`,
       '郵政儲金免稅利息及分離課稅利息不包括在內',
-      '夫妻選擇分開計算稅額時，扣除順序需依申報規定確認',
+      '配偶選擇分開計算稅額時，扣除順序需依申報規定確認',
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認全年利息所得資料與申報系統帶入金額',
   },
   {
@@ -265,43 +269,40 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     title: '身心障礙特別扣除額',
     category: 'special_deductions',
     situations: ['disability'],
-    why_it_matters: `每位持有身心障礙手冊或重大傷病卡的成員可扣除 ${n('special_deduction_disability')} 元`,
+    why_it_matters: `每位持有身心障礙證明（或手冊）的成員可扣除 ${n('special_deduction_disability')} 元`,
     eligibility_cues: [
       '本人、配偶或受扶養親屬持有身心障礙手冊',
-      '或持有衛福部公告的重大傷病卡',
     ],
     documents_to_prepare: [
       '身心障礙手冊影本',
-      '或重大傷病卡影本',
     ],
     limitations: [
-      '重大傷病與身心障礙擇一適用，同一人不可重複申報',
       '需為申報年度有效期間內的證明',
     ],
     source_refs: [SRC_ITA],
     verification_status: 'verified',
-    disclaimer_level: 'low',
-    next_action: '備妥身心障礙手冊或重大傷病卡影本',
+    show_wealth_clause_notice: false,
+    next_action: '備妥身心障礙手冊影本',
   },
   {
     id: 'childcare-deduction',
     title: '幼兒學前',
     category: 'special_deductions',
     situations: ['childcare'],
-    why_it_matters: `申報扶養6歲（含）以下幼兒，第一人可扣除 ${n('special_deduction_childcare_first')} 元/人，第二人起每人 ${n('special_deduction_childcare_additional')} 元，無排富`,
+    why_it_matters: `申報扶養6歲（含）以下幼兒，第一人可扣除 ${n('special_deduction_childcare_first')} 元/人，第二人起每人 ${n('special_deduction_childcare_additional')} 元`,
     eligibility_cues: [
       '申報扶養6歲（含）以下幼兒',
       '第一人與第二人起適用不同扣除額',
     ],
-    documents_to_prepare: ['子女戶口名簿或出生證明影本'],
+    documents_to_prepare: [],
     limitations: [
       `第一人最高 ${n('special_deduction_childcare_first')} 元/人`,
       `第二人起最高 ${n('special_deduction_childcare_additional')} 元/人`,
-      '無排富條款',
+      '113 年起取消排富條款',
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認幼兒年齡與申報扶養資料',
   },
   {
@@ -322,7 +323,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '確認子女就學資格並備妥學費繳費證明',
   },
   {
@@ -330,7 +331,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     title: '長期照顧',
     category: 'special_deductions',
     situations: ['long_term_care'],
-    why_it_matters: `每位符合長照資格者可扣除 ${n('special_deduction_long_term_care')} 元，但有排富條款，建議先確認是否適用`,
+    why_it_matters: `每位符合長照資格者可扣除 ${n('special_deduction_long_term_care')} 元，有排富條款`,
     eligibility_cues: [
       '本人、配偶或受扶養親屬需要長期照顧服務',
       '依長照服務法或相關規定認定',
@@ -341,11 +342,10 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     ],
     limitations: [
       '排富條款：適用稅率達20%或股利選擇分開計稅且超過門檻者，不得適用',
-      '與身心障礙特別扣除額不可針對同一人重複申報',
     ],
     source_refs: [SRC_ITA, SRC_MOF],
     verification_status: 'verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '確認長照資格及是否受排富條款影響，建議查閱申報書說明',
   },
   {
@@ -353,10 +353,10 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     title: '房屋租金支出',
     category: 'special_deductions',
     situations: ['rent'],
-    why_it_matters: `納稅義務人、配偶及受扶養直系親屬在境內租屋自住，最高可扣除 ${n('special_deduction_rent')} 元/戶，但有排富條款`,
+    why_it_matters: `納稅義務人、配偶及受扶養直系親屬在境內租屋自住，最高可扣除 ${n('special_deduction_rent')} 元/戶，有排富條款`,
     eligibility_cues: [
       '納稅義務人、配偶及受扶養直系親屬在中華民國境內租屋',
-      '供自住且非供營業或執行業務使用',
+      '自住且非供營業或執行業務使用',
       '納稅義務人、配偶或受扶養直系親屬在中華民國境內有房屋者不得扣除',
     ],
     documents_to_prepare: [
@@ -367,36 +367,34 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     limitations: [
       `最高 ${n('special_deduction_rent')} 元/戶`,
       '有排富條款，高所得或特定股利、基本所得額情形不得適用',
-      '不得與購屋借款利息扣除額同時申報',
     ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     verification_status: 'verified',
-    disclaimer_level: 'high',
+    show_wealth_clause_notice: true,
     next_action: '確認租屋自住、境內無房屋及排富條件是否符合',
   },
-
 ]
 
 export const SITUATIONS: Situation[] = [
-  {
-    id: 'salary_income',
-    label: '薪資收入',
-    description: '任職公司、機關或個人受雇，每月領取薪水',
-  },
   {
     id: 'married',
     label: '配偶合併申報',
     description: '已婚並選擇與配偶合併辦理綜合所得稅申報',
   },
   {
-    id: 'disability',
-    label: '身心障礙',
-    description: '持有身心障礙手冊或衛福部公告重大傷病卡',
+    id: 'salary_income',
+    label: '薪資收入',
+    description: '任職公司、機關或個人受雇，每月領取薪水',
   },
   {
-    id: 'long_term_care',
-    label: '長期照顧',
-    description: '家中有需要長照服務的成員',
+    id: 'dividends',
+    label: '股利收入',
+    description: '持有台股或基金，收到股利或盈餘分配',
+  },
+  {
+    id: 'overseas_income',
+    label: '海外所得',
+    description: '全年海外所得超過100萬元，可能需申報最低稅負',
   },
   {
     id: 'donations',
@@ -406,7 +404,7 @@ export const SITUATIONS: Situation[] = [
   {
     id: 'insurance',
     label: '人身保險費',
-    description: '繳納人身保險費（含壽險、意外險、健康險等）',
+    description: `繳納人身保險費（含壽險、意外險、健康險等）；列舉扣除每人每年最高 ${n('itemized_deduction_personal_insurance')} 元`,
   },
   {
     id: 'medical_expenses',
@@ -419,9 +417,14 @@ export const SITUATIONS: Situation[] = [
     description: '自住房屋的房貸每年需繳利息',
   },
   {
-    id: 'rent',
-    label: '房屋租金支出',
-    description: '本人及配偶在台灣租房居住，無自有房屋',
+    id: 'savings_investment',
+    label: '儲蓄投資',
+    description: '有金融機構存款利息、儲蓄性質信託資金等收益',
+  },
+  {
+    id: 'disability',
+    label: '身心障礙',
+    description: '持有身心障礙手冊或衛福部公告重大傷病卡',
   },
   {
     id: 'childcare',
@@ -434,19 +437,14 @@ export const SITUATIONS: Situation[] = [
     description: '受扶養子女就讀經教育部認可之國內外大專院校',
   },
   {
-    id: 'savings_investment',
-    label: '儲蓄投資',
-    description: '有金融機構存款利息、儲蓄性質信託資金等收益',
+    id: 'long_term_care',
+    label: '長期照顧',
+    description: '家中有需要長照服務的成員',
   },
   {
-    id: 'dividends',
-    label: '股利收入',
-    description: '持有台股或基金，收到股利或盈餘分配',
-  },
-  {
-    id: 'overseas_income',
-    label: '海外所得',
-    description: '全年海外所得超過100萬元，可能需申報最低稅負',
+    id: 'rent',
+    label: '房屋租金支出',
+    description: '本人及配偶在台灣租房居住，無自有房屋',
   },
 ]
 

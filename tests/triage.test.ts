@@ -17,7 +17,7 @@ function makeItem(id: string, situations: ChecklistItem['situations'], category:
     limitations: [],
     source_refs: [],
     verification_status: 'verified',
-    disclaimer_level: 'low',
+    show_wealth_clause_notice: false,
     next_action: '',
   }
 }

@@ -6,6 +6,7 @@ import type {
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
 import { formatChecklistMarkdown } from '../lib/exportChecklist'
+import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
@@ -574,7 +575,7 @@ export function ChecklistResult({
               <strong className="text-gray-700">使用提醒：</strong>
               本清單協助整理可能適用的申報項目，根據114年度相關法規與官方資料整理。
               正式申報結果及稅負計算請以財政部電子申報系統為準，並視個人情況向稅務機關或記帳士確認。
-              標示「需進一步確認」的項目因規定複雜或有排富條款，建議諮詢後再決定是否申報。
+              {CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS}
             </p>
           </div>
 

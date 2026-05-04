@@ -68,6 +68,14 @@
       "source_url": "https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/k2Jbgrp"
     },
     {
+      "key": "itemized_deduction_personal_insurance",
+      "value": 24000,
+      "unit": "TWD",
+      "basis_law": "所得稅法第17條",
+      "basis_announcement": "114年度綜合所得稅結算申報書說明",
+      "source_url": "https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf"
+    },
+    {
       "key": "special_deduction_childcare_first",
       "value": 150000,
       "unit": "TWD",

@@ -21,7 +21,7 @@
 | Class | Typical use |
 |-------|-------------|
 | `print-container` | Results page root in `ChecklistResult` |
-| `print-card` | Each `DeductionCard` root |
+| `print-card` | Each checklist card root (`ChecklistCardShell` — used by `DeductionCard` / `GrossIncomeCard`) |
 | `no-print` | Header actions, modals, decision tools panel (per product choice), back-to-top, export controls |
 
 ## Scroll animation
