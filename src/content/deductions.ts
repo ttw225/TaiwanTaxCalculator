@@ -36,13 +36,78 @@ const SRC_AMT = {
 }
 
 export const CHECKLIST_ITEMS: ChecklistItem[] = [
+  // ── Gross income (綜合所得總額) ─────────────────────────────────────────────
+  {
+    id: 'gross-income',
+    title: '薪資收入',
+    category: 'gross_income',
+    situations: ['salary_income'],
+    why_it_matters: `填入去年（114年1月至12月）本人與親屬的「薪資收入」。系統自動套用「薪資所得特別扣除額」（每人最多 ${n('special_deduction_salary')} 元），計算出綜合所得總額。`,
+    eligibility_cues: [
+      '有薪資收入的納稅義務人、配偶及申報受扶養親屬均需申報',
+      `薪資所得特別扣除額每人最高 ${n('special_deduction_salary')} 元，不超過實際薪資收入`,
+    ],
+    documents_to_prepare: [],
+    limitations: [
+      '申報系統通常自動帶入薪資資料，請確認金額正確',
+      '本網站簡化扣除額流程，統一採用「薪資所得特別扣除額」計算，無「必要費用」選項。',
+    ],
+    source_refs: [SRC_ITA, SRC_MANUAL],
+    verification_status: 'verified',
+    show_wealth_clause_notice: false,
+    next_action: '確認申報書薪資所得欄位與薪資所得特別扣除額已正確帶入',
+  },
+  {
+    id: 'dividends-tax-choice',
+    title: '股利收入',
+    category: 'gross_income',
+    situations: ['dividends'],
+    why_it_matters: '股利所得可選擇「合併計稅」或「28%分開計稅」，須依個人綜所稅率判斷哪種方式較有利',
+    eligibility_cues: [
+      '申報年度有收到股利或盈餘分配者',
+    ],
+    documents_to_prepare: ['股利分配通知書或扣繳憑單'],
+    limitations: [
+      '兩種計稅方式各有利弊，需依個人邊際稅率判斷',
+      '選擇分開計稅者不可再享股利可抵減稅額',
+      '建議使用財政部電子申報系統試算比較',
+    ],
+    source_refs: [SRC_ITA, SRC_MOF],
+    verification_status: 'partially_verified',
+    show_wealth_clause_notice: true,
+    next_action: '收集全年股利憑單，使用申報系統試算兩種計稅方式後再決定',
+  },
+  {
+    id: 'overseas-income-amt',
+    title: '海外所得',
+    category: 'gross_income',
+    situations: ['overseas_income'],
+    why_it_matters: '海外所得超過所得基本稅額條例規定門檻者須計入最低稅負制（AMT），計算方式與一般綜所稅不同，稅負較複雜',
+    eligibility_cues: [
+      '全年海外所得達到所得基本稅額條例規定申報門檻者',
+      '需確認是否達到最低稅負制申報門檻（詳見所得基本稅額條例及申報書說明）',
+    ],
+    documents_to_prepare: [
+      '境外所得相關文件（匯款紀錄、境外稅單等）',
+    ],
+    limitations: [
+      '計算方式較複雜，建議諮詢稅務師或記帳士',
+      '境外稅負可申請抵扣，但有相關限制',
+      '海外所得的範圍及認定依所得稅法定義，非所有境外收入均計入',
+    ],
+    source_refs: [SRC_AMT, SRC_MANUAL],
+    verification_status: 'partially_verified',
+    show_wealth_clause_notice: true,
+    next_action: '確認海外所得金額，如超過門檻建議諮詢稅務師',
+  },
+
   // ── Exemptions ────────────────────────────────────────────────────────────
   {
     id: 'exemption-general',
     title: '免稅額',
     category: 'exemptions',
     situations: ['salary_income', 'dividends', 'overseas_income'],
-    why_it_matters: `每位申報人及符合資格的家庭成員各享 ${n('exemption_general')} 元免稅額；年滿70歲者可適用 ${n('exemption_senior_70')} 元，直接減少課稅所得`,
+    why_it_matters: `每位申報人及符合資格的家庭成員各享 ${n('exemption_general')} 元免稅額；年滿70歲者可適用 ${n('exemption_senior_70')} 元，直接計入免稅額`,
     eligibility_cues: [
       '有綜合所得稅申報需求時，申報人本人、配偶及符合條件的家庭成員均可能適用',
       '年滿70歲者適用較高免稅額，請確認出生年月日',
@@ -58,7 +123,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     next_action: '確認申報戶成員及是否有70歲以上者',
   },
 
-  // ── General deductions (列舉) ──────────────────────────────────────────────
+  // ── General deductions (標準) ──────────────────────────────────────────────
   {
     id: 'standard-deduction-single',
     title: '標準扣除額（單身）',
@@ -87,6 +152,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     show_wealth_clause_notice: false,
     next_action: '申報書確認夫妻合併申報及標準扣除額欄位',
   },
+
+  // ── General deductions (列舉) ──────────────────────────────────────────────
   {
     id: 'donations-deduction',
     title: '捐贈扣除額',
@@ -176,71 +243,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     next_action: '向銀行申請年度貸款利息繳納證明',
   },
 
-  // ── Gross income (綜合所得總額) ─────────────────────────────────────────────
-  {
-    id: 'gross-income',
-    title: '薪資收入',
-    category: 'gross_income',
-    situations: ['salary_income'],
-    why_it_matters: `填入去年（114年1月至12月）本人與親屬的「薪資收入」。系統自動套用「薪資所得特別扣除額」（每人最多 ${n('special_deduction_salary')} 元），計算出綜合所得總額。`,
-    eligibility_cues: [
-      '有薪資收入的納稅義務人、配偶及申報受扶養親屬均需申報',
-      `薪資所得特別扣除額每人最高 ${n('special_deduction_salary')} 元，不超過實際薪資收入`,
-    ],
-    documents_to_prepare: [],
-    limitations: [
-      '申報系統通常自動帶入薪資資料，請確認金額正確',
-      '納稅義務人、配偶或申報受扶養親屬有「薪資收入」者，應分別就「薪資所得特別扣除額」或「必要費用」2擇1減除，減除後的餘額為薪資所得。',
-      '本網站簡化此流程，統一採用「薪資所得特別扣除額」計算。',
-    ],
-    source_refs: [SRC_ITA, SRC_MANUAL],
-    verification_status: 'verified',
-    show_wealth_clause_notice: false,
-    next_action: '確認申報書薪資所得欄位與薪資所得特別扣除額已正確帶入',
-  },
-  {
-    id: 'dividends-tax-choice',
-    title: '股利收入',
-    category: 'gross_income',
-    situations: ['dividends'],
-    why_it_matters: '股利所得可選擇「合併計稅」或「28%分開計稅」，須依個人綜所稅率判斷哪種方式較有利',
-    eligibility_cues: [
-      '申報年度有收到股利或盈餘分配者',
-    ],
-    documents_to_prepare: ['股利分配通知書或扣繳憑單'],
-    limitations: [
-      '兩種計稅方式各有利弊，需依個人邊際稅率判斷',
-      '選擇分開計稅者不可再享股利可抵減稅額',
-      '建議使用財政部電子申報系統試算比較',
-    ],
-    source_refs: [SRC_ITA, SRC_MOF],
-    verification_status: 'partially_verified',
-    show_wealth_clause_notice: true,
-    next_action: '收集全年股利憑單，使用申報系統試算兩種計稅方式後再決定',
-  },
-  {
-    id: 'overseas-income-amt',
-    title: '海外所得',
-    category: 'gross_income',
-    situations: ['overseas_income'],
-    why_it_matters: '海外所得超過所得基本稅額條例規定門檻者須計入最低稅負制（AMT），計算方式與一般綜所稅不同，稅負較複雜',
-    eligibility_cues: [
-      '全年海外所得達到所得基本稅額條例規定申報門檻者',
-      '需確認是否達到最低稅負制申報門檻（詳見所得基本稅額條例及申報書說明）',
-    ],
-    documents_to_prepare: [
-      '境外所得相關文件（匯款紀錄、境外稅單等）',
-    ],
-    limitations: [
-      '計算方式較複雜，建議諮詢稅務師或記帳士',
-      '境外稅負可申請抵扣，但有相關限制',
-      '海外所得的範圍及認定依所得稅法定義，非所有境外收入均計入',
-    ],
-    source_refs: [SRC_AMT, SRC_MANUAL],
-    verification_status: 'partially_verified',
-    show_wealth_clause_notice: true,
-    next_action: '確認海外所得金額，如超過門檻建議諮詢稅務師',
-  },
+  // ── Special deductions (列舉) ──────────────────────────────────────────────
   {
     id: 'savings-investment-deduction',
     title: '儲蓄投資特別扣除額',
@@ -376,29 +379,28 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     show_wealth_clause_notice: true,
     next_action: '確認租屋自住、境內無房屋及排富條件是否符合',
   },
-
 ]
 
 export const SITUATIONS: Situation[] = [
-  {
-    id: 'salary_income',
-    label: '薪資收入',
-    description: '任職公司、機關或個人受雇，每月領取薪水',
-  },
   {
     id: 'married',
     label: '配偶合併申報',
     description: '已婚並選擇與配偶合併辦理綜合所得稅申報',
   },
   {
-    id: 'disability',
-    label: '身心障礙',
-    description: '持有身心障礙手冊或衛福部公告重大傷病卡',
+    id: 'salary_income',
+    label: '薪資收入',
+    description: '任職公司、機關或個人受雇，每月領取薪水',
   },
   {
-    id: 'long_term_care',
-    label: '長期照顧',
-    description: '家中有需要長照服務的成員',
+    id: 'dividends',
+    label: '股利收入',
+    description: '持有台股或基金，收到股利或盈餘分配',
+  },
+  {
+    id: 'overseas_income',
+    label: '海外所得',
+    description: '全年海外所得超過100萬元，可能需申報最低稅負',
   },
   {
     id: 'donations',
@@ -421,9 +423,14 @@ export const SITUATIONS: Situation[] = [
     description: '自住房屋的房貸每年需繳利息',
   },
   {
-    id: 'rent',
-    label: '房屋租金支出',
-    description: '本人及配偶在台灣租房居住，無自有房屋',
+    id: 'savings_investment',
+    label: '儲蓄投資',
+    description: '有金融機構存款利息、儲蓄性質信託資金等收益',
+  },
+  {
+    id: 'disability',
+    label: '身心障礙',
+    description: '持有身心障礙手冊或衛福部公告重大傷病卡',
   },
   {
     id: 'childcare',
@@ -436,19 +443,14 @@ export const SITUATIONS: Situation[] = [
     description: '受扶養子女就讀經教育部認可之國內外大專院校',
   },
   {
-    id: 'savings_investment',
-    label: '儲蓄投資',
-    description: '有金融機構存款利息、儲蓄性質信託資金等收益',
+    id: 'long_term_care',
+    label: '長期照顧',
+    description: '家中有需要長照服務的成員',
   },
   {
-    id: 'dividends',
-    label: '股利收入',
-    description: '持有台股或基金，收到股利或盈餘分配',
-  },
-  {
-    id: 'overseas_income',
-    label: '海外所得',
-    description: '全年海外所得超過100萬元，可能需申報最低稅負',
+    id: 'rent',
+    label: '房屋租金支出',
+    description: '本人及配偶在台灣租房居住，無自有房屋',
   },
 ]
 
