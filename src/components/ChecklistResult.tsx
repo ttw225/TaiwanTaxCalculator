@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   CardInputMap,
   Situation,
@@ -9,8 +9,11 @@ import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
+import { parseGrossIncomePersons, calcTotalGrossIncome } from '../lib/grossIncome'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
+import { GrossIncomeCard } from './GrossIncomeCard'
+import { TaxSummaryPanel } from './TaxSummaryPanel'
 
 export interface RemovalImpactPreview {
   itemId: string
@@ -447,8 +450,16 @@ export function ChecklistResult({
     setIsAddModalOpen(false)
   }
 
+  const isMarriedFiling = selectedSituations.includes('married')
+
+  const grossIncomeTotal = useMemo(() => {
+    const inputs = cardInputMap['gross-income'] ?? {}
+    const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
+    return calcTotalGrossIncome(persons)
+  }, [cardInputMap, isMarriedFiling])
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 print-container">
+    <div className="mx-auto max-w-4xl px-4 py-8 print-container">
       <AddSituationModal
         groups={addableSituationGroups}
         isOpen={isAddModalOpen}
@@ -465,94 +476,123 @@ export function ChecklistResult({
         />
       )}
 
-      <div className="mb-1 flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-gray-900">節稅清單</h1>
-        <button
-          type="button"
-          onClick={openAddModal}
-          disabled={!canAddMore}
-          data-testid="open-add-situation-modal-btn"
-          className={[
-            'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium transition-colors',
-            canAddMore
-              ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
-              : 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300',
-          ].join(' ')}
-        >
-          <span aria-hidden="true">+</span>
-          <span>新增項目</span>
-        </button>
-      </div>
-      <p className="mb-4 text-sm text-gray-500">
-        根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
-      </p>
+      <div className="lg:grid lg:grid-cols-[1fr_260px] lg:gap-6 lg:items-start">
+        {/* ── Main column ── */}
+        <div>
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <h1 className="text-xl font-semibold text-gray-900">節稅清單</h1>
+            <button
+              type="button"
+              onClick={openAddModal}
+              disabled={!canAddMore}
+              data-testid="open-add-situation-modal-btn"
+              className={[
+                'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium transition-colors',
+                canAddMore
+                  ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
+                  : 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300',
+              ].join(' ')}
+            >
+              <span aria-hidden="true">+</span>
+              <span>新增項目</span>
+            </button>
+          </div>
+          <p className="mb-4 text-sm text-gray-500">
+            根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
+          </p>
 
-      <div className="mb-6 no-print">
-        <DecisionToolsPanel selectedSituations={selectedSituations} />
-      </div>
+          <div className="mb-6 no-print">
+            <DecisionToolsPanel selectedSituations={selectedSituations} />
+          </div>
 
-      {!hasResults && (
-        <div className="py-12 text-center text-gray-400">
-          <p>目前清單中沒有項目</p>
-          <p className="mt-2 text-xs text-gray-400">可使用右上角「新增項目」加入要確認的情境</p>
-        </div>
-      )}
-
-      <div className="space-y-8">
-        {groups.map((group) => (
-          <section
-            key={group.category}
-            ref={(element) => {
-              sectionRefs.current[group.category] = element
-            }}
-            data-testid={`checklist-section-${group.category}`}
-          >
-            <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700">
-              {group.label}
-            </h2>
-            {group.category === 'general_deductions' && (
-              <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
-            )}
-            <div className="space-y-3">
-              {group.items.map((item) => (
-                <div
-                  key={item.id}
-                  ref={(element) => {
-                    itemRefs.current[item.id] = element
-                  }}
-                  data-testid={`checklist-item-${item.id}`}
-                >
-                  <DeductionCard
-                    item={item}
-                    inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
-                    inputValues={cardInputMap[item.id] ?? {}}
-                    sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
-                    removable
-                    onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
-                    onRemove={() => onRemoveItem?.(item.id)}
-                  />
-                </div>
-              ))}
+          {!hasResults && (
+            <div className="py-12 text-center text-gray-400">
+              <p>目前清單中沒有項目</p>
+              <p className="mt-2 text-xs text-gray-400">可使用右上角「新增項目」加入要確認的情境</p>
             </div>
-          </section>
-        ))}
-      </div>
+          )}
 
-      <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <p className="text-xs leading-relaxed text-gray-500">
-          <strong className="text-gray-700">使用提醒：</strong>
-          本清單協助整理可能適用的申報項目，根據114年度相關法規與官方資料整理。
-          正式申報結果及稅負計算請以財政部電子申報系統為準，並視個人情況向稅務機關或記帳士確認。
-          標示「需進一步確認」的項目因規定複雜或有排富條款，建議諮詢後再決定是否申報。
-        </p>
-      </div>
+          <div className="space-y-8">
+            {groups.map((group) => (
+              <section
+                key={group.category}
+                ref={(element) => {
+                  sectionRefs.current[group.category] = element
+                }}
+                data-testid={`checklist-section-${group.category}`}
+              >
+                <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700 flex items-baseline gap-2">
+                  <span>{group.label}</span>
+                  {group.category === 'gross_income' && grossIncomeTotal > 0 && (
+                    <span className="text-sm font-semibold text-green-700 tabular-nums">
+                      {grossIncomeTotal.toLocaleString('zh-TW')} 元
+                    </span>
+                  )}
+                </h2>
+                {group.category === 'general_deductions' && (
+                  <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
+                )}
+                <div className="space-y-3">
+                  {group.items.map((item) => (
+                    <div
+                      key={item.id}
+                      ref={(element) => {
+                        itemRefs.current[item.id] = element
+                      }}
+                      data-testid={`checklist-item-${item.id}`}
+                    >
+                      {item.id === 'gross-income' ? (
+                        <GrossIncomeCard
+                          item={item}
+                          inputValues={cardInputMap[item.id] ?? {}}
+                          isMarriedFiling={isMarriedFiling}
+                          sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
+                          removable
+                          onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
+                          onRemove={() => onRemoveItem?.(item.id)}
+                        />
+                      ) : (
+                        <DeductionCard
+                          item={item}
+                          inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
+                          inputValues={cardInputMap[item.id] ?? {}}
+                          sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
+                          removable
+                          onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
+                          onRemove={() => onRemoveItem?.(item.id)}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
 
-      {hasResults && (
-        <ExportPanel
-          groups={groups}
-          totalSelected={totalSelected}
-        />
-      )}
+          <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <p className="text-xs leading-relaxed text-gray-500">
+              <strong className="text-gray-700">使用提醒：</strong>
+              本清單協助整理可能適用的申報項目，根據114年度相關法規與官方資料整理。
+              正式申報結果及稅負計算請以財政部電子申報系統為準，並視個人情況向稅務機關或記帳士確認。
+              標示「需進一步確認」的項目因規定複雜或有排富條款，建議諮詢後再決定是否申報。
+            </p>
+          </div>
+
+          {hasResults && (
+            <ExportPanel
+              groups={groups}
+              totalSelected={totalSelected}
+            />
+          )}
+        </div>
+
+        {/* ── Sidebar ── */}
+        <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-6">
+          <TaxSummaryPanel
+            grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
+          />
+        </aside>
+      </div>
     </div>
   )
 }

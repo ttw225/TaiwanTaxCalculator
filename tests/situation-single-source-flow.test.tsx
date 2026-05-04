@@ -196,7 +196,7 @@ describe('situation single-source flow', () => {
     expect(multiSource?.textContent).toContain('情境：薪資收入、股利收入')
     expect(multiSource?.textContent).not.toContain('來源')
 
-    const singleSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-salary-special-deduction"]')
+    const singleSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-gross-income"]')
     expect(singleSource?.textContent).toContain('情境：薪資收入')
   })
 

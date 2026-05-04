@@ -57,7 +57,11 @@ interface Props {
 ```
 
 - Root uses `print-container` for print layout.
-- Embeds `DecisionToolsPanel`, per-category `DeductionCard`s, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
+- Layout: `max-w-4xl` with `lg:grid lg:grid-cols-[1fr_260px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
+- Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
+- Card routing: `item.id === 'gross-income'` → renders `GrossIncomeCard`; all others → `DeductionCard`.
+- Computes `grossIncomeTotal` via `useMemo` from `cardInputMap['gross-income']` + `parseGrossIncomePersons` + `calcTotalGrossIncome`.
+- `gross_income` section header shows `grossIncomeTotal` inline when > 0.
 - **`onReset`**: declared on props but **not used** in component body (reserved / dead API until wired).
 - Scroll-to-item: `useEffect` on `scrollToItemId` → [`animateScrollToY`](../src/lib/scrollAnimation.ts) to center card in viewport → `onScrollHandled`.
 - Overlays / tool panel: `no-print` where appropriate.
@@ -79,6 +83,42 @@ interface Props {
 - Wrapper class `print-card`. Remove control `no-print`.
 - Optional inline numeric fields; if `capKey` set, compares parsed amount to `getNumber(capKey)` for green/orange feedback.
 - Collapsible sources `<details>`.
+
+## `GrossIncomeCard.tsx`
+
+```ts
+interface Props {
+  item: ChecklistItem
+  inputValues: Record<string, string>
+  isMarriedFiling: boolean
+  sourceSituationLabels?: string[]
+  removable?: boolean
+  onInputChange: (fieldId: string, value: string) => void
+  onRemove?: () => void
+}
+```
+
+- Specialized card for item `id: 'gross-income'` (category `gross_income`).
+- Multi-person income inputs: self (固定), spouse (when `isMarriedFiling`), extra persons (add/remove).
+- State encoded in two `CardInputMap` fields: `self_income` (string number) and `persons_json` (JSON array of `GrossIncomePerson` excluding self).
+- Add/remove/update person: serializes full array to `persons_json` in a single `onInputChange` call (avoids debounce race).
+- Per-person feedback: shows 薪資所得特別扣除額 and net 薪資所得.
+- Bottom-right result: `綜合所得總額 X,XXX,XXX 元` (or `—` before input).
+- Source situation labels at top (parity with `DeductionCard`), `data-testid="card-source-situations-gross-income"`.
+- Outer div has `print-card` class.
+- Calculation logic: [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts).
+
+## `TaxSummaryPanel.tsx`
+
+```ts
+interface Props {
+  grossIncome: number | null  // null = no valid input yet
+}
+```
+
+- Sticky right-sidebar panel in `ChecklistResult` (desktop, `lg:sticky lg:top-6`, `no-print`).
+- Currently shows 綜合所得總額 only; structured for future extension (other deduction totals, tax calculation).
+- Displays `—` when `grossIncome` is null.
 
 ## `DecisionToolsPanel.tsx`
 
