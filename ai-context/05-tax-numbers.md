@@ -42,6 +42,7 @@ Each element:
 | `special_deduction_disability` | 218000 |
 | `special_deduction_long_term_care` | 180000 |
 | `itemized_deduction_mortgage_interest` | 300000 |
+| `itemized_deduction_personal_insurance` | 24000 |
 | `special_deduction_childcare_first` | 150000 |
 | `special_deduction_childcare_additional` | 225000 |
 | `special_deduction_rent` | 180000 |
