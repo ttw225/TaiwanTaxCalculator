@@ -168,7 +168,7 @@ describe('filterBySituations', () => {
 describe('groupByCategory', () => {
   const published = applyPublicationGate(CHECKLIST_ITEMS)
 
-  it('returns groups in priority order: gross income before exemptions before general before special before further_check', () => {
+  it('returns groups in priority order: gross income before exemptions before general before special', () => {
     const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
     const groups = groupByCategory(all)
     const categories = groups.map((g) => g.category)
@@ -176,18 +176,30 @@ describe('groupByCategory', () => {
     const exemptIdx = categories.indexOf('exemptions')
     const generalIdx = categories.indexOf('general_deductions')
     const specialIdx = categories.indexOf('special_deductions')
-    const furtherIdx = categories.indexOf('further_check')
     expect(grossIdx).toBeLessThan(exemptIdx)
     expect(exemptIdx).toBeLessThan(generalIdx)
     expect(generalIdx).toBeLessThan(specialIdx)
-    expect(specialIdx).toBeLessThan(furtherIdx)
+    expect(categories).not.toContain('further_check')
   })
 
-  it('groups salary special deduction under gross income', () => {
-    const groups = groupByCategory(filterBySituations(published, ['salary_income']))
+  it('groups income source cards under gross income in salary, dividends, overseas order', () => {
+    const groups = groupByCategory(filterBySituations(published, [
+      'salary_income',
+      'dividends',
+      'overseas_income',
+    ]))
     const gross = groups.find((g) => g.category === 'gross_income')
     expect(gross?.label).toBe('綜合所得總額')
-    expect(gross?.items.map((i) => i.id)).toContain('gross-income')
+    expect(gross?.items.map((i) => i.id)).toEqual([
+      'gross-income',
+      'dividends-tax-choice',
+      'overseas-income-amt',
+    ])
+    expect(gross?.items.map((i) => i.title)).toEqual([
+      '薪資收入',
+      '股利收入',
+      '海外所得',
+    ])
   })
 
   it('each group has a human-readable label', () => {
@@ -195,15 +207,6 @@ describe('groupByCategory', () => {
     const groups = groupByCategory(all)
     for (const group of groups) {
       expect(group.label).toBeTruthy()
-    }
-  })
-
-  it('further_check items have disclaimer_level high', () => {
-    const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
-    const groups = groupByCategory(all)
-    const fc = groups.find((g) => g.category === 'further_check')
-    if (fc) {
-      expect(fc.items.every((i) => i.disclaimer_level === 'high')).toBe(true)
     }
   })
 

@@ -29,7 +29,6 @@ Fixed category sort order:
 2. `exemptions`
 3. `general_deductions`
 4. `special_deductions`
-5. `further_check`
 
 `CATEGORY_LABELS` maps each `CategoryId` to zh-TW section titles (includes note that standard vs itemized are mutually exclusive in `general_deductions`).
 

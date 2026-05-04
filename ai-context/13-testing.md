@@ -23,7 +23,7 @@
 
 - **Publication**: no `unverified` items in published set used for UI.
 - **Married + salary**: `standard-deduction-single` excluded when `married` selected.
-- **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions` → `further_check`; `further_check` items use `disclaimer_level === 'high'`.
+- **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.
 - **Situations**: count **14**; every `SituationId` has at least one published item; `SITUATION_GROUPS` union equals all ids, no duplicates, fixed subgroup ordering tests.
 - **Sources**: every item has `source_refs`, `next_action`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id` / `verification_status` where tests assert privacy of export.
 - **Triage**: rules use negative boosts; `dependents_count` not a sort field; empty input map preserves order.

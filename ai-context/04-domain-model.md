@@ -10,7 +10,7 @@ export type DisclaimerLevel = 'low' | 'medium' | 'high'
 ```
 
 - **`verification_status`**: Used by publication gate — items with `'unverified'` are filtered out of the live checklist set ([`08-checklist-engine.md`](./08-checklist-engine.md)).
-- **`disclaimer_level`**: UI emphasis (e.g. high for `further_check` items); tests assert `further_check` uses `'high'`.
+- **`disclaimer_level`**: UI emphasis; high-risk items display the `需進一步確認` badge.
 
 ## Situations
 
@@ -60,7 +60,6 @@ export type CategoryId =
   | 'exemptions'
   | 'general_deductions'
   | 'special_deductions'
-  | 'further_check'
 ```
 
 Display order and human-readable labels are defined in [`src/lib/checklist.ts`](../src/lib/checklist.ts) (`CATEGORY_ORDER`, `CATEGORY_LABELS`).

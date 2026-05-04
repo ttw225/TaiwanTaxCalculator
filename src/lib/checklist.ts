@@ -22,7 +22,6 @@ const CATEGORY_ORDER: Record<CategoryId, number> = {
   exemptions: 1,
   general_deductions: 2,
   special_deductions: 3,
-  further_check: 4,
 }
 
 // 標準扣除額 and 列舉扣除額 are mutually exclusive filing choices shown together
@@ -32,7 +31,6 @@ export const CATEGORY_LABELS: Record<CategoryId, string> = {
   exemptions: '免稅額',
   general_deductions: '一般扣除額（標準或列舉擇一）',
   special_deductions: '特別扣除額',
-  further_check: '需進一步確認',
 }
 
 export interface CategoryGroup {

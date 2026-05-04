@@ -36,7 +36,6 @@ export type CategoryId =
   | 'exemptions'
   | 'general_deductions'
   | 'special_deductions'
-  | 'further_check'
 
 export interface SourceRef {
   source_id: string
