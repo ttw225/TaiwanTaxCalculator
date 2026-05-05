@@ -18,7 +18,7 @@ export const SITE_CONFIG = {
   // Official government links — leave url empty to hide
   officialLinks: [
     { label: '財政部官網', url: 'https://www.mof.gov.tw' },
-    { label: 'e-Tax 電子報稅', url: 'https://www.etax.nat.gov.tw' },
+    { label: 'e-Tax 電子報稅', url: 'https://efile.tax.nat.gov.tw/irxw/index.jsp' },
   ] satisfies Array<{ label: string; url: string }>,
 } as const
 
@@ -34,9 +34,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'tax-checklist', label: '基本節稅參考', status: 'active' },
-  { id: 'payment-rewards', label: '繳稅回饋一覽', status: 'coming-soon' },
-  { id: 'tax-calculator', label: '綜所稅計算說明', status: 'coming-soon' },
-  { id: 'donation-tax', label: '捐款節稅', status: 'coming-soon' },
+  { id: 'payment-rewards', label: '繳稅回饋', status: 'coming-soon' },
 ]
 
 // Primary colour tokens (Task 1.1): deep teal — trust / financial feel.
