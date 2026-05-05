@@ -75,3 +75,28 @@ cat > "$root/index.html" <<EOF
   </body>
 </html>
 EOF
+
+cat > "$root/404.html" <<'EOF'
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>頁面不存在</title>
+    <script>
+      (function () {
+        var segs = location.pathname.split('/').filter(Boolean);
+        var root = segs.length ? '/' + segs[0] + '/' : '/';
+        if (location.pathname !== root) {
+          location.replace(root + location.search + location.hash);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <p>頁面不存在，正在前往首頁…</p>
+    <noscript><p><a href="./">回首頁</a></p></noscript>
+  </body>
+</html>
+EOF
