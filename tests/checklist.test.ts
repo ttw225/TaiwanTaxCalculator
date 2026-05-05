@@ -392,7 +392,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     expect(html).not.toContain('最划算')
   })
 
-  it('shows 待填入 in the general deduction section when itemized amounts are incomplete', () => {
+  it('keeps the general deduction section header blank when itemized amounts are incomplete', () => {
     const published = CHECKLIST_ITEMS
     const groups = groupByCategory(filterBySituations(published, ['donations']))
     const html = renderToStaticMarkup(
@@ -408,7 +408,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     const generalIdx = html.indexOf('data-testid="checklist-section-general_deductions"')
     expect(generalIdx).toBeGreaterThanOrEqual(0)
     const afterGeneral = html.slice(generalIdx, generalIdx + 800)
-    expect(afterGeneral).toContain('待填入')
+    expect(afterGeneral).not.toContain('待填入')
     expect(html).toContain('前往填寫')
   })
 

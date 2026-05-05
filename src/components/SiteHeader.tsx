@@ -12,6 +12,7 @@ interface Props {
 export function SiteHeader({ currentFeatureId }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const deployInfo = getDeployInfo()
+  const taxYearBadgeLabel = `${SITE_CONFIG.taxYear} 年度`
 
   // Close on Escape
   useEffect(() => {
@@ -32,18 +33,21 @@ export function SiteHeader({ currentFeatureId }: Props) {
   return (
     // position: sticky — no layout offset, unlike fixed
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
 
         {/* Logo — left-aligned on all viewports (Task 1.2) */}
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-col leading-tight">
             <span className="truncate font-semibold text-gray-900 text-lg tracking-tight">
               {SITE_CONFIG.name}
             </span>
-            <span className="hidden text-xs text-gray-400 sm:block">
+            <span className="hidden text-sm text-gray-400 sm:block">
               {SITE_CONFIG.nameEn}
             </span>
           </div>
+          <span className="shrink-0 whitespace-nowrap rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-sm font-medium text-teal-700">
+            {taxYearBadgeLabel}
+          </span>
           {deployInfo && <DeployBadge deployInfo={deployInfo} />}
         </div>
 

@@ -561,14 +561,6 @@ export function ChecklistResult({
                 <h2 className="mb-3 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-700 flex items-baseline gap-2">
                   <span>{group.label}</span>
                   {(() => {
-                    if (
-                      group.category === 'general_deductions' &&
-                      generalDeductionResolved.status === 'pending_itemized'
-                    ) {
-                      return (
-                        <span className="text-sm font-normal text-gray-400">待填入</span>
-                      )
-                    }
                     const sub = getSectionSubtotal(group)
                     return sub !== null ? (
                       <span className="text-base font-semibold text-green-700 tabular-nums">
