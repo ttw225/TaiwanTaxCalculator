@@ -129,9 +129,19 @@ The `gross-income` item does not use `ITEM_INLINE_FIELDS`; `GrossIncomeCard` man
 | `self_income` | `string` (number) | 本人年薪 |
 | `persons_json` | JSON string | Array of `GrossIncomePerson` (excludes self): `[{id, label, income}]` |
 
-`id` values in `persons_json`: `"spouse"` (配偶, filtered by `isMarriedFiling`) and `"extra-N"` (N = 0, 1, …).
+`id` values in `persons_json`: `"spouse"` (配偶; omitted when not married filing) and `"extra-<n>"` (non-negative integer suffix, e.g. `extra-0`, `extra-1`, …).
 
-Parse / serialize helpers: [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts) — `parseGrossIncomePersons`, `serializePersonsJson`.
+[`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts) exports:
+
+| Symbol | Role |
+|--------|------|
+| `getSalaryDeductionCap` | Cap from `numbers_2026.json` key `special_deduction_salary` |
+| `calcPersonDeduction` | `min(income, cap)` — modeled 薪資所得特別扣除額 |
+| `calcPersonNetIncome` | Salary income minus that deduction (floored at 0) |
+| `defaultExtraDependentLabel` | Next placeholder label when adding an extra dependent (`親屬1`, …) |
+| `parseGrossIncomePersons` | Builds `[self, …others]` from `self_income` + `persons_json`; inserts spouse row when married filing |
+| `serializePersonsJson` | JSON-stringifies non-self persons |
+| `calcTotalGrossIncome` | **Sum of each person’s net salary income** (`calcPersonNetIncome`), not raw wage totals — used as `grossIncomeTotal` / sidebar 「綜合所得總額」 for this guided flow |
 
 ## Decision tools
 

@@ -26,8 +26,7 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 | State | Type / role |
 |-------|-------------|
 | `selected` | `SituationId[]` — initialized from `loadSavedSituationSelection(SITUATION_IDS)` |
-| `cardInputMap` | `CardInputMap` — immediate per-card field strings |
-| `sortedCardInputMap` | `CardInputMap` — debounced (~300ms) copy for `sortByTriage` |
+| `cardInputMap` | `CardInputMap` — per-card field strings (updated synchronously on input) |
 | `pendingRemovalEffect` | removal confirm dialog payload or `null` |
 | `scrollToItemId` | checklist item id to scroll into view after add; cleared via `onScrollHandled` |
 
@@ -44,19 +43,19 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 ## Generate / clear / add situations
 
 - **`handleGenerate`**: if selection non-empty → `results`, clear scroll token, `window.scrollTo(0, 0)`.
-- **`handleClearSelections`**: empty selection, reset maps, clear storage, remove legacy key (see [`11-storage-and-persistence.md`](./11-storage-and-persistence.md)).
-- **`handleAddSituations(ids)`**: append unique ids; set `scrollToItemId` from `getScrollTargetItemIdAfterAdd` using **sorted** card map for triage order.
+- **`handleClearSelections`**: empty selection, reset `cardInputMap`, clear storage, remove legacy key (see [`11-storage-and-persistence.md`](./11-storage-and-persistence.md)).
+- **`handleAddSituations(ids)`**: append unique ids; set `scrollToItemId` from `getScrollTargetItemIdAfterAdd(currentSelected, nextSelected)` (first newly visible card in render order).
 
 ## Remove checklist item (and linked situations)
 
 - **`createRemovalEffect(itemId)`**: computes `nextSelected` by removing all situations attached to that item; lists co-removed items and input-loss flag.
 - **`requiresConfirm`**: `true` if more than one item removed **or** any removed item had card input.
 - **`handleRemoveItem`**: apply immediately or set `pendingRemovalEffect`.
-- **`applyRemovalEffect`**: update selection, strip removed ids from both card maps; if selection empty → return to `selecting`, scroll top.
+- **`applyRemovalEffect`**: update selection, strip removed item ids from `cardInputMap`; if selection empty → return to `selecting`, scroll top.
 
-## Card input debouncing
+## Card input
 
-- `handleCardInputChange`: updates `cardInputMap`; schedules `setSortedCardInputMap(updated)` after 300ms (clears previous timeout).
+- **`handleCardInputChange`**: merges one `(itemId, fieldId, value)` into `cardInputMap` (no debounce at App level).
 
 ## Effects
 

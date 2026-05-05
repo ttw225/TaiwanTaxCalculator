@@ -31,7 +31,7 @@ Paths are relative to repo root unless noted.
 | [`src/components/tools/`](../src/components/tools/) | Dividend, couple filing, AMT tools + source refs |
 | [`src/content/`](../src/content/) | Structured zh-TW content: checklist, decision-tool meta, inline field defs |
 | [`src/data/numbers_2026.json`](../src/data/numbers_2026.json) | Canonical numeric snapshot for deployed year |
-| [`src/lib/`](../src/lib/) | Domain logic: checklist engine, numbers, decisions, storage, export, scroll, deploy, site config |
+| [`src/lib/`](../src/lib/) | Domain logic: checklist engine, numbers, [`grossIncome.ts`](../src/lib/grossIncome.ts), [`generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts), [`checklistCardCopy.ts`](../src/lib/checklistCardCopy.ts), decisions, storage, export, scroll, deploy, site config |
 | [`src/types/content.ts`](../src/types/content.ts) | Shared content types |
 | [`src/assets/`](../src/assets/) | Static images (e.g. hero) |
 

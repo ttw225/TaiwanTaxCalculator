@@ -10,9 +10,10 @@
 | File | Focus |
 |------|--------|
 | [`tests/foundation.test.ts`](../tests/foundation.test.ts) | `numbers_2026.json`, `getNumber`, `getBrackets`, `readLocal` / `writeLocal` / `removeLocal` |
-| [`tests/triage.test.ts`](../tests/triage.test.ts) | `CARD_SORT_RULES` shape, `sortByTriage` stability and non-mutation |
+| [`tests/grossIncome.test.ts`](../tests/grossIncome.test.ts) | [`grossIncome.ts`](../src/lib/grossIncome.ts): cap, per-person deduction/net, parsing `persons_json`, `calcTotalGrossIncome`, labels |
+| [`tests/generalDeductionEffective.test.ts`](../tests/generalDeductionEffective.test.ts) | `resolveGeneralDeduction` vs standard vs itemized checklist inputs |
 | [`tests/decisions.test.ts`](../tests/decisions.test.ts) | `calcBracketTax`, `calcDividendOptions`, `calcCoupleFilingOptions`, `checkAmtThreshold` |
-| [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Publication gate, situation filtering, category order, content integrity, markdown export shape, component markup strings |
+| [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Publication gate, situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` |
 | [`tests/decision-tools.test.tsx`](../tests/decision-tools.test.tsx) | `DecisionToolsPanel` visibility vs selected situations |
 | [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, App clear integration |
 | [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, remove dialog, multi-source labels, legacy key removal |
@@ -26,7 +27,6 @@
 - **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.
 - **Situations**: count **14**; every `SituationId` has at least one published item; `SITUATION_GROUPS` union equals all ids, no duplicates, fixed subgroup ordering tests.
 - **Sources**: every item has `source_refs`, `next_action`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id` / `verification_status` where tests assert privacy of export.
-- **Triage**: rules use negative boosts; `dependents_count` not a sort field; empty input map preserves order.
 - **AMT**: threshold **1_000_000** inclusive boundary.
 
 ## Integration patterns

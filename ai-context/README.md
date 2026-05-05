@@ -19,7 +19,7 @@ Machine- and human-oriented documentation for this repository. Read this folder 
 | [05-tax-numbers.md](./05-tax-numbers.md) | `numbers_2026.json`, `getNumber`, brackets |
 | [06-content-modules.md](./06-content-modules.md) | Situations, checklist items, decision-tool meta, inline fields |
 | [07-app-flow-and-state.md](./07-app-flow-and-state.md) | `App.tsx` state machine and effects |
-| [08-checklist-engine.md](./08-checklist-engine.md) | Filtering, grouping, triage sort |
+| [08-checklist-engine.md](./08-checklist-engine.md) | Publication gate, situation filter, category grouping |
 | [09-decision-tools.md](./09-decision-tools.md) | Dividend / couple filing / AMT logic |
 | [10-ui-components.md](./10-ui-components.md) | React components and props |
 | [11-storage-and-persistence.md](./11-storage-and-persistence.md) | localStorage keys and sync |

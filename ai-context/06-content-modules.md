@@ -75,5 +75,5 @@ All fields: `type: 'number'`, `unit: '元'`.
 
 ## Related docs
 
-- Engine filtering/sorting: [`08-checklist-engine.md`](./08-checklist-engine.md)
+- Engine filtering/grouping: [`08-checklist-engine.md`](./08-checklist-engine.md)
 - Decision math: [`09-decision-tools.md`](./09-decision-tools.md)
