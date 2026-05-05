@@ -1,5 +1,3 @@
-export type VerificationStatus = 'verified' | 'partially_verified' | 'unverified'
-
 export type SituationId =
   | 'salary_income'
   | 'married'
@@ -52,7 +50,6 @@ export interface ChecklistItem {
   documents_to_prepare: string[]
   limitations: string[]
   source_refs: SourceRef[]
-  verification_status: VerificationStatus
   /** When true, card footer shows the standard wealth-clause / case notice. */
   show_wealth_clause_notice: boolean
   next_action: string

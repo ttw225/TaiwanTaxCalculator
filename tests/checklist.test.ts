@@ -3,7 +3,6 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from '../src/content/deductions'
 import {
-  applyPublicationGate,
   filterBySituations,
   groupByCategory,
   CATEGORY_LABELS,
@@ -25,36 +24,16 @@ function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
     documents_to_prepare: [],
     limitations: [],
     source_refs: [{ source_id: 'src', label: 'Label', authority: 'Auth' }],
-    verification_status: 'verified',
     show_wealth_clause_notice: false,
     next_action: 'Do it',
     ...overrides,
   }
 }
 
-// ── Publication gate ──────────────────────────────────────────────────────────
-
-describe('applyPublicationGate', () => {
-  it('excludes unverified items', () => {
-    const items = applyPublicationGate(CHECKLIST_ITEMS)
-    expect(items.every((i) => i.verification_status !== 'unverified')).toBe(true)
-  })
-
-  it('keeps verified items', () => {
-    const items = applyPublicationGate(CHECKLIST_ITEMS)
-    expect(items.some((i) => i.verification_status === 'verified')).toBe(true)
-  })
-
-  it('keeps partially_verified items', () => {
-    const items = applyPublicationGate(CHECKLIST_ITEMS)
-    expect(items.some((i) => i.verification_status === 'partially_verified')).toBe(true)
-  })
-})
-
 // ── Situation-to-item mapping ─────────────────────────────────────────────────
 
 describe('filterBySituations', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
 
   it('returns empty array when no situations selected', () => {
     expect(filterBySituations(published, [])).toHaveLength(0)
@@ -167,7 +146,7 @@ describe('filterBySituations', () => {
 // ── Category grouping ─────────────────────────────────────────────────────────
 
 describe('groupByCategory', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
 
   it('returns groups in priority order: gross income before exemptions before general before special', () => {
     const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
@@ -306,7 +285,7 @@ describe('checklist item source integrity', () => {
 // ── User-facing traceability ─────────────────────────────────────────────────
 
 describe('ChecklistResult traceability UI', () => {
-  const groups = groupByCategory(applyPublicationGate(CHECKLIST_ITEMS))
+  const groups = groupByCategory(CHECKLIST_ITEMS)
   const html = renderToStaticMarkup(
     createElement(ChecklistResult, {
       groups,
@@ -341,7 +320,7 @@ describe('ChecklistResult traceability UI', () => {
 // ── Standard vs itemized filing reminder panel ────────────────────────────────
 
 describe('ChecklistResult standard vs itemized filing reminder panel', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
 
   function renderResult(selectedSituations: Parameters<typeof filterBySituations>[1]) {
     const groups = groupByCategory(filterBySituations(published, selectedSituations))
@@ -410,7 +389,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   })
 
   it('shows 待填入 in the general deduction section when itemized amounts are incomplete', () => {
-    const published = applyPublicationGate(CHECKLIST_ITEMS)
+    const published = CHECKLIST_ITEMS
     const groups = groupByCategory(filterBySituations(published, ['donations']))
     const html = renderToStaticMarkup(
       createElement(ChecklistResult, {
@@ -430,7 +409,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   })
 
   it('shows max(standard, itemized) in the section header when itemized lines are complete', () => {
-    const published = applyPublicationGate(CHECKLIST_ITEMS)
+    const published = CHECKLIST_ITEMS
     const groups = groupByCategory(filterBySituations(published, ['donations']))
     const html = renderToStaticMarkup(
       createElement(ChecklistResult, {
@@ -576,7 +555,7 @@ describe('SITUATION_GROUPS', () => {
 // ── ChecklistResult export UI ─────────────────────────────────────────────────
 
 describe('ChecklistResult export panel', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
   const allGroups = groupByCategory(filterBySituations(published, SITUATIONS.map((s) => s.id)))
 
   const htmlWithResults = renderToStaticMarkup(
@@ -680,7 +659,6 @@ describe('formatChecklistMarkdown', () => {
     source_refs: [
       { source_id: 'ntbt_medical_expenses', label: 'MOF filing guide', authority: '財政部' },
     ],
-    verification_status: 'verified' as const,
     show_wealth_clause_notice: false,
     next_action: '申報時填入醫療費用',
   }
@@ -730,17 +708,6 @@ describe('formatChecklistMarkdown', () => {
 
   it('includes selected situation count', () => {
     expect(md).toContain('1 項')
-  })
-
-  // Requirement: Internal Metadata Exclusion
-  it('does not contain verification_status field name', () => {
-    expect(md).not.toContain('verification_status')
-  })
-
-  it('does not contain internal verification labels', () => {
-    expect(md).not.toContain('verified')
-    expect(md).not.toContain('partially_verified')
-    expect(md).not.toContain('unverified')
   })
 
   it('does not contain raw source_id', () => {

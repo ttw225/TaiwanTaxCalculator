@@ -1,7 +1,6 @@
 import type {
   ChecklistItem,
   SourceRef,
-  VerificationStatus,
 } from '../src/types/content'
 
 // Compile-time fixture: if any field is missing or wrong type, tsc --noEmit fails.
@@ -14,8 +13,6 @@ const sampleSource: SourceRef = {
   url: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0340003',
 }
 
-const sampleVerification: VerificationStatus = 'verified'
-
 const sampleItem: ChecklistItem = {
   id: 'deduction-standard-single',
   title: '標準扣除額（單身）',
@@ -26,7 +23,6 @@ const sampleItem: ChecklistItem = {
   documents_to_prepare: [],
   limitations: ['夫妻合併申報請改用標準扣除額（已婚）'],
   source_refs: [sampleSource],
-  verification_status: sampleVerification,
   show_wealth_clause_notice: false,
   next_action: '確認申報書已選擇標準扣除額',
 }

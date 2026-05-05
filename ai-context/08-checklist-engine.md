@@ -2,15 +2,6 @@
 
 Source: [`src/lib/checklist.ts`](../src/lib/checklist.ts).
 
-## `applyPublicationGate(items)`
-
-```ts
-export function applyPublicationGate(items: ChecklistItem[]): ChecklistItem[]
-```
-
-- Drops items where `verification_status === 'unverified'`.
-- Used in [`App.tsx`](../src/App.tsx) so unpublished items never enter the UI pipeline.
-
 ## `filterBySituations(items, selected)`
 
 ```ts
@@ -40,7 +31,7 @@ export function groupByCategory(items: ChecklistItem[]): CategoryGroup[]
 
 - Buckets by `item.category`, then sorts buckets by `CATEGORY_ORDER`.
 - Returns `{ category, label, items }[]`.
-- **Within each bucket**, item order follows the order items appear in the input array (typically the published checklist array order after filtering).
+- **Within each bucket**, item order follows the order items appear in the input array (typically `CHECKLIST_ITEMS` order after filtering).
 
 ## `CategoryGroup`
 

@@ -7,7 +7,7 @@ import type {
   SituationGroup,
 } from './types/content'
 import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from './content/deductions'
-import { applyPublicationGate, filterBySituations, groupByCategory } from './lib/checklist'
+import { filterBySituations, groupByCategory } from './lib/checklist'
 import type { CategoryGroup } from './lib/checklist'
 import {
   clearSavedSituationSelection,
@@ -23,9 +23,8 @@ import { SiteHeader } from './components/SiteHeader'
 import { SiteFooter } from './components/SiteFooter'
 import { BackToTopButton } from './components/BackToTopButton'
 
-const PUBLISHED_ITEMS = applyPublicationGate(CHECKLIST_ITEMS)
 const SITUATION_IDS = SITUATIONS.map((s) => s.id)
-const ITEM_BY_ID = new Map(PUBLISHED_ITEMS.map((item) => [item.id, item]))
+const ITEM_BY_ID = new Map(CHECKLIST_ITEMS.map((item) => [item.id, item]))
 const SITUATION_LABEL_BY_ID = new Map(SITUATIONS.map((s) => [s.id, s.label]))
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
 
@@ -46,12 +45,12 @@ interface RemovalEffect {
 function getEffectiveState(
   selected: SituationId[],
 ): EffectiveState {
-  const filteredBySituations = filterBySituations(PUBLISHED_ITEMS, selected)
+  const filteredBySituations = filterBySituations(CHECKLIST_ITEMS, selected)
   const effectiveItemIds = new Set(filteredBySituations.map((item) => item.id))
 
   return {
     effectiveItemIds,
-    effectiveItems: PUBLISHED_ITEMS.filter((item) => effectiveItemIds.has(item.id)),
+    effectiveItems: CHECKLIST_ITEMS.filter((item) => effectiveItemIds.has(item.id)),
   }
 }
 

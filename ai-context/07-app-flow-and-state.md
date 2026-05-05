@@ -32,7 +32,7 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 
 ## Derived data (constants / maps)
 
-- `PUBLISHED_ITEMS = applyPublicationGate(CHECKLIST_ITEMS)`
+- `CHECKLIST_ITEMS` is the source list for filtering and grouping.
 - `ITEM_BY_ID`, `SITUATION_LABEL_BY_ID`
 - Helpers: `getEffectiveState`, `getAddableSituationGroups`, `getGroupedItemsBySelection`, `getScrollTargetItemIdAfterAdd`, `getItemSourceSituationLabelsById`
 

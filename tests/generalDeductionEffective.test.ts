@@ -15,7 +15,6 @@ function item(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
     documents_to_prepare: [],
     limitations: [],
     source_refs: [{ source_id: 'src', label: 'Label' }],
-    verification_status: 'verified',
     show_wealth_clause_notice: false,
     next_action: 'Do it',
     ...overrides,
