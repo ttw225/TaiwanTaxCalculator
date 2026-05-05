@@ -23,10 +23,8 @@ function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
     why_it_matters: 'test',
     eligibility_cues: [],
     documents_to_prepare: [],
-    limitations: [],
     source_refs: [{ source_id: 'src', label: 'Label', authority: 'Auth' }],
     show_wealth_clause_notice: false,
-    next_action: 'Do it',
     ...overrides,
   }
 }
@@ -250,12 +248,6 @@ describe('checklist item source integrity', () => {
         expect(ref.source_id).toBeTruthy()
         expect(ref.label).toBeTruthy()
       }
-    }
-  })
-
-  it('every item has a non-empty next_action', () => {
-    for (const item of CHECKLIST_ITEMS) {
-      expect(item.next_action).toBeTruthy()
     }
   })
 
@@ -666,12 +658,10 @@ describe('formatChecklistMarkdown', () => {
     why_it_matters: 'Reduces taxable income for qualifying medical costs.',
     eligibility_cues: [],
     documents_to_prepare: ['Medical receipts'],
-    limitations: ['Only qualifying expenses apply'],
     source_refs: [
       { source_id: 'ntbt_medical_expenses', label: 'MOF filing guide', authority: '財政部' },
     ],
     show_wealth_clause_notice: false,
-    next_action: '申報時填入醫療費用',
   }
 
   const groups = [
@@ -697,20 +687,12 @@ describe('formatChecklistMarkdown', () => {
     expect(md).toContain('Medical receipts')
   })
 
-  it('contains the limitation as a caution bullet', () => {
-    expect(md).toContain('Only qualifying expenses apply')
-  })
-
   it('contains the public source label', () => {
     expect(md).toContain('MOF filing guide')
   })
 
   it('contains the source authority', () => {
     expect(md).toContain('財政部')
-  })
-
-  it('includes the next action', () => {
-    expect(md).toContain('申報時填入醫療費用')
   })
 
   it('includes reminder wording about confirming in official filing system', () => {

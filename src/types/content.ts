@@ -48,11 +48,9 @@ export interface ChecklistItem {
   why_it_matters: string
   eligibility_cues: string[]
   documents_to_prepare: string[]
-  limitations: string[]
   source_refs: SourceRef[]
   /** When true, card footer shows the standard wealth-clause / case notice. */
   show_wealth_clause_notice: boolean
-  next_action: string
 }
 
 export interface CardInlineField {

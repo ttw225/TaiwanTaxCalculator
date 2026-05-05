@@ -51,11 +51,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '本網站簡化扣除額流程，統一採用「薪資所得特別扣除額」計算，無「必要費用」選項。',
     ],
     documents_to_prepare: [],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_MANUAL],
     show_wealth_clause_notice: false,
-    next_action: '確認申報書薪資所得欄位與薪資所得特別扣除額已正確帶入',
   },
   {
     id: 'dividends-tax-choice',
@@ -70,11 +67,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '建議使用財政部電子申報系統試算比較',
     ],
     documents_to_prepare: ['股利分配通知書或扣繳憑單'],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_MOF],
     show_wealth_clause_notice: true,
-    next_action: '收集全年股利憑單，使用申報系統試算兩種計稅方式後再決定',
   },
   {
     id: 'overseas-income-amt',
@@ -91,11 +85,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     documents_to_prepare: [
       '境外所得相關文件（匯款紀錄、境外稅單等）',
     ],
-    limitations: [
-    ],
     source_refs: [SRC_AMT, SRC_MANUAL],
     show_wealth_clause_notice: true,
-    next_action: '確認海外所得金額，如超過門檻建議諮詢稅務師',
   },
 
   // ── Exemptions ────────────────────────────────────────────────────────────
@@ -110,11 +101,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       `${validYear}年度年滿70歲：民國${validYear - 70}年（含該年）以前出生`,
     ],
     documents_to_prepare: ['身分證或戶口名簿影本'],
-    limitations: [
-    ],
     source_refs: [SRC_ITA],
     show_wealth_clause_notice: false,
-    next_action: '確認申報戶成員及是否有70歲以上者',
   },
 
   // ── General deductions (標準) ──────────────────────────────────────────────
@@ -126,10 +114,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     why_it_matters: `可直接扣除 ${n('standard_deduction_single')} 元`,
     eligibility_cues: ['所有申報人均可適用，不需提供任何文件'],
     documents_to_prepare: [],
-    limitations: [],
     source_refs: [SRC_ITA],
     show_wealth_clause_notice: false,
-    next_action: '申報書確認已選擇標準扣除額欄位',
   },
   {
     id: 'standard-deduction-married',
@@ -139,10 +125,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     why_it_matters: `配偶合併申報標準扣除額為 ${n('standard_deduction_married')} 元`,
     eligibility_cues: ['配偶合併申報者適用，不需提供任何文件'],
     documents_to_prepare: [],
-    limitations: [],
     source_refs: [SRC_ITA],
     show_wealth_clause_notice: false,
-    next_action: '申報書確認配偶合併申報及標準扣除額欄位',
   },
 
   // ── General deductions (列舉) ──────────────────────────────────────────────
@@ -157,11 +141,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '捐贈給政府機關及指定機構（如國防、教育等）無上限限制',
     ],
     documents_to_prepare: ['正式捐贈收據'],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_MANUAL],
     show_wealth_clause_notice: false,
-    next_action: '收集全年捐贈收據，確認受贈機構資格',
   },
   {
     id: 'insurance-deduction',
@@ -174,11 +155,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '全民健保費認列無金額限制',
     ],
     documents_to_prepare: ['保險公司年度繳費證明或收據'],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_MANUAL],
     show_wealth_clause_notice: false,
-    next_action: '向各保險公司索取年度繳費證明',
   },
   {
     id: 'medical-deduction',
@@ -193,11 +171,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '已由保險公司或健保理賠的部分不可重複扣抵',
     ],
     documents_to_prepare: ['醫療收據正本（需含診療項目及金額）'],
-    limitations: [
-    ],
     source_refs: [SRC_ITA],
     show_wealth_clause_notice: false,
-    next_action: '收集全年度醫療機構收據，確認機構是否為特約院所',
   },
   {
     id: 'mortgage-interest-deduction',
@@ -212,11 +187,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '銀行房貸年度利息繳納證明',
       '戶籍謄本或其他自住證明',
     ],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
-    next_action: '向銀行申請年度貸款利息繳納證明',
   },
 
   // ── Special deductions (列舉) ──────────────────────────────────────────────
@@ -231,11 +203,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '配偶選擇分開計算稅額時，扣除順序需依申報規定確認',
     ],
     documents_to_prepare: [],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
-    next_action: '確認全年利息所得資料與申報系統帶入金額',
   },
   {
     id: 'disability-special-deduction',
@@ -249,11 +218,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     documents_to_prepare: [
       '身心障礙證明影本',
     ],
-    limitations: [
-    ],
     source_refs: [SRC_ITA],
     show_wealth_clause_notice: false,
-    next_action: '備妥身心障礙手冊影本',
   },
   {
     id: 'childcare-deduction',
@@ -267,11 +233,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       `${validYear}年度6歲以下：民國${validYear - 6}年（含該年）以後出生`,
     ],
     documents_to_prepare: [],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
-    next_action: '確認幼兒年齡與申報扶養資料',
   },
   {
     id: 'education-tuition-deduction',
@@ -286,11 +249,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '就讀空大、空中專校及五專前3年者不適用',
     ],
     documents_to_prepare: ['學費繳費收據影本或其他足資證明文件'],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
-    next_action: '確認子女就學資格並備妥學費繳費證明',
   },
   {
     id: 'long-term-care-deduction',
@@ -308,11 +268,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '或使用長照服務的繳費收據影本任一張',
       '或長照機構服務繳費收據影本',
     ],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_MOF],
     show_wealth_clause_notice: true,
-    next_action: '確認長照資格及是否受排富條款影響，建議查閱申報書說明',
   },
   {
     id: 'rent-deduction',
@@ -330,11 +287,8 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '租金支付紀錄（轉帳紀錄或收據）',
       '戶籍登記證明或自住切結書',
     ],
-    limitations: [
-    ],
     source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: true,
-    next_action: '確認租屋自住、境內無房屋及排富條件是否符合',
   },
 ]
 

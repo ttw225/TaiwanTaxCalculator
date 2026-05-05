@@ -83,10 +83,8 @@ export interface ChecklistItem {
   why_it_matters: string
   eligibility_cues: string[]
   documents_to_prepare: string[]
-  limitations: string[]
   source_refs: SourceRef[]
   show_wealth_clause_notice: boolean
-  next_action: string
 }
 ```
 

@@ -75,20 +75,9 @@ export function ChecklistCardShell({
         </ChecklistCardSection>
       )}
 
-      {item.limitations.length > 0 && (
-        <ChecklistCardSection label="注意事項">
-          <ul className="list-disc list-inside space-y-0.5">
-            {item.limitations.map((lim) => (
-              <li key={lim} className="text-xs text-amber-700">{lim}</li>
-            ))}
-          </ul>
-        </ChecklistCardSection>
-      )}
-
       {children}
 
       <div className="mt-3 pt-3 border-t border-gray-100">
-        <p className="text-xs font-medium text-blue-700 mb-1">→ {item.next_action}</p>
         {item.show_wealth_clause_notice && (
           <p className="mb-2 text-xs text-orange-700">{WEALTH_CLAUSE_NOTICE}</p>
         )}

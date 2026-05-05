@@ -25,7 +25,7 @@
 - **Married + salary**: `standard-deduction-single` excluded when `married` selected.
 - **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.
 - **Situations**: count **14**; every `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals all ids, no duplicates, fixed subgroup ordering tests.
-- **Sources**: every item has `source_refs`, `next_action`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
+- **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
 - **AMT**: threshold **1_000_000** inclusive boundary.
 
 ## Integration patterns

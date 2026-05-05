@@ -13,10 +13,8 @@ function item(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
     why_it_matters: 'test',
     eligibility_cues: [],
     documents_to_prepare: [],
-    limitations: [],
     source_refs: [{ source_id: 'src', label: 'Label' }],
     show_wealth_clause_notice: false,
-    next_action: 'Do it',
     ...overrides,
   }
 }
