@@ -6,7 +6,6 @@ import type {
   SituationId,
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
-import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
 import { resolveGeneralDeduction } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
@@ -115,8 +114,6 @@ function getSpecialDeductionItemAmount(
   }
   return total
 }
-
-type CopyState = 'idle' | 'success' | 'error'
 
 type AddSituationModalProps = {
   groups: AddableSituationGroup[]
@@ -280,94 +277,6 @@ function RemoveImpactDialog({
             確認移除
           </button>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function ExportPanel({
-  groups,
-  totalSelected,
-}: {
-  groups: CategoryGroup[]
-  totalSelected: number
-}) {
-  const [copyState, setCopyState] = useState<CopyState>('idle')
-
-  function getMarkdown() {
-    return formatChecklistMarkdown(groups, {
-      totalSelected,
-      exportTime: new Date().toLocaleString('zh-TW'),
-    })
-  }
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(getMarkdown())
-      setCopyState('success')
-      setTimeout(() => setCopyState('idle'), 2000)
-    } catch {
-      setCopyState('error')
-      setTimeout(() => setCopyState('idle'), 3000)
-    }
-  }
-
-  function handleDownload() {
-    const md = getMarkdown()
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'tax-checklist-2026.md'
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }
-
-  function handlePrint() {
-    window.print()
-  }
-
-  const copyLabel =
-    copyState === 'success' ? '已複製！' : copyState === 'error' ? '複製失敗' : '複製清單'
-
-  const copyClass =
-    copyState === 'success'
-      ? 'bg-green-50 text-green-700 border-green-300'
-      : copyState === 'error'
-        ? 'bg-red-50 text-red-700 border-red-300'
-        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-
-  return (
-    <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
-      <p className="mb-1 text-xs font-medium text-blue-800">匯出清單</p>
-      <p className="mb-3 text-xs text-blue-700" data-testid="export-privacy-notice">
-        本清單在您的瀏覽器中產生，未上傳至伺服器。下載或複製後，檔案可能包含個人稅務情境，請自行保管。
-      </p>
-      <div className="no-print flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={handleCopy}
-          className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors ${copyClass}`}
-          data-testid="copy-checklist-btn"
-        >
-          {copyLabel}
-        </button>
-        <button
-          type="button"
-          onClick={handleDownload}
-          className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-          data-testid="download-checklist-btn"
-        >
-          下載 Markdown
-        </button>
-        <button
-          type="button"
-          onClick={handlePrint}
-          className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-          data-testid="print-checklist-btn"
-        >
-          列印 / 另存 PDF
-        </button>
       </div>
     </div>
   )
@@ -540,7 +449,7 @@ export function ChecklistResult({
         />
       )}
 
-      <div className="lg:grid lg:grid-cols-[1fr_260px] lg:gap-6 lg:items-start">
+      <div className="lg:grid lg:grid-cols-[1fr_260px] lg:gap-6 lg:items-start print-main-layout">
         {/* ── Main column ── */}
         <div>
           <div className="mb-1 flex items-center justify-between gap-3">
@@ -551,7 +460,7 @@ export function ChecklistResult({
               disabled={!canAddMore}
               data-testid="open-add-situation-modal-btn"
               className={[
-                'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium transition-colors',
+                'no-print inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium transition-colors',
                 canAddMore
                   ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
                   : 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300',
@@ -671,12 +580,16 @@ export function ChecklistResult({
             </p>
           </div>
 
-          {hasResults && (
-            <ExportPanel
-              groups={groups}
-              totalSelected={totalSelected}
+          <div className="print-only mt-8">
+            <TaxSummaryPanel
+              grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
+              exemptionAmount={exemptionAmount}
+              generalDeductionAmount={generalDeductionAmount}
+              specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
+              hasSpecialDeductions={hasSpecialDeductions}
+              printMode
             />
-          )}
+          </div>
         </div>
 
         {/* ── Sidebar ── */}
@@ -688,6 +601,8 @@ export function ChecklistResult({
             specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
             hasSpecialDeductions={hasSpecialDeductions}
             onScrollToSection={handleScrollToSection}
+            exportGroups={hasResults ? groups : undefined}
+            exportTotalSelected={hasResults ? totalSelected : undefined}
           />
         </aside>
       </div>

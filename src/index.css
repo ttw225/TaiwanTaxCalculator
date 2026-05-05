@@ -15,6 +15,10 @@ textarea {
   font-size: 16px;
 }
 
+.print-only {
+  display: none;
+}
+
 @media print {
   @page {
     size: A4;
@@ -31,13 +35,28 @@ textarea {
     display: none !important;
   }
 
+  .print-only {
+    display: block !important;
+  }
+
   .print-container {
     max-width: none !important;
     padding: 0 !important;
   }
 
+  .print-main-layout {
+    display: block !important;
+  }
+
+  .print-summary-card {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
   section,
-  .print-card {
+  .print-card,
+  .print-summary-card {
     break-inside: avoid;
     page-break-inside: avoid;
   }
