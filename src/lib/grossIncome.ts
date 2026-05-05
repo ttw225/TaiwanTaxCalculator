@@ -20,6 +20,11 @@ export function calcPersonNetIncome(income: number): number {
   return Math.max(0, income - calcPersonDeduction(income))
 }
 
+/** Next default label when adding an extra dependent (0 → 親屬1, 1 → 親屬2, …). */
+export function defaultExtraDependentLabel(extraCountBeforeAdd: number): string {
+  return `親屬${extraCountBeforeAdd + 1}`
+}
+
 function parseIncome(raw: string | undefined): number {
   if (!raw || raw.trim() === '') return 0
   const n = Number(raw.replace(/,/g, ''))

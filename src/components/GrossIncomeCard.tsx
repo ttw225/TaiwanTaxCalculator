@@ -1,5 +1,6 @@
 import type { ChecklistItem } from '../types/content'
 import {
+  defaultExtraDependentLabel,
   getSalaryDeductionCap,
   calcPersonDeduction,
   calcPersonNetIncome,
@@ -34,12 +35,21 @@ interface PersonRowProps {
   person: GrossIncomePerson
   incomeRaw: string
   isFixed: boolean
+  labelPlaceholder?: string
   onIncomeChange: (value: string) => void
   onLabelChange?: (value: string) => void
   onRemove?: () => void
 }
 
-function PersonRow({ person, incomeRaw, isFixed, onIncomeChange, onLabelChange, onRemove }: PersonRowProps) {
+function PersonRow({
+  person,
+  incomeRaw,
+  isFixed,
+  labelPlaceholder,
+  onIncomeChange,
+  onLabelChange,
+  onRemove,
+}: PersonRowProps) {
   const cap = getSalaryDeductionCap()
   const income = parseRawIncome(incomeRaw)
   const deduction = calcPersonDeduction(income)
@@ -56,7 +66,7 @@ function PersonRow({ person, incomeRaw, isFixed, onIncomeChange, onLabelChange, 
             type="text"
             value={person.label}
             onChange={(e) => onLabelChange?.(e.target.value)}
-            placeholder="稱謂（如：父親）"
+            placeholder={labelPlaceholder ?? '稱謂'}
             data-testid={`gross-income-label-${person.id}`}
             className="text-xs font-semibold text-gray-700 border border-gray-200 rounded px-1.5 py-0.5 w-28 focus:border-blue-400 focus:outline-none"
           />
@@ -118,6 +128,7 @@ export function GrossIncomeCard({
   const hasAnyIncome = persons.some((p) => p.income > 0)
 
   const personsInJson = persons.filter((p) => p.id !== 'self')
+  const extraPersonsOrdered = personsInJson.filter((p) => p.id.startsWith('extra-'))
 
   function updatePersonsJson(next: GrossIncomePerson[]) {
     onInputChange('persons_json', serializePersonsJson(next))
@@ -152,7 +163,11 @@ export function GrossIncomeCard({
       .map((p) => parseInt(p.id.slice('extra-'.length), 10))
       .filter((n) => Number.isFinite(n))
     const nextId = extraNums.length > 0 ? Math.max(...extraNums) + 1 : 0
-    const next = [...personsInJson, { id: `extra-${nextId}`, label: '', income: 0 }]
+    const extraCount = personsInJson.filter((p) => p.id.startsWith('extra-')).length
+    const next = [
+      ...personsInJson,
+      { id: `extra-${nextId}`, label: defaultExtraDependentLabel(extraCount), income: 0 },
+    ]
     updatePersonsJson(next)
   }
 
@@ -177,12 +192,19 @@ export function GrossIncomeCard({
         {personsInJson.map((person) => {
           const isFixed = person.id === 'spouse'
           const incomeRaw = String(person.income === 0 && !inputValues['persons_json'] ? '' : person.income || '')
+          const extraOrder =
+            person.id.startsWith('extra-') ? extraPersonsOrdered.findIndex((p) => p.id === person.id) + 1 : 0
+          const labelPlaceholder =
+            !isFixed && person.id.startsWith('extra-') && !person.label.trim()
+              ? defaultExtraDependentLabel(extraOrder - 1)
+              : undefined
           return (
             <PersonRow
               key={person.id}
               person={person}
               incomeRaw={incomeRaw === '0' ? '' : incomeRaw}
               isFixed={isFixed}
+              labelPlaceholder={labelPlaceholder}
               onIncomeChange={(val) => handlePersonIncomeChange(person.id, val)}
               onLabelChange={isFixed ? undefined : (val) => handlePersonLabelChange(person.id, val)}
               onRemove={isFixed ? undefined : () => handleRemovePerson(person.id)}

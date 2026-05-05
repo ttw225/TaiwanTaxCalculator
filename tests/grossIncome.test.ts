@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  defaultExtraDependentLabel,
   getSalaryDeductionCap,
   calcPersonDeduction,
   calcPersonNetIncome,
@@ -29,6 +30,17 @@ describe('calcPersonDeduction', () => {
 
   it('returns 0 for 0 income', () => {
     expect(calcPersonDeduction(0)).toBe(0)
+  })
+})
+
+describe('defaultExtraDependentLabel', () => {
+  it('returns 親屬1 for the first extra dependent', () => {
+    expect(defaultExtraDependentLabel(0)).toBe('親屬1')
+  })
+
+  it('returns 親屬2 and 親屬3 for subsequent slots', () => {
+    expect(defaultExtraDependentLabel(1)).toBe('親屬2')
+    expect(defaultExtraDependentLabel(2)).toBe('親屬3')
   })
 })
 
