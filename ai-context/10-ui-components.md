@@ -60,7 +60,7 @@ interface Props {
 - Layout: `max-w-4xl` with `lg:grid lg:grid-cols-[1fr_260px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
 - Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
 - Card routing: `item.id === 'gross-income'` → renders `GrossIncomeCard`; all others → `DeductionCard`.
-- Computes `grossIncomeTotal` via `useMemo` from `cardInputMap['gross-income']` + `parseGrossIncomePersons` + `calcTotalGrossIncome`.
+- Computes `grossIncomeTotal` via `useMemo` from `cardInputMap['gross-income']` + `parseGrossIncomePersons` + `calcTotalGrossIncome` (**aggregate net salary income per person** after modeled 薪資所得特別扣除額, not sum of raw inputs).
 - `gross_income` section header shows `grossIncomeTotal` inline when > 0.
 - **`onReset`**: declared on props but **not used** in component body (reserved / dead API until wired).
 - Scroll-to-item: `useEffect` on `scrollToItemId` → [`animateScrollToY`](../src/lib/scrollAnimation.ts) to center card in viewport → `onScrollHandled`.
@@ -104,10 +104,10 @@ interface Props {
 - Specialized card for item `id: 'gross-income'` (category `gross_income`).
 - Multi-person income inputs: self (固定), spouse (when `isMarriedFiling`), extra persons (add/remove).
 - State encoded in two `CardInputMap` fields: `self_income` (string number) and `persons_json` (JSON array of `GrossIncomePerson` excluding self).
-- Add/remove/update person: serializes full array to `persons_json` in a single `onInputChange` call (avoids debounce race).
+- Add/remove/update person: serializes full array to `persons_json` in a single `onInputChange` call (avoids partial concurrent updates).
 - Per-person feedback: shows 薪資所得特別扣除額 and net 薪資所得.
 - Composes same [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx) (eligibility, limitations from content, shared footer).
-- **`children`**: multi-person income UI, add-person control, privacy line, then in-card `綜合所得總額` breakdown (`data-testid="gross-income-total"`).
+- **`children`**: multi-person income UI, add-person control, privacy line, then in-card `綜合所得總額` breakdown (`data-testid="gross-income-total"`) matching **`calcTotalGrossIncome`** (net-of-salary-deduction sum).
 - Source situation labels: `data-testid="card-source-situations-gross-income"` (from shell).
 - Calculation logic: [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts).
 
@@ -115,13 +115,19 @@ interface Props {
 
 ```ts
 interface Props {
-  grossIncome: number | null  // null = no valid input yet
+  grossIncome: number | null
+  exemptionAmount: number | null
+  generalDeductionAmount: number | null // null when itemized checklist lines exist but not all filled
+  specialDeductionAmount: number | null
+  hasSpecialDeductions: boolean
+  onScrollToSection?: (categoryId: string) => void
 }
 ```
 
 - Sticky right-sidebar panel in `ChecklistResult` (desktop, `lg:sticky lg:top-6`, `no-print`).
-- Currently shows 綜合所得總額 only; structured for future extension (other deduction totals, tax calculation).
-- Displays `—` when `grossIncome` is null.
+- Rows: 綜合所得總額、免稅額、一般扣除額、（選）特別扣除額；所得淨額與應納稅額試算。
+- `generalDeductionAmount === null` → that row shows「前往填寫」捲動至 `general_deductions`，且所得淨額／應納稅額為「待計算」（與其他必填列一致）。
+- Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`).
 
 ## `DecisionToolsPanel.tsx`
 

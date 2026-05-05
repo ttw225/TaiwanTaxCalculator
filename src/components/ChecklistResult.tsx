@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   CardInputMap,
+  CategoryId,
   Situation,
   SituationId,
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
 import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
+import { resolveGeneralDeduction } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
-import { parseGrossIncomePersons, calcTotalGrossIncome } from '../lib/grossIncome'
+import { parseGrossIncomePersons, calcTotalGrossIncome, calcPersonNetIncome } from '../lib/grossIncome'
+import { FormulaRow } from './checklist/FormulaRow'
+import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
 import { GrossIncomeCard } from './GrossIncomeCard'
@@ -49,90 +53,67 @@ interface Props {
   onScrollHandled?: () => void
 }
 
-const STANDARD_DEDUCTION_SOURCE = {
-  label: '114年度申報書說明',
-  authority: '財政部電子申報繳稅服務網',
-  url: 'https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf',
+type SpecialFieldDef =
+  | { type: 'amount'; fieldId: string; capKey: string | null }
+  | { type: 'count'; fieldId: string; perUnitKey: string }
+  | { type: 'split'; fieldId: string; firstKey: string; additionalKey: string }
+
+const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFieldDef[] }> = {
+  'savings-investment-deduction': {
+    label: '儲蓄投資',
+    fields: [{ type: 'amount', fieldId: 'savings_investment_amount', capKey: 'special_deduction_savings_investment' }],
+  },
+  'disability-special-deduction': {
+    label: '身心障礙',
+    fields: [{ type: 'count', fieldId: 'disability_count', perUnitKey: 'special_deduction_disability' }],
+  },
+  'childcare-deduction': {
+    label: '幼兒學前',
+    fields: [
+      { type: 'split', fieldId: 'childcare_count', firstKey: 'special_deduction_childcare_first', additionalKey: 'special_deduction_childcare_additional' },
+    ],
+  },
+  'education-tuition-deduction': {
+    label: '教育學費',
+    fields: [{ type: 'count', fieldId: 'education_count', perUnitKey: 'special_deduction_education_tuition' }],
+  },
+  'long-term-care-deduction': {
+    label: '長期照顧',
+    fields: [{ type: 'count', fieldId: 'long_term_care_count', perUnitKey: 'special_deduction_long_term_care' }],
+  },
+  'rent-deduction': {
+    label: '房屋租金支出',
+    fields: [{ type: 'amount', fieldId: 'rent_amount', capKey: 'special_deduction_rent' }],
+  },
 }
 
-const ITEMIZED_EDUCATION_ITEM_IDS = new Set([
-  'donations-deduction',
-  'insurance-deduction',
-  'medical-deduction',
-  'mortgage-interest-deduction',
-])
-
-function formatTwd(value: number) {
-  return value.toLocaleString('zh-TW')
-}
-
-function StandardItemizedEducationPanel({
-  groups,
-  selectedSituations,
-}: {
-  groups: CategoryGroup[]
-  selectedSituations: SituationId[]
-}) {
-  const isMarried = selectedSituations.includes('married')
-  const baselineKey = isMarried ? 'standard_deduction_married' : 'standard_deduction_single'
-  const baselineLabel = isMarried ? '配偶合併申報標準扣除額' : '單身標準扣除額'
-  const baselineAmount = formatTwd(getNumber(baselineKey))
-  const itemizedItems = groups
-    .flatMap((group) => group.items)
-    .filter((item) => ITEMIZED_EDUCATION_ITEM_IDS.has(item.id) && item.documents_to_prepare.length > 0)
-
-  return (
-    <section className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4" data-testid="standard-itemized-panel">
-      <div className="mb-3 flex items-start gap-2">
-        <div className="flex-1">
-          <p className="text-xs font-medium text-yellow-800">標準扣除 vs 列舉扣除</p>
-          <h2 className="mt-1 text-base font-semibold text-gray-900">先用標準扣除額當文件準備基準</h2>
-        </div>
-        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
-          建議確認
-        </span>
-      </div>
-
-      <p className="text-sm text-gray-700">
-        114年度{baselineLabel}為 <strong className="font-semibold text-gray-900">{baselineAmount} 元</strong>。
-        標準扣除額與列舉扣除額只能擇一使用；這裡只協助整理可能要準備的列舉文件，不計算或宣稱哪一種較適合。
-      </p>
-
-      <div className="mt-3 rounded border border-yellow-100 bg-white/70 p-3">
-        <p className="text-xs font-medium text-gray-600">已選情境的列舉文件提示</p>
-        {itemizedItems.length > 0 ? (
-          <ul className="mt-2 space-y-2">
-            {itemizedItems.map((item) => (
-              <li key={item.id} className="text-xs text-gray-700">
-                <span className="font-medium text-gray-800">{item.title}：</span>
-                {item.documents_to_prepare.join('、')}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-2 text-xs text-gray-500">目前沒有選到列舉扣除相關情境，因此尚無列舉文件提示。</p>
-        )}
-      </div>
-
-      <div className="mt-3 border-t border-yellow-100 pt-3">
-        <p className="text-xs text-yellow-800">
-          申報提醒：列舉是否適用、可扣除金額與最終申報結果，請以財政部電子申報系統及官方資料確認。
-        </p>
-        <p className="mt-1 text-xs text-gray-500">
-          來源：
-          <a
-            href={STANDARD_DEDUCTION_SOURCE.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-600 underline underline-offset-2 hover:text-gray-800"
-          >
-            {STANDARD_DEDUCTION_SOURCE.label}
-          </a>
-          <span className="text-gray-400"> · {STANDARD_DEDUCTION_SOURCE.authority}</span>
-        </p>
-      </div>
-    </section>
-  )
+function getSpecialDeductionItemAmount(
+  itemId: string,
+  inputs: Record<string, string>,
+): number | null {
+  const meta = SPECIAL_DEDUCTION_META[itemId]
+  if (!meta) return null
+  let total = 0
+  for (const f of meta.fields) {
+    const raw = inputs[f.fieldId] ?? ''
+    if (raw === '') return null   // any unfilled field → unfilled card
+    const num = Number(raw.replace(/,/g, ''))
+    if (f.type === 'amount') {
+      if (!Number.isFinite(num) || num <= 0) return null
+      const cap = f.capKey ? getNumber(f.capKey) : Infinity
+      total += Math.min(num, cap)
+    } else if (f.type === 'split') {
+      if (Number.isFinite(num) && num < 0) return null
+      if (Number.isFinite(num) && num > 0) {
+        const count = Math.floor(num)
+        total += getNumber(f.firstKey) + Math.max(count - 1, 0) * getNumber(f.additionalKey)
+      }
+    } else {
+      if (Number.isFinite(num) && num < 0) return null
+      if (Number.isFinite(num) && num > 0) total += Math.floor(num) * getNumber(f.perUnitKey)
+    }
+  }
+  return total
 }
 
 type CopyState = 'idle' | 'success' | 'error'
@@ -459,6 +440,88 @@ export function ChecklistResult({
     return calcTotalGrossIncome(persons)
   }, [cardInputMap, isMarriedFiling])
 
+  const exemptionAmount = useMemo(() => {
+    const inputs = cardInputMap['exemption-general'] ?? {}
+    const under70 = Number(inputs['exemption_under70_count'] ?? '') || 0
+    const over70 = Number(inputs['exemption_over70_count'] ?? '') || 0
+    if (under70 === 0 && over70 === 0) return null
+    return under70 * getNumber('exemption_general') + over70 * getNumber('exemption_senior_70')
+  }, [cardInputMap])
+
+  const generalDeductionResolved = useMemo(
+    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling),
+    [groups, cardInputMap, isMarriedFiling],
+  )
+
+  const generalDeductionAmount =
+    generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
+
+  const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
+  const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
+
+  const specialDeductionFormulaItems = useMemo(
+    () =>
+      (specialDeductionGroup?.items ?? [])
+        .filter((item) => SPECIAL_DEDUCTION_META[item.id])
+        .map((item) => ({
+          id: item.id,
+          label: SPECIAL_DEDUCTION_META[item.id].label,
+          amount: getSpecialDeductionItemAmount(item.id, cardInputMap[item.id] ?? {}),
+        })),
+    [specialDeductionGroup, cardInputMap],
+  )
+
+  // Derived from formula items so sidebar and formula row share the same filled/unfilled policy.
+  // Any unfilled item (amount === null) blocks the total → TaxSummaryPanel shows 待計算.
+  const specialDeductionAmount = useMemo(() => {
+    if (specialDeductionFormulaItems.length === 0) return null
+    if (specialDeductionFormulaItems.some((i) => i.amount === null)) return null
+    return specialDeductionFormulaItems.reduce((sum, i) => sum + (i.amount ?? 0), 0)
+  }, [specialDeductionFormulaItems])
+
+  const grossIncomeFormulaItems = useMemo(() => {
+    const hasGrossIncomeCard = groups.some((g) =>
+      g.items.some((item) => item.id === 'gross-income'),
+    )
+    if (!hasGrossIncomeCard) return null
+    const inputs = cardInputMap['gross-income'] ?? {}
+    const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
+    return persons.map((p) => ({
+      id: p.id,
+      label: p.label,
+      amount: p.income > 0 ? calcPersonNetIncome(p.income) : null,
+    }))
+  }, [groups, cardInputMap, isMarriedFiling])
+
+  function handleScrollToSection(categoryId: string) {
+    const el = sectionRefs.current[categoryId as CategoryId]
+    if (!el) return
+    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
+  }
+
+  function getSectionSubtotal(group: CategoryGroup): number | null {
+    switch (group.category) {
+      case 'gross_income':
+        return grossIncomeTotal > 0 ? grossIncomeTotal : null
+      case 'exemptions':
+        return exemptionAmount
+      case 'general_deductions':
+        return generalDeductionResolved.status === 'pending_itemized'
+          ? null
+          : generalDeductionResolved.amount
+      case 'special_deductions':
+        return specialDeductionAmount
+      default:
+        return null
+    }
+  }
+
+  function getFormulaItems(group: CategoryGroup) {
+    if (group.category === 'special_deductions') return specialDeductionFormulaItems
+    if (group.category === 'gross_income') return grossIncomeFormulaItems
+    return null
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 print-container">
       <AddSituationModal
@@ -524,15 +587,44 @@ export function ChecklistResult({
               >
                 <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700 flex items-baseline gap-2">
                   <span>{group.label}</span>
-                  {group.category === 'gross_income' && grossIncomeTotal > 0 && (
-                    <span className="text-sm font-semibold text-green-700 tabular-nums">
-                      {grossIncomeTotal.toLocaleString('zh-TW')} 元
-                    </span>
-                  )}
+                  {(() => {
+                    const fItems = getFormulaItems(group)
+                    if (fItems && fItems.length > 0) {
+                      return (
+                        <span className="text-xs font-normal text-gray-400">小計（依公式計算）</span>
+                      )
+                    }
+                    if (
+                      group.category === 'general_deductions' &&
+                      generalDeductionResolved.status === 'pending_itemized'
+                    ) {
+                      return (
+                        <span className="text-xs font-normal text-gray-400">待填入</span>
+                      )
+                    }
+                    const sub = getSectionSubtotal(group)
+                    return sub !== null ? (
+                      <span className="text-sm font-semibold text-green-700 tabular-nums">
+                        {sub.toLocaleString('zh-TW')} 元
+                      </span>
+                    ) : null
+                  })()}
                 </h2>
                 {group.category === 'general_deductions' && (
-                  <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
+                  <StandardItemizedPanel
+                    groups={groups}
+                    selectedSituations={selectedSituations}
+                    cardInputMap={cardInputMap}
+                  />
                 )}
+                {(() => {
+                  const fItems = getFormulaItems(group)
+                  return fItems && fItems.length > 0 ? (
+                    <div className="mb-4">
+                      <FormulaRow items={fItems} />
+                    </div>
+                  ) : null
+                })()}
                 <div className="space-y-3">
                   {group.items.map((item) => (
                     <div
@@ -591,6 +683,11 @@ export function ChecklistResult({
         <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-6">
           <TaxSummaryPanel
             grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
+            exemptionAmount={exemptionAmount}
+            generalDeductionAmount={generalDeductionAmount}
+            specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
+            hasSpecialDeductions={hasSpecialDeductions}
+            onScrollToSection={handleScrollToSection}
           />
         </aside>
       </div>

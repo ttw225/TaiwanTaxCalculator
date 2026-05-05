@@ -360,8 +360,8 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   it('shows the single standard deduction baseline for non-married users', () => {
     const html = renderResult(['salary_income'])
     expect(html).toContain('data-testid="standard-itemized-panel"')
-    expect(html).toContain('單身標準扣除額')
-    expect(html).toContain('131,000 元')
+    expect(html).toContain('標準扣除 vs 列舉扣除')
+    expect(html).toContain('131,000')
   })
 
   it('renders the standard vs itemized panel inside the general deductions section', () => {
@@ -379,15 +379,15 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
 
   it('shows the married standard deduction baseline and hides the single standard item for married users', () => {
     const html = renderResult(['married', 'salary_income'])
-    expect(html).toContain('配偶合併申報標準扣除額')
-    expect(html).toContain('262,000 元')
-    expect(html).toContain('標準扣除額（配偶合併申報）')
+    expect(html).toContain('data-testid="standard-itemized-panel"')
+    expect(html).toContain('262,000')
+    expect(html).toContain('標準扣除 vs 列舉扣除')
     expect(html).not.toContain('標準扣除額（單身）')
   })
 
   it('shows document prompts for selected itemizable situations', () => {
     const html = renderResult(['donations', 'medical_expenses', 'mortgage_interest', 'rent'])
-    expect(html).toContain('已選情境的列舉文件提示')
+    expect(html).toContain('列舉扣除額')
     expect(html).toContain('正式捐贈收據')
     expect(html).toContain('醫療收據正本')
     expect(html).toContain('銀行房貸年度利息繳納證明')
@@ -397,16 +397,56 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   it('stays visible with an empty itemized prompt state', () => {
     const html = renderResult(['salary_income'])
     expect(html).toContain('data-testid="standard-itemized-panel"')
-    expect(html).toContain('目前沒有選到列舉扣除相關情境')
+    expect(html).toContain('目前清單中沒有列舉扣除相關項目')
   })
 
   it('includes source and official confirmation language without best-choice claims', () => {
     const html = renderResult(['donations'])
     expect(html).toContain('114年度申報書說明')
     expect(html).toContain('財政部電子申報系統')
-    expect(html).toContain('不計算或宣稱哪一種較適合')
+    expect(html).toContain('申報提醒')
     expect(html).not.toContain('最佳選擇')
     expect(html).not.toContain('最划算')
+  })
+
+  it('shows 待填入 in the general deduction section when itemized amounts are incomplete', () => {
+    const published = applyPublicationGate(CHECKLIST_ITEMS)
+    const groups = groupByCategory(filterBySituations(published, ['donations']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['donations'],
+        cardInputMap: {},
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    const generalIdx = html.indexOf('data-testid="checklist-section-general_deductions"')
+    expect(generalIdx).toBeGreaterThanOrEqual(0)
+    const afterGeneral = html.slice(generalIdx, generalIdx + 800)
+    expect(afterGeneral).toContain('待填入')
+    expect(html).toContain('前往填寫')
+  })
+
+  it('shows max(standard, itemized) in the section header when itemized lines are complete', () => {
+    const published = applyPublicationGate(CHECKLIST_ITEMS)
+    const groups = groupByCategory(filterBySituations(published, ['donations']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['donations'],
+        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    const generalIdx = html.indexOf('data-testid="checklist-section-general_deductions"')
+    expect(generalIdx).toBeGreaterThanOrEqual(0)
+    const afterGeneral = html.slice(generalIdx, generalIdx + 800)
+    expect(afterGeneral).toContain('500,000')
+    expect(afterGeneral).not.toContain('待填入')
   })
 })
 

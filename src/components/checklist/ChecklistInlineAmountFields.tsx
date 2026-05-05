@@ -2,7 +2,50 @@ import type { CardInlineField } from '../../types/content'
 import { getNumber } from '../../lib/numbers'
 
 function InlineFeedback({ field, value }: { field: CardInlineField; value: string }) {
-  if (!value || !field.capKey) return null
+  if (!value) return null
+
+  if (field.splitPerUnitKeys) {
+    const count = Math.floor(Number(value))
+    if (!Number.isFinite(count) || count <= 0) return null
+    let firstRate: number, additionalRate: number
+    try {
+      firstRate = getNumber(field.splitPerUnitKeys.firstKey)
+      additionalRate = getNumber(field.splitPerUnitKeys.additionalKey)
+    } catch {
+      return null
+    }
+    const additionalCount = Math.max(count - 1, 0)
+    const total = firstRate + additionalCount * additionalRate
+    return (
+      <p className="mt-1 text-xs text-blue-700">
+        {count === 1 ? (
+          <>1 {field.unit} × {firstRate.toLocaleString('zh-TW')} 元 ＝ <strong>{total.toLocaleString('zh-TW')} 元</strong></>
+        ) : (
+          <>1 {field.unit} × {firstRate.toLocaleString('zh-TW')} ＋ {additionalCount} {field.unit} × {additionalRate.toLocaleString('zh-TW')} ＝ <strong>{total.toLocaleString('zh-TW')} 元</strong></>
+        )}
+      </p>
+    )
+  }
+
+  if (field.perUnitKey) {
+    const count = Number(value)
+    if (!Number.isFinite(count) || count <= 0) return null
+    let perUnit: number
+    try {
+      perUnit = getNumber(field.perUnitKey)
+    } catch {
+      return null
+    }
+    const total = count * perUnit
+    return (
+      <p className="mt-1 text-xs text-blue-700">
+        {count} {field.unit} × {perUnit.toLocaleString('zh-TW')} 元 ＝{' '}
+        <strong>{total.toLocaleString('zh-TW')} 元</strong>
+      </p>
+    )
+  }
+
+  if (!field.capKey) return null
   const numVal = Number(value.replace(/,/g, ''))
   if (isNaN(numVal) || numVal <= 0) return null
 
@@ -54,11 +97,13 @@ export function ChecklistInlineAmountFields({
             <input
               type="number"
               min="0"
+              max={field.max}
+              step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
               value={inputValues[field.id] ?? ''}
               onChange={(e) => onInputChange?.(field.id, e.target.value)}
               data-testid={`card-input-${itemId}-${field.id}`}
               className="w-36 rounded border border-gray-300 px-2 py-1 text-xs text-gray-800 focus:border-blue-400 focus:outline-none"
-              placeholder="輸入金額"
+              placeholder={field.perUnitKey || field.splitPerUnitKeys ? '輸入人數' : '輸入金額'}
             />
             <span className="text-xs text-gray-500">{field.unit}</span>
           </div>
@@ -70,7 +115,7 @@ export function ChecklistInlineAmountFields({
           資料僅在您的瀏覽器處理，不會傳送至任何伺服器
         </p>
         <p className="text-xs text-gray-400">
-          填入金額僅用於協助排序與初步檢查，實際可申報金額請以官方系統確認
+          填入資料僅用於協助排序與初步檢查，實際可申報金額請以官方系統確認
         </p>
       </div>
     </div>

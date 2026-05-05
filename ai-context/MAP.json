@@ -41,7 +41,7 @@
     {
       "id": "checklist-engine",
       "file": "08-checklist-engine.md",
-      "keywords": ["applyPublicationGate", "filterBySituations", "groupByCategory", "sortByTriage", "CARD_SORT_RULES"]
+      "keywords": ["applyPublicationGate", "filterBySituations", "groupByCategory", "CATEGORY_LABELS", "CategoryGroup"]
     },
     {
       "id": "decision-tools",

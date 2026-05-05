@@ -31,3 +31,9 @@ export function getNumber(key: string): number {
 export function getBrackets(): Bracket[] {
   return data.brackets
 }
+
+export function calcTax(netIncome: number): number {
+  if (netIncome <= 0) return 0
+  const bracket = data.brackets.find((b) => b.up_to === null || netIncome <= b.up_to)!
+  return Math.max(0, Math.round(netIncome * bracket.rate - bracket.quick_deduction))
+}
