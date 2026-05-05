@@ -22,6 +22,10 @@ interface NumbersData {
 
 const data = rawNumbers as NumbersData
 
+export function getValidYear(): number {
+  return data.valid_year
+}
+
 export function getNumber(key: string): number {
   const item = data.items.find((i) => i.key === key)
   if (!item) throw new Error(`numbers_2026: unknown key "${key}"`)

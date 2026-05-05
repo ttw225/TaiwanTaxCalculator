@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from '../src/content/deductions'
+import { getValidYear } from '../src/lib/numbers'
 import {
-  applyPublicationGate,
   filterBySituations,
   groupByCategory,
   CATEGORY_LABELS,
@@ -23,38 +23,16 @@ function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
     why_it_matters: 'test',
     eligibility_cues: [],
     documents_to_prepare: [],
-    limitations: [],
     source_refs: [{ source_id: 'src', label: 'Label', authority: 'Auth' }],
-    verification_status: 'verified',
     show_wealth_clause_notice: false,
-    next_action: 'Do it',
     ...overrides,
   }
 }
 
-// ── Publication gate ──────────────────────────────────────────────────────────
-
-describe('applyPublicationGate', () => {
-  it('excludes unverified items', () => {
-    const items = applyPublicationGate(CHECKLIST_ITEMS)
-    expect(items.every((i) => i.verification_status !== 'unverified')).toBe(true)
-  })
-
-  it('keeps verified items', () => {
-    const items = applyPublicationGate(CHECKLIST_ITEMS)
-    expect(items.some((i) => i.verification_status === 'verified')).toBe(true)
-  })
-
-  it('keeps partially_verified items', () => {
-    const items = applyPublicationGate(CHECKLIST_ITEMS)
-    expect(items.some((i) => i.verification_status === 'partially_verified')).toBe(true)
-  })
-})
-
 // ── Situation-to-item mapping ─────────────────────────────────────────────────
 
 describe('filterBySituations', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
 
   it('returns empty array when no situations selected', () => {
     expect(filterBySituations(published, [])).toHaveLength(0)
@@ -167,7 +145,7 @@ describe('filterBySituations', () => {
 // ── Category grouping ─────────────────────────────────────────────────────────
 
 describe('groupByCategory', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
 
   it('returns groups in priority order: gross income before exemptions before general before special', () => {
     const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
@@ -273,12 +251,6 @@ describe('checklist item source integrity', () => {
     }
   })
 
-  it('every item has a non-empty next_action', () => {
-    for (const item of CHECKLIST_ITEMS) {
-      expect(item.next_action).toBeTruthy()
-    }
-  })
-
   it('every item has a non-empty why_it_matters', () => {
     for (const item of CHECKLIST_ITEMS) {
       expect(item.why_it_matters).toBeTruthy()
@@ -306,7 +278,7 @@ describe('checklist item source integrity', () => {
 // ── User-facing traceability ─────────────────────────────────────────────────
 
 describe('ChecklistResult traceability UI', () => {
-  const groups = groupByCategory(applyPublicationGate(CHECKLIST_ITEMS))
+  const groups = groupByCategory(CHECKLIST_ITEMS)
   const html = renderToStaticMarkup(
     createElement(ChecklistResult, {
       groups,
@@ -341,7 +313,7 @@ describe('ChecklistResult traceability UI', () => {
 // ── Standard vs itemized filing reminder panel ────────────────────────────────
 
 describe('ChecklistResult standard vs itemized filing reminder panel', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
 
   function renderResult(selectedSituations: Parameters<typeof filterBySituations>[1]) {
     const groups = groupByCategory(filterBySituations(published, selectedSituations))
@@ -410,7 +382,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   })
 
   it('shows 待填入 in the general deduction section when itemized amounts are incomplete', () => {
-    const published = applyPublicationGate(CHECKLIST_ITEMS)
+    const published = CHECKLIST_ITEMS
     const groups = groupByCategory(filterBySituations(published, ['donations']))
     const html = renderToStaticMarkup(
       createElement(ChecklistResult, {
@@ -430,7 +402,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   })
 
   it('shows max(standard, itemized) in the section header when itemized lines are complete', () => {
-    const published = applyPublicationGate(CHECKLIST_ITEMS)
+    const published = CHECKLIST_ITEMS
     const groups = groupByCategory(filterBySituations(published, ['donations']))
     const html = renderToStaticMarkup(
       createElement(ChecklistResult, {
@@ -502,6 +474,16 @@ describe('annual number sourcing', () => {
   it('gross-income why_it_matters contains 218,000', () => {
     const item = CHECKLIST_ITEMS.find((i) => i.id === 'gross-income')
     expect(item?.why_it_matters).toContain('218,000')
+  })
+
+  it('exemption-general eligibility cues use valid_year - 70 birth year', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'exemption-general')
+    expect(item?.eligibility_cues.join('\n')).toContain(`民國${getValidYear() - 70}年`)
+  })
+
+  it('childcare-deduction eligibility cues use valid_year - 6 birth year', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'childcare-deduction')
+    expect(item?.eligibility_cues.join('\n')).toContain(`民國${getValidYear() - 6}年`)
   })
 
   it('disability-special-deduction why_it_matters contains 218,000', () => {
@@ -576,7 +558,7 @@ describe('SITUATION_GROUPS', () => {
 // ── ChecklistResult export UI ─────────────────────────────────────────────────
 
 describe('ChecklistResult export panel', () => {
-  const published = applyPublicationGate(CHECKLIST_ITEMS)
+  const published = CHECKLIST_ITEMS
   const allGroups = groupByCategory(filterBySituations(published, SITUATIONS.map((s) => s.id)))
 
   const htmlWithResults = renderToStaticMarkup(
@@ -676,13 +658,10 @@ describe('formatChecklistMarkdown', () => {
     why_it_matters: 'Reduces taxable income for qualifying medical costs.',
     eligibility_cues: [],
     documents_to_prepare: ['Medical receipts'],
-    limitations: ['Only qualifying expenses apply'],
     source_refs: [
       { source_id: 'ntbt_medical_expenses', label: 'MOF filing guide', authority: '財政部' },
     ],
-    verification_status: 'verified' as const,
     show_wealth_clause_notice: false,
-    next_action: '申報時填入醫療費用',
   }
 
   const groups = [
@@ -708,10 +687,6 @@ describe('formatChecklistMarkdown', () => {
     expect(md).toContain('Medical receipts')
   })
 
-  it('contains the limitation as a caution bullet', () => {
-    expect(md).toContain('Only qualifying expenses apply')
-  })
-
   it('contains the public source label', () => {
     expect(md).toContain('MOF filing guide')
   })
@@ -720,27 +695,12 @@ describe('formatChecklistMarkdown', () => {
     expect(md).toContain('財政部')
   })
 
-  it('includes the next action', () => {
-    expect(md).toContain('申報時填入醫療費用')
-  })
-
   it('includes reminder wording about confirming in official filing system', () => {
     expect(md).toContain('財政部電子申報系統')
   })
 
   it('includes selected situation count', () => {
     expect(md).toContain('1 項')
-  })
-
-  // Requirement: Internal Metadata Exclusion
-  it('does not contain verification_status field name', () => {
-    expect(md).not.toContain('verification_status')
-  })
-
-  it('does not contain internal verification labels', () => {
-    expect(md).not.toContain('verified')
-    expect(md).not.toContain('partially_verified')
-    expect(md).not.toContain('unverified')
   })
 
   it('does not contain raw source_id', () => {
@@ -850,7 +810,7 @@ describe('DeductionCard inline input fields', () => {
     expect(html).not.toContain('填入金額超過上限')
   })
 
-  it('shows privacy notice and disclaimer when inlineFields is non-empty', () => {
+  it('shows privacy notice when inlineFields is non-empty', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -859,7 +819,6 @@ describe('DeductionCard inline input fields', () => {
       }),
     )
     expect(html).toContain('資料僅在您的瀏覽器處理，不會傳送至任何伺服器')
-    expect(html).toContain('實際可申報金額請以官方系統確認')
   })
 
   it('no privacy notice when inlineFields is empty', () => {

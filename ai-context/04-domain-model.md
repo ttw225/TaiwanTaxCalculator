@@ -2,13 +2,8 @@
 
 Source: [`src/types/content.ts`](../src/types/content.ts).
 
-## Verification
+## Checklist display metadata
 
-```ts
-export type VerificationStatus = 'verified' | 'partially_verified' | 'unverified'
-```
-
-- **`verification_status`**: Used by publication gate — items with `'unverified'` are filtered out of the live checklist set ([`08-checklist-engine.md`](./08-checklist-engine.md)).
 - **`show_wealth_clause_notice`**: When `true`, the checklist card footer shows a standard notice that the item may involve personal conditions or wealth-based (排富) rules; see [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx) and copy in [`checklistCardCopy.ts`](../src/lib/checklistCardCopy.ts).
 
 ## Situations
@@ -88,15 +83,12 @@ export interface ChecklistItem {
   why_it_matters: string
   eligibility_cues: string[]
   documents_to_prepare: string[]
-  limitations: string[]
   source_refs: SourceRef[]
-  verification_status: VerificationStatus
   show_wealth_clause_notice: boolean
-  next_action: string
 }
 ```
 
-- **`situations`**: Item is eligible if **any** selected situation matches, after gate and special married rule ([`08-checklist-engine.md`](./08-checklist-engine.md)).
+- **`situations`**: Item is eligible if **any** selected situation matches, with the special married rule applied in the checklist engine ([`08-checklist-engine.md`](./08-checklist-engine.md)).
 
 ## Card inline fields
 

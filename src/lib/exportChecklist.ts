@@ -52,15 +52,6 @@ export function formatChecklistMarkdown(
         }
       }
 
-      if (item.limitations.length > 0) {
-        lines.push('', '**注意事項**')
-        for (const lim of item.limitations) {
-          lines.push(`- ⚠ ${lim}`)
-        }
-      }
-
-      lines.push('', `**下一步**：${item.next_action}`)
-
       if (item.source_refs.length > 0) {
         lines.push('', '**來源**')
         for (const ref of item.source_refs) {

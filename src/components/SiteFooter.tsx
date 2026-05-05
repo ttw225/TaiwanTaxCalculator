@@ -23,9 +23,9 @@ export function SiteFooter() {
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-2">關於本站</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                {name} 是自發整理的節稅參考工具，完全免費、無商業贊助。每筆資料均標示來源與更新月份，
-                正式申報結果以財政部及官方申報系統核定為準。本站不需帳號，
-                所有資料均在您的裝置本機處理，不上傳伺服器。
+                {name} 是自發整理的節稅參考工具，開源、完全免費、無商業贊助。
+                每筆資料均標示來源與更新月份。
+                本站不需帳號，所有資料均在您的裝置本機處理，不上傳伺服器。
               </p>
             </div>
 

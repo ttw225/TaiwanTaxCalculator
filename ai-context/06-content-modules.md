@@ -31,7 +31,7 @@ Reused constants (`SRC_ITA`, `SRC_MOF`, `SRC_MANUAL`, `SRC_TAX_SAVING_MANUAL`, `
 | `long-term-care-deduction` | `special_deductions` | `long_term_care` |
 | `rent-deduction` | `special_deductions` | `rent` |
 
-Numeric prose in `why_it_matters` uses `getNumber(...).toLocaleString('zh-TW')` via local helper `n(key)`.
+Dynamic prose in `why_it_matters` / eligibility hints uses local helpers backed by `numbers.ts` (e.g. `getNumber(...).toLocaleString('zh-TW')` and `getValidYear()`).
 
 ### `SITUATIONS`
 

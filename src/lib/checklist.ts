@@ -1,10 +1,5 @@
 import type { CategoryId, ChecklistItem, SituationId } from '../types/content'
 
-// Publication gate: unverified items must not appear in production UI
-export function applyPublicationGate(items: ChecklistItem[]): ChecklistItem[] {
-  return items.filter((item) => item.verification_status !== 'unverified')
-}
-
 // Return items that match at least one of the selected situations
 export function filterBySituations(
   items: ChecklistItem[],

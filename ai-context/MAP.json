@@ -41,7 +41,7 @@
     {
       "id": "checklist-engine",
       "file": "08-checklist-engine.md",
-      "keywords": ["applyPublicationGate", "filterBySituations", "groupByCategory", "CATEGORY_LABELS", "CategoryGroup"]
+      "keywords": ["filterBySituations", "groupByCategory", "CATEGORY_LABELS", "CategoryGroup", "married rule"]
     },
     {
       "id": "decision-tools",
