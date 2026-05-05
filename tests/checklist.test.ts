@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from '../src/content/deductions'
+import { getValidYear } from '../src/lib/numbers'
 import {
   filterBySituations,
   groupByCategory,
@@ -481,6 +482,16 @@ describe('annual number sourcing', () => {
   it('gross-income why_it_matters contains 218,000', () => {
     const item = CHECKLIST_ITEMS.find((i) => i.id === 'gross-income')
     expect(item?.why_it_matters).toContain('218,000')
+  })
+
+  it('exemption-general eligibility cues use valid_year - 70 birth year', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'exemption-general')
+    expect(item?.eligibility_cues.join('\n')).toContain(`民國${getValidYear() - 70}年`)
+  })
+
+  it('childcare-deduction eligibility cues use valid_year - 6 birth year', () => {
+    const item = CHECKLIST_ITEMS.find((i) => i.id === 'childcare-deduction')
+    expect(item?.eligibility_cues.join('\n')).toContain(`民國${getValidYear() - 6}年`)
   })
 
   it('disability-special-deduction why_it_matters contains 218,000', () => {
