@@ -19,6 +19,9 @@ const SOURCE = {
   url: 'https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf',
 }
 
+const PANEL_SHELL_CLASS =
+  'mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4'
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function Verdict({
@@ -36,24 +39,22 @@ function Verdict({
 
   if (allFilled) {
     if (itemizedTotal > standardAmount) {
-      const diff = itemizedTotal - standardAmount
       return (
         <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
-          列舉較多（+{diff.toLocaleString('zh-TW')} 元）
+          推薦：列舉扣除（列舉扣除 {'>'} 標準扣除）
         </span>
       )
     }
     if (itemizedTotal === standardAmount) {
       return (
         <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-          兩者相同
+          兩者皆可（金額相同）
         </span>
       )
     }
-    const diff = standardAmount - itemizedTotal
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
-        標準較多（+{diff.toLocaleString('zh-TW')} 元）
+      <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+        推薦：標準扣除（標準扣除 {'>'} 列舉扣除）
       </span>
     )
   }
@@ -115,17 +116,13 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
   // No itemized items in checklist → show standard deduction only
   if (presentItems.length === 0) {
     return (
-      <section
-        className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4"
-        data-testid="standard-itemized-panel"
-      >
-        <div className="mb-3 flex items-start justify-between gap-2">
-          <p className="text-xs font-medium text-blue-800">標準扣除 vs 列舉扣除</p>
-          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-            建議確認
+      <section className={PANEL_SHELL_CLASS} data-testid="standard-itemized-panel">
+        <div className="mb-3">
+          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+            推薦：標準扣除
           </span>
         </div>
-        <p className="text-sm text-gray-700">
+        <p className="text-base text-gray-700">
           114年度標準扣除額為{' '}
           <strong className="font-semibold text-gray-900">
             {standardAmount.toLocaleString('zh-TW')} 元
@@ -150,58 +147,38 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
   const anyFilled = filledItems.length > 0
 
   return (
-    <section
-      className="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-      data-testid="standard-itemized-panel"
-    >
-      {/* Header */}
-      <div className="mb-4 flex items-start justify-between gap-2">
-        <p className="text-xs font-medium text-gray-700">標準扣除 vs 列舉扣除</p>
-        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
-          建議確認
-        </span>
-      </div>
-
-      {/* Two-column comparison */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        {/* Left: standard deduction — mirrors FormulaRow filled-card style */}
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-            標準扣除額
-          </p>
-          <div className="inline-block overflow-hidden rounded-lg border-2 border-blue-200 bg-white">
-            <div className="border-b border-blue-100 bg-blue-50/60 px-3 py-1.5 text-center">
-              <span className="text-[11px] font-semibold leading-tight text-blue-700">
-                {isMarried ? '配偶合併申報' : '單身申報'}
-              </span>
-            </div>
-            <div className="px-4 py-2.5 text-center">
-              <span className="text-sm font-bold tabular-nums text-gray-800">
-                {standardAmount.toLocaleString('zh-TW')}
-                <br />
-                <span className="text-[10px] font-normal text-gray-500">元</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right: itemized deduction formula row */}
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-            列舉扣除額
-          </p>
-          <FormulaRow items={formulaItems} />
-        </div>
-      </div>
-
-      {/* Verdict */}
-      <div className="mt-4 border-t border-gray-100 pt-3">
+    <section className={PANEL_SHELL_CLASS} data-testid="standard-itemized-panel">
+      <div className="mb-3">
         <Verdict
           standardAmount={standardAmount}
           itemizedTotal={itemizedTotal}
           unfilledCount={unfilledCount}
           anyFilled={anyFilled}
         />
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            標準扣除額
+          </p>
+          <div className="rounded-lg border border-gray-200 px-4 py-3">
+            <p className="mb-2 text-center text-[11px] font-semibold text-gray-600">
+              {isMarried ? '配偶合併申報' : '單身申報'}
+            </p>
+            <p className="text-center text-base font-bold tabular-nums text-gray-800">
+              {standardAmount.toLocaleString('zh-TW')}
+              <span className="text-[10px] font-normal text-gray-500"> 元</span>
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            列舉扣除額
+          </p>
+          <FormulaRow items={formulaItems} />
+        </div>
       </div>
 
       <SourceFooter />

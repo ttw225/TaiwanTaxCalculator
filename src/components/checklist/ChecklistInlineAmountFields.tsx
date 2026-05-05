@@ -17,7 +17,7 @@ function InlineFeedback({ field, value }: { field: CardInlineField; value: strin
     const additionalCount = Math.max(count - 1, 0)
     const total = firstRate + additionalCount * additionalRate
     return (
-      <p className="mt-1 text-xs text-blue-700">
+      <p className="mt-1 text-base text-blue-700">
         {count === 1 ? (
           <>1 {field.unit} × {firstRate.toLocaleString('zh-TW')} 元 ＝ <strong>{total.toLocaleString('zh-TW')} 元</strong></>
         ) : (
@@ -38,7 +38,7 @@ function InlineFeedback({ field, value }: { field: CardInlineField; value: strin
     }
     const total = count * perUnit
     return (
-      <p className="mt-1 text-xs text-blue-700">
+      <p className="mt-1 text-base text-blue-700">
         {count} {field.unit} × {perUnit.toLocaleString('zh-TW')} 元 ＝{' '}
         <strong>{total.toLocaleString('zh-TW')} 元</strong>
       </p>
@@ -59,13 +59,13 @@ function InlineFeedback({ field, value }: { field: CardInlineField; value: strin
   const formatted = cap.toLocaleString('zh-TW')
   if (numVal <= cap) {
     return (
-      <p className="mt-1 text-xs text-green-700">
+      <p className="mt-1 text-base text-green-700">
         填入金額在可申報範圍內（上限 {formatted} 元）
       </p>
     )
   }
   return (
-    <p className="mt-1 text-xs text-orange-700">
+    <p className="mt-1 text-base text-orange-700">
       填入金額超過上限；可申報上限為 {formatted} 元
     </p>
   )
@@ -90,7 +90,7 @@ export function ChecklistInlineAmountFields({
     <div className="mt-3 space-y-3 rounded border border-blue-100 bg-blue-50/40 p-3">
       {inlineFields.map((field) => (
         <div key={field.id}>
-          <label className="block text-xs font-medium text-gray-600 mb-1">
+          <label className="block text-base font-medium text-gray-600 mb-1">
             {field.label}（選填）
           </label>
           <div className="flex items-center gap-1.5">
@@ -102,10 +102,13 @@ export function ChecklistInlineAmountFields({
               value={inputValues[field.id] ?? ''}
               onChange={(e) => onInputChange?.(field.id, e.target.value)}
               data-testid={`card-input-${itemId}-${field.id}`}
-              className="w-36 rounded border border-gray-300 px-2 py-1 text-xs text-gray-800 focus:border-blue-400 focus:outline-none"
+              className={[
+                'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',
+                field.perUnitKey || field.splitPerUnitKeys ? '' : 'no-spin',
+              ].join(' ')}
               placeholder={field.perUnitKey || field.splitPerUnitKeys ? '輸入人數' : '輸入金額'}
             />
-            <span className="text-xs text-gray-500">{field.unit}</span>
+            <span className="text-base text-gray-500">{field.unit}</span>
           </div>
           <InlineFeedback field={field} value={inputValues[field.id] ?? ''} />
         </div>

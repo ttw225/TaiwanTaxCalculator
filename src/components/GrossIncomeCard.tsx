@@ -60,7 +60,7 @@ function PersonRow({
     <div className="border-b border-blue-100 last:border-0 py-3 first:pt-0 last:pb-0">
       <div className="flex items-center gap-2 mb-1.5">
         {isFixed ? (
-          <span className="text-xs font-semibold text-gray-700 min-w-[3rem]">{person.label}</span>
+          <span className="text-base font-semibold text-gray-700 min-w-[3rem]">{person.label}</span>
         ) : (
           <input
             type="text"
@@ -68,7 +68,7 @@ function PersonRow({
             onChange={(e) => onLabelChange?.(e.target.value)}
             placeholder={labelPlaceholder ?? '稱謂'}
             data-testid={`gross-income-label-${person.id}`}
-            className="text-xs font-semibold text-gray-700 border border-gray-200 rounded px-1.5 py-0.5 w-28 focus:border-blue-400 focus:outline-none"
+            className="text-base font-semibold text-gray-700 border border-gray-200 rounded px-1.5 py-0.5 w-28 focus:border-blue-400 focus:outline-none"
           />
         )}
         {!isFixed && onRemove && (
@@ -82,7 +82,7 @@ function PersonRow({
           </button>
         )}
       </div>
-      <label className="mt-1 block text-xs text-gray-500">
+      <label className="mt-1 block text-base text-gray-500">
         薪資收入
       </label>
       <div className="flex items-center gap-1.5">
@@ -93,12 +93,12 @@ function PersonRow({
           onChange={(e) => onIncomeChange(e.target.value)}
           placeholder="輸入金額"
           data-testid={`gross-income-input-${person.id}`}
-          className="w-40 rounded border border-gray-300 px-2 py-1 text-xs text-gray-800 focus:border-blue-400 focus:outline-none"
+          className="no-spin w-40 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none"
         />
-        <span className="text-xs text-gray-500">元</span>
+        <span className="text-base text-gray-500">元</span>
       </div>
       {hasIncome && (
-        <p className="mt-1.5 text-xs text-gray-500">
+        <p className="mt-1.5 text-base text-gray-500">
           {'綜合所得 ＝ 薪資收入 − 薪資所得特別扣除額 ＝ '}
           <span className="font-medium text-gray-700">{formatTwd(income)} 元</span>
           {' − '}
@@ -227,7 +227,7 @@ export function GrossIncomeCard({
         資料僅在您的瀏覽器處理，不會傳送至任何伺服器
       </p>
 
-      <div className="mt-3 text-xs text-gray-500 space-y-0.5">
+      <div className="mt-3 text-base text-gray-500 space-y-0.5">
         <p className="font-medium text-gray-700">綜合所得總額</p>
         {hasAnyIncome ? (
           <>

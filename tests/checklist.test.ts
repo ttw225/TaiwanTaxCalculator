@@ -332,7 +332,8 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   it('shows the single standard deduction baseline for non-married users', () => {
     const html = renderResult(['salary_income'])
     expect(html).toContain('data-testid="standard-itemized-panel"')
-    expect(html).toContain('標準扣除 vs 列舉扣除')
+    expect(html).toContain('推薦：標準扣除')
+    expect(html).not.toContain('建議確認')
     expect(html).toContain('131,000')
   })
 
@@ -353,7 +354,8 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     const html = renderResult(['married', 'salary_income'])
     expect(html).toContain('data-testid="standard-itemized-panel"')
     expect(html).toContain('262,000')
-    expect(html).toContain('標準扣除 vs 列舉扣除')
+    expect(html).toContain('推薦：標準扣除')
+    expect(html).not.toContain('建議確認')
     expect(html).not.toContain('標準扣除額（單身）')
   })
 

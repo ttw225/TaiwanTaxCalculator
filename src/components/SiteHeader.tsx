@@ -37,7 +37,7 @@ export function SiteHeader({ currentFeatureId }: Props) {
         {/* Logo — left-aligned on all viewports (Task 1.2) */}
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate font-semibold text-gray-900 text-base tracking-tight">
+            <span className="truncate font-semibold text-gray-900 text-lg tracking-tight">
               {SITE_CONFIG.name}
             </span>
             <span className="hidden text-xs text-gray-400 sm:block">
@@ -53,7 +53,7 @@ export function SiteHeader({ currentFeatureId }: Props) {
             item.status === 'active' ? (
               <span
                 key={item.id}
-                className={`text-sm font-medium pb-0.5 transition-colors ${
+                className={`text-base font-medium pb-0.5 transition-colors ${
                   currentFeatureId === item.id
                     ? 'text-teal-700 border-b-2 border-teal-700'
                     : 'text-gray-600 hover:text-gray-900'
@@ -90,7 +90,7 @@ export function SiteHeader({ currentFeatureId }: Props) {
             item.status === 'active' ? (
               <span
                 key={item.id}
-                className={`text-sm font-medium py-2 ${
+                className={`text-base font-medium py-2 ${
                   currentFeatureId === item.id ? 'text-teal-700' : 'text-gray-700'
                 }`}
               >

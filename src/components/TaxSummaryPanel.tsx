@@ -26,7 +26,7 @@ function GoFill({ sectionId, onScroll }: { sectionId: string; onScroll?: (id: st
     <button
       type="button"
       onClick={() => onScroll?.(sectionId)}
-      className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline underline-offset-2 transition-colors shrink-0"
+      className="text-base font-medium text-blue-600 hover:text-blue-800 hover:underline underline-offset-2 transition-colors shrink-0"
     >
       前往填寫
     </button>
@@ -51,17 +51,17 @@ function SummaryRow({
   const hasVal = value !== null && !missing
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <span className={`text-xs shrink-0 ${hasVal ? 'text-gray-500' : missing ? 'text-gray-400' : 'text-gray-300'}`}>
+      <span className={`text-base shrink-0 ${hasVal ? 'text-gray-500' : missing ? 'text-gray-400' : 'text-gray-300'}`}>
         {label}
       </span>
       {missing ? (
         <GoFill sectionId={sectionId} onScroll={onScroll} />
       ) : hasVal ? (
-        <span className="text-sm font-semibold tabular-nums text-gray-800 shrink-0">
+        <span className="text-base font-semibold tabular-nums text-gray-800 shrink-0">
           {isDeduction ? '−' : ''}{fmt(value!)} 元
         </span>
       ) : (
-        <span className="text-sm text-gray-200 shrink-0">—</span>
+        <span className="text-base text-gray-200 shrink-0">—</span>
       )}
     </div>
   )
@@ -72,21 +72,21 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4">
       <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
-          <h2 className="text-sm font-semibold text-gray-900">「所得稅應納稅額」公式</h2>
+          <h2 className="text-base font-semibold text-gray-900">「所得稅應納稅額」公式</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="關閉"
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-100 transition-colors"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-base text-gray-500 hover:border-gray-300 hover:bg-gray-100 transition-colors"
           >
             ×
           </button>
         </div>
         <div className="px-5 py-4">
-          <p className="text-sm text-gray-700 mb-4">
+          <p className="text-base text-gray-700 mb-4">
             公式：<span className="font-semibold text-gray-900">「綜合所得淨額」× 稅率 − 累進差額</span>
           </p>
-          <table className="w-full text-xs border-collapse">
+          <table className="w-full text-base border-collapse">
             <thead>
               <tr className="bg-gray-700 text-white">
                 <th className="px-3 py-2 text-left font-semibold rounded-tl-md">綜合所得淨額區間</th>
@@ -120,7 +120,7 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded border border-gray-300 bg-white px-4 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="rounded border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             關閉
           </button>
@@ -201,26 +201,26 @@ function TaxSummaryBody({
         {/* Divider + net income */}
         <div className="border-t border-dashed border-gray-200 pt-2.5 space-y-1.5">
           <div className="flex items-baseline justify-between gap-2">
-            <span className={`text-xs font-medium shrink-0 ${netIncome !== null ? 'text-gray-600' : 'text-gray-300'}`}>
+            <span className={`text-base font-medium shrink-0 ${netIncome !== null ? 'text-gray-600' : 'text-gray-300'}`}>
               所得淨額
             </span>
             {netIncome !== null ? (
-              <span className="text-sm font-bold tabular-nums text-gray-900">{fmt(netIncome)} 元</span>
+              <span className="text-base font-bold tabular-nums text-gray-900">{fmt(netIncome)} 元</span>
             ) : (
-              <span className="text-xs text-gray-300">待計算</span>
+              <span className="text-sm text-gray-300">待計算</span>
             )}
           </div>
 
           {/* Tax label + detail dialog */}
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xs text-gray-500 shrink-0">所得稅應納稅額</span>
+            <span className="text-base text-gray-500 shrink-0">所得稅應納稅額</span>
             {onOpenDialog && (
-              <span className="shrink-0 text-[11px] text-gray-400">
+              <span className="shrink-0 text-sm text-gray-400">
                 <span aria-hidden>(</span>
                 <button
                   type="button"
                   onClick={onOpenDialog}
-                  className="inline p-0 border-0 bg-transparent font-inherit text-[11px] text-gray-400 hover:text-blue-600 hover:underline underline-offset-2 transition-colors cursor-pointer"
+                  className="inline p-0 border-0 bg-transparent font-inherit text-sm text-gray-400 hover:text-blue-600 hover:underline underline-offset-2 transition-colors cursor-pointer"
                 >
                   瞭解更多
                 </button>
@@ -233,14 +233,14 @@ function TaxSummaryBody({
           {netIncome !== null && bracket && (
             <div className="pl-2 space-y-0.5 border-l-2 border-gray-100">
               <div className="flex items-baseline justify-between gap-1">
-                <span className="text-[11px] text-gray-400">× 稅率</span>
-                <span className="text-[11px] font-semibold text-gray-500 tabular-nums">
+                <span className="text-base text-gray-400">× 稅率</span>
+                <span className="text-base font-semibold text-gray-500 tabular-nums">
                   {(bracket.rate * 100).toFixed(0)}%
                 </span>
               </div>
               <div className="flex items-baseline justify-between gap-1">
-                <span className="text-[11px] text-gray-400">− 累進差額</span>
-                <span className="text-[11px] font-semibold text-gray-500 tabular-nums">
+                <span className="text-base text-gray-400">− 累進差額</span>
+                <span className="text-base font-semibold text-gray-500 tabular-nums">
                   {fmt(bracket.quick_deduction)} 元
                 </span>
               </div>
@@ -258,13 +258,13 @@ function TaxSummaryBody({
         }`}
       >
         <div className="flex items-center justify-between gap-2">
-          <span className={`text-xs font-semibold ${taxAmount !== null ? 'text-blue-800' : 'text-gray-400'}`}>
+          <span className={`text-base font-semibold ${taxAmount !== null ? 'text-blue-800' : 'text-gray-400'}`}>
             應納稅額
           </span>
           {taxAmount !== null ? (
             <span className="text-base font-bold tabular-nums text-blue-700">{fmt(taxAmount)} 元</span>
           ) : (
-            <span className="text-xs text-gray-300">待計算</span>
+            <span className="text-sm text-gray-300">待計算</span>
           )}
         </div>
       </div>
@@ -360,14 +360,14 @@ export function TaxSummaryPanel({
         {/* Header */}
         <div className="border-b border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-500">
               節稅試算摘要
             </h3>
             {!printMode && showExport && (
               <div ref={exportMenuRef} className="relative no-print">
                 <button
                   type="button"
-                  className="rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  className="rounded border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                   onClick={() => setExportMenuOpen((v) => !v)}
                   aria-haspopup="menu"
                   aria-expanded={exportMenuOpen}
@@ -382,7 +382,7 @@ export function TaxSummaryPanel({
                         handleDownload()
                         setExportMenuOpen(false)
                       }}
-                      className="block w-full px-3 py-2 text-left text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                       data-testid="download-checklist-btn"
                     >
                       下載 Markdown
@@ -393,7 +393,7 @@ export function TaxSummaryPanel({
                         handlePrint()
                         setExportMenuOpen(false)
                       }}
-                      className="block w-full px-3 py-2 text-left text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                       data-testid="print-checklist-btn"
                     >
                       列印 / 另存 PDF

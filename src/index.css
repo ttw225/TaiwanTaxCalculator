@@ -15,6 +15,24 @@ textarea {
   font-size: 16px;
 }
 
+button:not(:disabled),
+a[href],
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+/* Hide spinner controls for amount inputs only. */
+input.no-spin[type="number"]::-webkit-outer-spin-button,
+input.no-spin[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input.no-spin[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .print-only {
   display: none;
 }

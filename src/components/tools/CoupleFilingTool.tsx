@@ -39,7 +39,7 @@ export function CoupleFilingTool() {
             placeholder="例：800,000"
             value={husbandStr}
             onChange={(e) => setHusbandStr(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
+            className="no-spin w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
           />
         </div>
         <div>
@@ -54,7 +54,7 @@ export function CoupleFilingTool() {
             placeholder="例：600,000"
             value={wifeStr}
             onChange={(e) => setWifeStr(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
+            className="no-spin w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
           />
         </div>
       </div>

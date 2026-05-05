@@ -37,7 +37,7 @@ export function FormulaRow({ items }: { items: FormulaItem[] }) {
                 }`}
               >
                 <span
-                  className={`text-[11px] font-semibold leading-tight ${
+                  className={`text-base font-semibold leading-tight ${
                     item.amount !== null ? 'text-blue-700' : 'text-gray-400'
                   }`}
                 >
@@ -45,15 +45,15 @@ export function FormulaRow({ items }: { items: FormulaItem[] }) {
                 </span>
               </div>
               {/* Bottom: amount */}
-              <div className="px-2 py-2 text-center">
+              <div className="flex min-h-[44px] items-center justify-center px-2 py-2 text-center">
                 {item.amount !== null ? (
-                  <span className="text-xs font-bold tabular-nums leading-tight text-gray-800">
+                  <span className="text-base font-bold tabular-nums leading-tight text-gray-800">
                     {item.amount.toLocaleString('zh-TW')}
                     <br />
-                    <span className="text-[10px] font-normal text-gray-500">元</span>
+                    <span className="text-xs font-normal text-gray-500">元</span>
                   </span>
                 ) : (
-                  <span className="text-xs leading-tight text-gray-300">未填寫</span>
+                  <span className="text-base leading-tight text-gray-300">未填寫</span>
                 )}
               </div>
             </div>
@@ -63,14 +63,14 @@ export function FormulaRow({ items }: { items: FormulaItem[] }) {
 
       {/* Result row */}
       <div className="mt-3 flex items-baseline gap-1.5">
-        <span className="text-sm font-bold text-gray-400">＝</span>
+        <span className="text-base font-bold text-gray-400">＝</span>
         {allFilled ? (
-          <span className="text-sm font-bold tabular-nums text-green-700">
+          <span className="text-base font-bold tabular-nums text-green-700">
             {partialTotal.toLocaleString('zh-TW')} 元
           </span>
         ) : anyFilled ? (
           <>
-            <span className="text-sm font-bold tabular-nums text-orange-500">
+            <span className="text-base font-bold tabular-nums text-orange-500">
               {partialTotal.toLocaleString('zh-TW')} 元
             </span>
             <span className="text-xs text-orange-400">（{emptyItems.length} 項未填）</span>

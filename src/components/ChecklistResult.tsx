@@ -139,8 +139,8 @@ function AddSituationModal({
       <div className="w-full max-w-2xl rounded-lg border border-gray-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">新增項目</h2>
-            <p className="mt-0.5 text-xs text-gray-500">依第一頁邏輯選擇情境後，系統會自動帶入相關卡片</p>
+            <h2 className="text-base font-semibold text-gray-900">新增項目</h2>
+            <p className="mt-0.5 text-sm text-gray-500">依第一頁邏輯選擇情境後，系統會自動帶入相關卡片</p>
           </div>
           <button
             type="button"
@@ -154,12 +154,12 @@ function AddSituationModal({
 
         <div className="max-h-96 overflow-y-auto px-4 py-4">
           {groups.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-400">目前沒有可新增的情境</p>
+            <p className="py-8 text-center text-base text-gray-400">目前沒有可新增的情境</p>
           )}
           {groups.map((group) => (
             <section key={group.id} className="mb-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{group.title}</p>
-              <p className="mb-2 text-xs text-gray-400">{group.description}</p>
+              <p className="text-base font-semibold text-gray-500">{group.title}</p>
+              <p className="mb-2 text-sm text-gray-400">{group.description}</p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {group.situations.map((situation) => {
                   const isChecked = pendingSituationIds.includes(situation.id)
@@ -181,8 +181,8 @@ function AddSituationModal({
                         className="mt-0.5"
                       />
                       <span>
-                        <span className="block text-sm font-medium text-gray-900">{situation.label}</span>
-                        <span className="mt-0.5 block text-xs text-gray-500">{situation.description}</span>
+                        <span className="block text-base font-medium text-gray-900">{situation.label}</span>
+                        <span className="mt-0.5 block text-sm text-gray-500">{situation.description}</span>
                       </span>
                     </label>
                   )
@@ -196,7 +196,7 @@ function AddSituationModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             data-testid="cancel-add-situations-btn"
           >
             取消
@@ -207,7 +207,7 @@ function AddSituationModal({
             disabled={pendingSituationIds.length === 0}
             data-testid="confirm-add-situations-btn"
             className={[
-              'rounded px-3 py-1.5 text-xs font-medium transition-colors',
+              'rounded px-3 py-1.5 text-sm font-medium transition-colors',
               pendingSituationIds.length > 0
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'cursor-not-allowed bg-gray-100 text-gray-400',
@@ -237,11 +237,11 @@ function RemoveImpactDialog({
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 p-4 no-print">
       <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">確認移除此項目</h2>
+          <h2 className="text-base font-semibold text-gray-900">確認移除此項目</h2>
           <p className="mt-1 text-xs text-gray-500">{impact.itemTitle}</p>
         </div>
 
-        <div className="space-y-3 px-4 py-3 text-xs text-gray-600">
+        <div className="space-y-3 px-4 py-3 text-base text-gray-600">
           <div>
             <p className="mb-1">會一併移除的項目（{impact.removedItemTitles.length}）：</p>
             <ul className="list-disc space-y-0.5 pl-4 text-gray-700">
@@ -454,23 +454,35 @@ export function ChecklistResult({
         <div>
           <div className="mb-1 flex items-center justify-between gap-3">
             <h1 className="text-xl font-semibold text-gray-900">節稅清單</h1>
-            <button
-              type="button"
-              onClick={openAddModal}
-              disabled={!canAddMore}
-              data-testid="open-add-situation-modal-btn"
+            <span
               className={[
-                'no-print inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium transition-colors',
-                canAddMore
-                  ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
-                  : 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300',
+                'no-print group relative inline-flex',
+                canAddMore ? '' : 'cursor-help',
               ].join(' ')}
             >
-              <span aria-hidden="true">+</span>
-              <span>新增項目</span>
-            </button>
+              <button
+                type="button"
+                onClick={openAddModal}
+                disabled={!canAddMore}
+                data-testid="open-add-situation-modal-btn"
+                className={[
+                  'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm font-medium transition-colors',
+                  canAddMore
+                    ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
+                    : 'border-gray-200 bg-gray-50 text-gray-300',
+                ].join(' ')}
+              >
+                <span aria-hidden="true">+</span>
+                <span>新增項目</span>
+              </button>
+              {!canAddMore && (
+                <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
+                  所有項目都已加入
+                </span>
+              )}
+            </span>
           </div>
-          <p className="mb-4 text-sm text-gray-500">
+          <p className="mb-4 text-base text-gray-500">
             根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
           </p>
 
@@ -494,13 +506,13 @@ export function ChecklistResult({
                 }}
                 data-testid={`checklist-section-${group.category}`}
               >
-                <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700 flex items-baseline gap-2">
+                <h2 className="mb-3 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-700 flex items-baseline gap-2">
                   <span>{group.label}</span>
                   {(() => {
                     const fItems = getFormulaItems(group)
                     if (fItems && fItems.length > 0) {
                       return (
-                        <span className="text-xs font-normal text-gray-400">小計（依公式計算）</span>
+                        <span className="text-sm font-normal text-gray-400">小計（依公式計算）</span>
                       )
                     }
                     if (
@@ -508,12 +520,12 @@ export function ChecklistResult({
                       generalDeductionResolved.status === 'pending_itemized'
                     ) {
                       return (
-                        <span className="text-xs font-normal text-gray-400">待填入</span>
+                        <span className="text-sm font-normal text-gray-400">待填入</span>
                       )
                     }
                     const sub = getSectionSubtotal(group)
                     return sub !== null ? (
-                      <span className="text-sm font-semibold text-green-700 tabular-nums">
+                      <span className="text-base font-semibold text-green-700 tabular-nums">
                         {sub.toLocaleString('zh-TW')} 元
                       </span>
                     ) : null
@@ -593,7 +605,7 @@ export function ChecklistResult({
         </div>
 
         {/* ── Sidebar ── */}
-        <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-6">
+        <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
           <TaxSummaryPanel
             grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
             exemptionAmount={exemptionAmount}
