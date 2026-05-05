@@ -4,7 +4,8 @@ import { calcTax, getBrackets } from '../lib/numbers'
 interface Props {
   grossIncome: number | null
   exemptionAmount: number | null
-  generalDeductionAmount: number
+  /** null when itemized cards exist but amounts are not all filled */
+  generalDeductionAmount: number | null
   specialDeductionAmount: number | null
   hasSpecialDeductions: boolean
   onScrollToSection?: (categoryId: string) => void
@@ -136,6 +137,7 @@ export function TaxSummaryPanel({
   const netIncome =
     grossIncome !== null &&
     exemptionAmount !== null &&
+    generalDeductionAmount !== null &&
     (!hasSpecialDeductions || specialDeductionAmount !== null)
       ? Math.max(
           0,
@@ -154,6 +156,7 @@ export function TaxSummaryPanel({
 
   const grossMissing = grossIncome === null
   const exemptMissing = exemptionAmount === null
+  const generalMissing = generalDeductionAmount === null
   const specialMissing = hasSpecialDeductions && specialDeductionAmount === null
 
   return (
@@ -189,6 +192,7 @@ export function TaxSummaryPanel({
             label="一般扣除額"
             value={generalDeductionAmount}
             isDeduction
+            missing={generalMissing}
             sectionId="general_deductions"
             onScroll={onScrollToSection}
           />

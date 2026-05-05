@@ -8,11 +8,13 @@ import type {
 import type { CategoryGroup } from '../lib/checklist'
 import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
+import { resolveGeneralDeduction } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
 import { parseGrossIncomePersons, calcTotalGrossIncome, calcPersonNetIncome } from '../lib/grossIncome'
 import { FormulaRow } from './checklist/FormulaRow'
+import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
 import { GrossIncomeCard } from './GrossIncomeCard'
@@ -85,23 +87,6 @@ const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFie
   },
 }
 
-const STANDARD_DEDUCTION_SOURCE = {
-  label: '114年度申報書說明',
-  authority: '財政部電子申報繳稅服務網',
-  url: 'https://download.tax.nat.gov.tw/irx/doc/114%E5%B9%B4%E5%BA%A6%E7%B6%9C%E5%90%88%E6%89%80%E5%BE%97%E7%A8%85%E7%B5%90%E7%AE%97%E7%94%B3%E5%A0%B1%E6%9B%B8%E8%AA%AA%E6%98%8E.pdf',
-}
-
-const ITEMIZED_EDUCATION_ITEM_IDS = new Set([
-  'donations-deduction',
-  'insurance-deduction',
-  'medical-deduction',
-  'mortgage-interest-deduction',
-])
-
-function formatTwd(value: number) {
-  return value.toLocaleString('zh-TW')
-}
-
 function getSpecialDeductionItemAmount(
   itemId: string,
   inputs: Record<string, string>,
@@ -129,75 +114,6 @@ function getSpecialDeductionItemAmount(
     }
   }
   return total
-}
-
-function StandardItemizedEducationPanel({
-  groups,
-  selectedSituations,
-}: {
-  groups: CategoryGroup[]
-  selectedSituations: SituationId[]
-}) {
-  const isMarried = selectedSituations.includes('married')
-  const baselineKey = isMarried ? 'standard_deduction_married' : 'standard_deduction_single'
-  const baselineLabel = isMarried ? '配偶合併申報標準扣除額' : '單身標準扣除額'
-  const baselineAmount = formatTwd(getNumber(baselineKey))
-  const itemizedItems = groups
-    .flatMap((group) => group.items)
-    .filter((item) => ITEMIZED_EDUCATION_ITEM_IDS.has(item.id) && item.documents_to_prepare.length > 0)
-
-  return (
-    <section className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4" data-testid="standard-itemized-panel">
-      <div className="mb-3 flex items-start gap-2">
-        <div className="flex-1">
-          <p className="text-xs font-medium text-yellow-800">標準扣除 vs 列舉扣除</p>
-          <h2 className="mt-1 text-base font-semibold text-gray-900">先用標準扣除額當文件準備基準</h2>
-        </div>
-        <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
-          建議確認
-        </span>
-      </div>
-
-      <p className="text-sm text-gray-700">
-        114年度{baselineLabel}為 <strong className="font-semibold text-gray-900">{baselineAmount} 元</strong>。
-        標準扣除額與列舉扣除額只能擇一使用；這裡只協助整理可能要準備的列舉文件，不計算或宣稱哪一種較適合。
-      </p>
-
-      <div className="mt-3 rounded border border-yellow-100 bg-white/70 p-3">
-        <p className="text-xs font-medium text-gray-600">已選情境的列舉文件提示</p>
-        {itemizedItems.length > 0 ? (
-          <ul className="mt-2 space-y-2">
-            {itemizedItems.map((item) => (
-              <li key={item.id} className="text-xs text-gray-700">
-                <span className="font-medium text-gray-800">{item.title}：</span>
-                {item.documents_to_prepare.join('、')}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-2 text-xs text-gray-500">目前沒有選到列舉扣除相關情境，因此尚無列舉文件提示。</p>
-        )}
-      </div>
-
-      <div className="mt-3 border-t border-yellow-100 pt-3">
-        <p className="text-xs text-yellow-800">
-          申報提醒：列舉是否適用、可扣除金額與最終申報結果，請以財政部電子申報系統及官方資料確認。
-        </p>
-        <p className="mt-1 text-xs text-gray-500">
-          來源：
-          <a
-            href={STANDARD_DEDUCTION_SOURCE.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-gray-600 underline underline-offset-2 hover:text-gray-800"
-          >
-            {STANDARD_DEDUCTION_SOURCE.label}
-          </a>
-          <span className="text-gray-400"> · {STANDARD_DEDUCTION_SOURCE.authority}</span>
-        </p>
-      </div>
-    </section>
-  )
 }
 
 type CopyState = 'idle' | 'success' | 'error'
@@ -532,48 +448,16 @@ export function ChecklistResult({
     return under70 * getNumber('exemption_general') + over70 * getNumber('exemption_senior_70')
   }, [cardInputMap])
 
-  const generalDeductionAmount = useMemo(() => {
-    const key = isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single'
-    return getNumber(key)
-  }, [isMarriedFiling])
+  const generalDeductionResolved = useMemo(
+    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling),
+    [groups, cardInputMap, isMarriedFiling],
+  )
+
+  const generalDeductionAmount =
+    generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
 
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
-
-  const specialDeductionAmount = useMemo(() => {
-    const items = specialDeductionGroup?.items ?? []
-    if (items.length === 0) return null
-    let total = 0
-    for (const item of items) {
-      const meta = SPECIAL_DEDUCTION_META[item.id]
-      if (!meta) continue
-      const inputs = cardInputMap[item.id] ?? {}
-      for (const f of meta.fields) {
-        const raw = inputs[f.fieldId] ?? ''
-        const num = Number(raw.replace(/,/g, ''))
-        if (f.type === 'amount') {
-          // Amount field: must be explicitly positive; empty/0 blocks calculation
-          if (!Number.isFinite(num) || num <= 0) return null
-          const cap = f.capKey ? getNumber(f.capKey) : Infinity
-          total += Math.min(num, cap)
-        } else if (f.type === 'split') {
-          // Split count: 1st unit at firstKey rate, additional at additionalKey rate
-          if (Number.isFinite(num) && num < 0) return null
-          if (Number.isFinite(num) && num > 0) {
-            const count = Math.floor(num)
-            total += getNumber(f.firstKey) + Math.max(count - 1, 0) * getNumber(f.additionalKey)
-          }
-        } else {
-          // Count field: empty/NaN treated as 0 (doesn't block); negative is invalid
-          if (Number.isFinite(num) && num < 0) return null
-          if (Number.isFinite(num) && num > 0) {
-            total += Math.floor(num) * getNumber(f.perUnitKey)
-          }
-        }
-      }
-    }
-    return total
-  }, [specialDeductionGroup, cardInputMap])
 
   const specialDeductionFormulaItems = useMemo(
     () =>
@@ -586,6 +470,14 @@ export function ChecklistResult({
         })),
     [specialDeductionGroup, cardInputMap],
   )
+
+  // Derived from formula items so sidebar and formula row share the same filled/unfilled policy.
+  // Any unfilled item (amount === null) blocks the total → TaxSummaryPanel shows 待計算.
+  const specialDeductionAmount = useMemo(() => {
+    if (specialDeductionFormulaItems.length === 0) return null
+    if (specialDeductionFormulaItems.some((i) => i.amount === null)) return null
+    return specialDeductionFormulaItems.reduce((sum, i) => sum + (i.amount ?? 0), 0)
+  }, [specialDeductionFormulaItems])
 
   const grossIncomeFormulaItems = useMemo(() => {
     const hasGrossIncomeCard = groups.some((g) =>
@@ -614,7 +506,9 @@ export function ChecklistResult({
       case 'exemptions':
         return exemptionAmount
       case 'general_deductions':
-        return generalDeductionAmount
+        return generalDeductionResolved.status === 'pending_itemized'
+          ? null
+          : generalDeductionResolved.amount
       case 'special_deductions':
         return specialDeductionAmount
       default:
@@ -700,6 +594,14 @@ export function ChecklistResult({
                         <span className="text-xs font-normal text-gray-400">小計（依公式計算）</span>
                       )
                     }
+                    if (
+                      group.category === 'general_deductions' &&
+                      generalDeductionResolved.status === 'pending_itemized'
+                    ) {
+                      return (
+                        <span className="text-xs font-normal text-gray-400">待填入</span>
+                      )
+                    }
                     const sub = getSectionSubtotal(group)
                     return sub !== null ? (
                       <span className="text-sm font-semibold text-green-700 tabular-nums">
@@ -709,7 +611,11 @@ export function ChecklistResult({
                   })()}
                 </h2>
                 {group.category === 'general_deductions' && (
-                  <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
+                  <StandardItemizedPanel
+                    groups={groups}
+                    selectedSituations={selectedSituations}
+                    cardInputMap={cardInputMap}
+                  />
                 )}
                 {(() => {
                   const fItems = getFormulaItems(group)
