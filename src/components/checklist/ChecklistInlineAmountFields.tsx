@@ -110,12 +110,9 @@ export function ChecklistInlineAmountFields({
           <InlineFeedback field={field} value={inputValues[field.id] ?? ''} />
         </div>
       ))}
-      <div className="border-t border-blue-100 pt-2 space-y-1">
+      <div className="border-t border-blue-100 pt-2">
         <p className="text-xs text-gray-400">
           資料僅在您的瀏覽器處理，不會傳送至任何伺服器
-        </p>
-        <p className="text-xs text-gray-400">
-          填入資料僅用於協助排序與初步檢查，實際可申報金額請以官方系統確認
         </p>
       </div>
     </div>

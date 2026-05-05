@@ -817,7 +817,7 @@ describe('DeductionCard inline input fields', () => {
     expect(html).not.toContain('填入金額超過上限')
   })
 
-  it('shows privacy notice and disclaimer when inlineFields is non-empty', () => {
+  it('shows privacy notice when inlineFields is non-empty', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -826,7 +826,6 @@ describe('DeductionCard inline input fields', () => {
       }),
     )
     expect(html).toContain('資料僅在您的瀏覽器處理，不會傳送至任何伺服器')
-    expect(html).toContain('實際可申報金額請以官方系統確認')
   })
 
   it('no privacy notice when inlineFields is empty', () => {
