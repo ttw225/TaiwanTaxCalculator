@@ -40,20 +40,20 @@ function Verdict({
   if (allFilled) {
     if (itemizedTotal > standardAmount) {
       return (
-        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-semibold text-green-800">
           推薦：列舉扣除（列舉扣除 {'>'} 標準扣除）
         </span>
       )
     }
     if (itemizedTotal === standardAmount) {
       return (
-        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-          兩者皆可（金額相同）
+        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-base font-medium text-gray-600">
+          推薦：標準扣除（金額相同）
         </span>
       )
     }
     return (
-      <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+      <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-semibold text-green-800">
         推薦：標準扣除（標準扣除 {'>'} 列舉扣除）
       </span>
     )
@@ -61,14 +61,14 @@ function Verdict({
 
   if (anyFilled) {
     return (
-      <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+      <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-base font-semibold text-amber-800">
         列舉尚有 {unfilledCount} 項未填
       </span>
     )
   }
 
   return (
-    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500">
+    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-base font-medium text-gray-500">
       填入列舉金額後可比較
     </span>
   )
@@ -108,6 +108,7 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
   const isMarried = selectedSituations.includes('married')
   const standardKey = isMarried ? 'standard_deduction_married' : 'standard_deduction_single'
   const standardAmount = getNumber(standardKey)
+  const standardTitle = isMarried ? '標準扣除額（配偶合併申報）' : '標準扣除額（單身）'
 
   const presentItems = groups
     .flatMap((g) => g.items)
@@ -118,7 +119,7 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
     return (
       <section className={PANEL_SHELL_CLASS} data-testid="standard-itemized-panel">
         <div className="mb-3">
-          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-semibold text-green-800">
             推薦：標準扣除
           </span>
         </div>
@@ -145,6 +146,12 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
   const unfilledCount = formulaItems.length - filledItems.length
   const itemizedTotal = filledItems.reduce((s, i) => s + (i.amount ?? 0), 0)
   const anyFilled = filledItems.length > 0
+  const allFilled = unfilledCount === 0 && anyFilled
+  const recommendedSide: 'standard' | 'itemized' | null = !allFilled
+    ? null
+    : itemizedTotal > standardAmount
+      ? 'itemized'
+      : 'standard'
 
   return (
     <section className={PANEL_SHELL_CLASS} data-testid="standard-itemized-panel">
@@ -159,25 +166,65 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
 
       <div className="space-y-4">
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          <p className="mb-2 text-base font-semibold text-gray-400">
             標準扣除額
           </p>
-          <div className="rounded-lg border border-gray-200 px-4 py-3">
-            <p className="mb-2 text-center text-[11px] font-semibold text-gray-600">
-              {isMarried ? '配偶合併申報' : '單身申報'}
-            </p>
-            <p className="text-center text-base font-bold tabular-nums text-gray-800">
-              {standardAmount.toLocaleString('zh-TW')}
-              <span className="text-[10px] font-normal text-gray-500"> 元</span>
-            </p>
+          <div
+            data-testid="standard-deduction-container"
+            className={`rounded-lg border px-4 py-3 ${
+              recommendedSide === 'standard'
+                ? 'border-blue-400 bg-blue-50/30 shadow-sm'
+                : 'border-gray-200'
+            }`}
+          >
+            <div
+              data-testid="standard-deduction-card"
+              className={`checklist-formula-card mx-auto inline-block w-fit ${
+                recommendedSide === 'standard'
+                  ? 'border-blue-200 bg-white'
+                  : 'border-gray-300 bg-gray-50'
+              }`}
+            >
+              <div
+                className={`border-b px-2 py-1.5 text-center ${
+                  recommendedSide === 'standard'
+                    ? 'border-blue-100 bg-blue-50/60'
+                    : 'border-gray-200 bg-gray-100'
+                }`}
+              >
+                <span
+                  className={`checklist-formula-label text-base font-semibold leading-tight ${
+                    recommendedSide === 'standard' ? 'text-blue-700' : 'text-gray-600'
+                  }`}
+                >
+                  {standardTitle}
+                </span>
+              </div>
+              <div className="flex min-h-[44px] items-center justify-center px-2 py-2 text-center">
+                <span className="text-base font-bold tabular-nums leading-tight text-gray-800">
+                  {standardAmount.toLocaleString('zh-TW')}
+                  <br />
+                  <span className="text-xs font-normal text-gray-500">元</span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          <p className="mb-2 text-base font-semibold text-gray-400">
             列舉扣除額
           </p>
-          <FormulaRow items={formulaItems} />
+          <div
+            data-testid="itemized-deduction-card"
+            className={`rounded-lg border px-4 py-3 ${
+              recommendedSide === 'itemized'
+                ? 'border-blue-400 bg-blue-50/30 shadow-sm'
+                : 'border-gray-200'
+            }`}
+          >
+            <FormulaRow items={formulaItems} dimFilled={recommendedSide === 'standard'} />
+          </div>
         </div>
       </div>
 

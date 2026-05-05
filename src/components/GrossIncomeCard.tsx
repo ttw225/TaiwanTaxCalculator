@@ -191,7 +191,7 @@ export function GrossIncomeCard({
 
         {personsInJson.map((person) => {
           const isFixed = person.id === 'spouse'
-          const incomeRaw = String(person.income === 0 && !inputValues['persons_json'] ? '' : person.income || '')
+          const incomeRaw = String(person.income === 0 && !inputValues['persons_json'] ? '' : person.income)
           const extraOrder =
             person.id.startsWith('extra-') ? extraPersonsOrdered.findIndex((p) => p.id === person.id) + 1 : 0
           const labelPlaceholder =
@@ -202,7 +202,7 @@ export function GrossIncomeCard({
             <PersonRow
               key={person.id}
               person={person}
-              incomeRaw={incomeRaw === '0' ? '' : incomeRaw}
+              incomeRaw={incomeRaw}
               isFixed={isFixed}
               labelPlaceholder={labelPlaceholder}
               onIncomeChange={(val) => handlePersonIncomeChange(person.id, val)}

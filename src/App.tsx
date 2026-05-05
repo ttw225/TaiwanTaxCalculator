@@ -10,6 +10,16 @@ import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from './content/deducti
 import { filterBySituations, groupByCategory } from './lib/checklist'
 import type { CategoryGroup } from './lib/checklist'
 import {
+  clearSavedChecklistInputMap,
+  loadSavedChecklistInputMap,
+  saveChecklistInputMap,
+} from './lib/checklistInputStorage'
+import {
+  clearSavedChecklistViewState,
+  loadSavedChecklistViewState,
+  saveChecklistViewState,
+} from './lib/checklistViewStateStorage'
+import {
   clearSavedSituationSelection,
   loadSavedSituationSelection,
   parseSavedSituationSelection,
@@ -149,9 +159,13 @@ function getItemSourceSituationLabelsById(
 }
 
 function App() {
-  const [appState, setAppState] = useState<AppState>('selecting')
   const [selected, setSelected] = useState<SituationId[]>(() => loadSavedSituationSelection(SITUATION_IDS))
-  const [cardInputMap, setCardInputMap] = useState<CardInputMap>({})
+  const [appState, setAppState] = useState<AppState>(() => {
+    const savedViewState = loadSavedChecklistViewState()
+    const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
+    return savedViewState === 'results' && savedSelection.length > 0 ? 'results' : 'selecting'
+  })
+  const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
 
   const [pendingRemovalEffect, setPendingRemovalEffect] = useState<RemovalEffect | null>(null)
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null)
@@ -159,6 +173,14 @@ function App() {
   useEffect(() => {
     saveSituationSelection(selected)
   }, [selected])
+
+  useEffect(() => {
+    saveChecklistInputMap(cardInputMap)
+  }, [cardInputMap])
+
+  useEffect(() => {
+    saveChecklistViewState(appState)
+  }, [appState])
 
   useEffect(() => {
     // Clean up deprecated pre-v2 checklist overrides data to keep refresh behavior deterministic.
@@ -170,7 +192,10 @@ function App() {
       if (event.key === SITUATION_SELECTION_STORAGE_KEY) {
         const syncedSelection = parseSavedSituationSelection(event.newValue, SITUATION_IDS)
         setSelected(syncedSelection)
-        if (syncedSelection.length === 0) setAppState('selecting')
+        if (syncedSelection.length === 0) {
+          setAppState('selecting')
+          saveChecklistViewState('selecting')
+        }
       }
     }
 
@@ -189,18 +214,30 @@ function App() {
     if (selected.length > 0) {
       setScrollToItemId(null)
       setAppState('results')
+      saveChecklistViewState('results')
       window.scrollTo(0, 0)
     }
   }
 
-  function handleClearSelections() {
+  function resetChecklistState() {
     setSelected([])
     setAppState('selecting')
     setCardInputMap({})
     setPendingRemovalEffect(null)
     setScrollToItemId(null)
     clearSavedSituationSelection()
+    clearSavedChecklistInputMap()
+    clearSavedChecklistViewState()
     localStorage.removeItem(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
+    window.scrollTo(0, 0)
+  }
+
+  function handleClearSelections() {
+    resetChecklistState()
+  }
+
+  function handleResetCalculation() {
+    resetChecklistState()
   }
 
   function handleAddSituations(ids: SituationId[]) {
@@ -252,6 +289,7 @@ function App() {
       // Keep this behavior as the canonical UX: empty checklist returns to page one.
       setScrollToItemId(null)
       setAppState('selecting')
+      saveChecklistViewState('selecting')
       window.scrollTo(0, 0)
     }
   }
@@ -307,6 +345,7 @@ function App() {
           onConfirmRemoveItem={handleConfirmRemoveItem}
           scrollToItemId={scrollToItemId}
           onScrollHandled={() => setScrollToItemId(null)}
+          onReset={handleResetCalculation}
         />
       )
     }

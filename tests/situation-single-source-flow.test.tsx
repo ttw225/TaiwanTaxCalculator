@@ -2,6 +2,8 @@ import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../src/App'
+import { CHECKLIST_INPUT_STORAGE_KEY } from '../src/lib/checklistInputStorage'
+import { CHECKLIST_VIEW_STATE_STORAGE_KEY } from '../src/lib/checklistViewStateStorage'
 import { SITUATION_SELECTION_STORAGE_KEY } from '../src/lib/situationSelectionStorage'
 
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
@@ -180,7 +182,6 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('確認移除此項目')
     expect(container.textContent).not.toContain('會取消第一頁情境')
     clickByTestId('confirm-remove-item-btn')
-    expect(container.textContent).not.toContain('標準扣除額（單身）')
     expect(container.textContent).not.toContain('來源情境：')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
@@ -206,6 +207,22 @@ describe('situation single-source flow', () => {
 
     const marriedSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-standard-deduction-married"]')
     expect(marriedSource).toBeNull()
+  })
+
+  it('updates standard deduction card title and amount after adding married filing', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+    expect(container.textContent).toContain('標準扣除額（單身）')
+    expect(container.textContent).toContain('131,000')
+
+    clickByTestId('open-add-situation-modal-btn')
+    clickByTestId('add-situation-checkbox-married')
+    clickByTestId('confirm-add-situations-btn')
+
+    expect(container.textContent).toContain('標準扣除額（配偶合併申報）')
+    expect(container.textContent).toContain('262,000')
+    expect(container.textContent).not.toContain('標準扣除額（單身）')
   })
 
   it('cancel add in modal does not apply selection', () => {
@@ -239,5 +256,102 @@ describe('situation single-source flow', () => {
     localStorage.setItem(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY, '{"foo":"bar"}')
     renderApp()
     expect(localStorage.getItem(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)).toBeNull()
+  })
+
+  it('persists checklist input values and restores after reload', () => {
+    const root = renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
+
+    const savedRaw = localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)
+    expect(savedRaw).toContain('rent-deduction')
+    expect(savedRaw).toContain('120000')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp()
+    const restoredInput = container.querySelector<HTMLInputElement>('[data-testid="card-input-rent-deduction-rent_amount"]')
+    expect(restoredInput?.value).toBe('120000')
+  })
+
+  it('resets checklist data after confirming recalculate', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
+
+    clickByTestId('reset-checklist-btn')
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
+    expect(container.textContent).toContain('台灣所得稅節稅助理')
+
+    confirmSpy.mockRestore()
+  })
+
+  it('does not reset checklist data when recalculate confirm is cancelled', () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
+
+    clickByTestId('reset-checklist-btn')
+
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toContain('120000')
+    expect(container.textContent).toContain('節稅清單')
+
+    confirmSpy.mockRestore()
+  })
+
+  it('keeps results page after refresh when user already generated checklist', () => {
+    const root = renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.textContent).toContain('節稅清單')
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('results')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp()
+    expect(container.textContent).toContain('節稅清單')
+  })
+
+  it('stays on selecting page after refresh when checklist was not generated', () => {
+    const root = renderApp()
+    clickButtonByText('房屋租金支出')
+    expect(container.textContent).toContain('產生節稅清單')
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp()
+    expect(container.textContent).toContain('產生節稅清單')
+  })
+
+  it('allows spouse salary income to remain 0', () => {
+    renderApp()
+    clickButtonByText('配偶合併申報')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('gross-income-input-self', '300000')
+    changeInputByTestId('gross-income-input-spouse', '0')
+
+    const spouseInput = container.querySelector<HTMLInputElement>('[data-testid="gross-income-input-spouse"]')
+    expect(spouseInput?.value).toBe('0')
+    expect(container.textContent).not.toContain('（1 項未填）')
   })
 })

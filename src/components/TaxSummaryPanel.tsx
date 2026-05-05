@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { calcTax, getBrackets } from '../lib/numbers'
 import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import type { CategoryGroup } from '../lib/checklist'
@@ -8,6 +9,7 @@ interface Props {
   exemptionAmount: number | null
   /** null when itemized cards exist but amounts are not all filled */
   generalDeductionAmount: number | null
+  generalDeductionMethod?: 'standard' | 'itemized' | null
   specialDeductionAmount: number | null
   hasSpecialDeductions: boolean
   onScrollToSection?: (categoryId: string) => void
@@ -41,7 +43,7 @@ function SummaryRow({
   sectionId,
   onScroll,
 }: {
-  label: string
+  label: ReactNode
   value: number | null
   isDeduction?: boolean
   missing?: boolean
@@ -89,20 +91,25 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
           <table className="w-full text-base border-collapse">
             <thead>
               <tr className="bg-gray-700 text-white">
-                <th className="px-3 py-2 text-left font-semibold rounded-tl-md">綜合所得淨額區間</th>
+                <th className="px-3 py-2 text-center font-semibold rounded-tl-md">綜合所得淨額區間</th>
                 <th className="px-3 py-2 text-center font-semibold">稅率</th>
-                <th className="px-3 py-2 text-right font-semibold rounded-tr-md">累進差額</th>
+                <th className="px-3 py-2 text-center font-semibold rounded-tr-md">累進差額</th>
               </tr>
             </thead>
             <tbody>
               {getBrackets().map((b, i) => {
                 const prev = getBrackets()[i - 1]
                 const from = i === 0 ? '0' : fmt((prev.up_to ?? 0) + 1)
-                const to = b.up_to ? `${fmt(b.up_to)} 元` : '以上'
+                const fromLabel = from
+                const toLabel = b.up_to ? `${fmt(b.up_to)} 元` : '元以上'
                 return (
                   <tr key={i} className={i % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                     <td className="px-3 py-2 font-medium text-gray-700">
-                      {from}{b.up_to ? ` – ${to}` : ' 元' + to}
+                      <span className="inline-grid grid-cols-[9ch_auto_11ch] items-baseline gap-x-2 tabular-nums">
+                        <span className="text-right">{fromLabel}</span>
+                        <span className="text-center">{b.up_to ? '–' : ''}</span>
+                        <span className={b.up_to ? 'text-right' : 'text-left'}>{toLabel}</span>
+                      </span>
                     </td>
                     <td className="px-3 py-2 text-center font-semibold text-gray-900">
                       {(b.rate * 100).toFixed(0)}%
@@ -134,6 +141,7 @@ interface SummaryBodyProps {
   grossIncome: number | null
   exemptionAmount: number | null
   generalDeductionAmount: number | null
+  generalDeductionMethod?: 'standard' | 'itemized' | null
   specialDeductionAmount: number | null
   hasSpecialDeductions: boolean
   netIncome: number | null
@@ -147,6 +155,7 @@ function TaxSummaryBody({
   grossIncome,
   exemptionAmount,
   generalDeductionAmount,
+  generalDeductionMethod,
   specialDeductionAmount,
   hasSpecialDeductions,
   netIncome,
@@ -180,7 +189,19 @@ function TaxSummaryBody({
           onScroll={onScrollToSection}
         />
         <SummaryRow
-          label="一般扣除額"
+          label={(
+            <span className="inline-flex items-center gap-2">
+              <span>一般扣除額</span>
+              {generalDeductionMethod && (
+                <span
+                  data-testid="general-deduction-method-label"
+                  className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-sm font-medium text-indigo-700"
+                >
+                  {generalDeductionMethod === 'itemized' ? '列舉' : '標準'}
+                </span>
+              )}
+            </span>
+          )}
           value={generalDeductionAmount}
           isDeduction
           missing={generalMissing}
@@ -276,6 +297,7 @@ export function TaxSummaryPanel({
   grossIncome,
   exemptionAmount,
   generalDeductionAmount,
+  generalDeductionMethod,
   specialDeductionAmount,
   hasSpecialDeductions,
   onScrollToSection,
@@ -409,6 +431,7 @@ export function TaxSummaryPanel({
           grossIncome={grossIncome}
           exemptionAmount={exemptionAmount}
           generalDeductionAmount={generalDeductionAmount}
+          generalDeductionMethod={generalDeductionMethod}
           specialDeductionAmount={specialDeductionAmount}
           hasSpecialDeductions={hasSpecialDeductions}
           netIncome={netIncome}

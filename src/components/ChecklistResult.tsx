@@ -11,7 +11,7 @@ import { resolveGeneralDeduction } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
-import { parseGrossIncomePersons, calcTotalGrossIncome, calcPersonNetIncome } from '../lib/grossIncome'
+import { parseGrossIncomePersons, calcPersonNetIncome } from '../lib/grossIncome'
 import { FormulaRow } from './checklist/FormulaRow'
 import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
@@ -85,6 +85,8 @@ const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFie
     fields: [{ type: 'amount', fieldId: 'rent_amount', capKey: 'special_deduction_rent' }],
   },
 }
+
+const FORMULA_SECTION_BOX_CLASS = 'rounded-lg border border-gray-200 px-4 py-3'
 
 function getSpecialDeductionItemAmount(
   itemId: string,
@@ -291,6 +293,7 @@ export function ChecklistResult({
   cardInputMap,
   pendingRemovalImpact,
   onCardInputChange,
+  onReset,
   onAddSituations,
   onRemoveItem,
   onCancelRemoveItem,
@@ -341,13 +344,13 @@ export function ChecklistResult({
     setIsAddModalOpen(false)
   }
 
-  const isMarriedFiling = selectedSituations.includes('married')
+  function handleResetClick() {
+    const shouldReset = window.confirm('重新計算會清除已選項目與所有試算資料，確定要繼續嗎？')
+    if (!shouldReset) return
+    onReset?.()
+  }
 
-  const grossIncomeTotal = useMemo(() => {
-    const inputs = cardInputMap['gross-income'] ?? {}
-    const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
-    return calcTotalGrossIncome(persons)
-  }, [cardInputMap, isMarriedFiling])
+  const isMarriedFiling = selectedSituations.includes('married')
 
   const exemptionAmount = useMemo(() => {
     const inputs = cardInputMap['exemption-general'] ?? {}
@@ -364,6 +367,14 @@ export function ChecklistResult({
 
   const generalDeductionAmount =
     generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
+  const generalDeductionMethod =
+    generalDeductionResolved.status === 'pending_itemized'
+      ? null
+      : generalDeductionResolved.status === 'standard_only' || generalDeductionAmount === null
+        ? 'standard'
+        : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
+            ? 'itemized'
+            : 'standard')
 
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
@@ -395,12 +406,43 @@ export function ChecklistResult({
     if (!hasGrossIncomeCard) return null
     const inputs = cardInputMap['gross-income'] ?? {}
     const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
+    const hasSelfIncomeInput = (inputs['self_income'] ?? '').trim() !== ''
+    const filledPersonIds = new Set<string>()
+    const rawPersonsJson = inputs['persons_json']
+    if (rawPersonsJson) {
+      try {
+        const parsed = JSON.parse(rawPersonsJson)
+        if (Array.isArray(parsed)) {
+          for (const person of parsed) {
+            if (
+              person &&
+              typeof person === 'object' &&
+              typeof person.id === 'string' &&
+              typeof person.income === 'number'
+            ) {
+              filledPersonIds.add(person.id)
+            }
+          }
+        }
+      } catch {
+        // Ignore malformed input and keep the row as unfilled.
+      }
+    }
     return persons.map((p) => ({
       id: p.id,
       label: p.label,
-      amount: p.income > 0 ? calcPersonNetIncome(p.income) : null,
+      amount:
+        p.id === 'self'
+          ? (hasSelfIncomeInput ? calcPersonNetIncome(p.income) : null)
+          : (filledPersonIds.has(p.id) ? calcPersonNetIncome(p.income) : null),
     }))
   }, [groups, cardInputMap, isMarriedFiling])
+
+  const grossIncomeAmount = useMemo(() => {
+    if (!grossIncomeFormulaItems || grossIncomeFormulaItems.length === 0) return null
+    if (grossIncomeFormulaItems.some((item) => item.amount === null)) return null
+    return grossIncomeFormulaItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
+  }, [grossIncomeFormulaItems])
 
   function handleScrollToSection(categoryId: string) {
     const el = sectionRefs.current[categoryId as CategoryId]
@@ -411,7 +453,7 @@ export function ChecklistResult({
   function getSectionSubtotal(group: CategoryGroup): number | null {
     switch (group.category) {
       case 'gross_income':
-        return grossIncomeTotal > 0 ? grossIncomeTotal : null
+        return grossIncomeAmount
       case 'exemptions':
         return exemptionAmount
       case 'general_deductions':
@@ -449,38 +491,48 @@ export function ChecklistResult({
         />
       )}
 
-      <div className="lg:grid lg:grid-cols-[1fr_260px] lg:gap-6 lg:items-start print-main-layout">
+      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-6 lg:items-start print-main-layout">
         {/* ── Main column ── */}
         <div>
           <div className="mb-1 flex items-center justify-between gap-3">
             <h1 className="text-xl font-semibold text-gray-900">節稅清單</h1>
-            <span
-              className={[
-                'no-print group relative inline-flex',
-                canAddMore ? '' : 'cursor-help',
-              ].join(' ')}
-            >
+            <div className="no-print flex items-center gap-2">
               <button
                 type="button"
-                onClick={openAddModal}
-                disabled={!canAddMore}
-                data-testid="open-add-situation-modal-btn"
+                onClick={handleResetClick}
+                data-testid="reset-checklist-btn"
+                className="inline-flex items-center rounded border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+              >
+                重新計算
+              </button>
+              <span
                 className={[
-                  'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm font-medium transition-colors',
-                  canAddMore
-                    ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
-                    : 'border-gray-200 bg-gray-50 text-gray-300',
+                  'group relative inline-flex',
+                  canAddMore ? '' : 'cursor-help',
                 ].join(' ')}
               >
-                <span aria-hidden="true">+</span>
-                <span>新增項目</span>
-              </button>
-              {!canAddMore && (
-                <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
-                  所有項目都已加入
-                </span>
-              )}
-            </span>
+                <button
+                  type="button"
+                  onClick={openAddModal}
+                  disabled={!canAddMore}
+                  data-testid="open-add-situation-modal-btn"
+                  className={[
+                    'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm font-medium transition-colors',
+                    canAddMore
+                      ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
+                      : 'border-gray-200 bg-gray-50 text-gray-300',
+                  ].join(' ')}
+                >
+                  <span aria-hidden="true">+</span>
+                  <span>新增項目</span>
+                </button>
+                {!canAddMore && (
+                  <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
+                    所有項目都已加入
+                  </span>
+                )}
+              </span>
+            </div>
           </div>
           <p className="mb-4 text-base text-gray-500">
             根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
@@ -509,12 +561,6 @@ export function ChecklistResult({
                 <h2 className="mb-3 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-700 flex items-baseline gap-2">
                   <span>{group.label}</span>
                   {(() => {
-                    const fItems = getFormulaItems(group)
-                    if (fItems && fItems.length > 0) {
-                      return (
-                        <span className="text-sm font-normal text-gray-400">小計（依公式計算）</span>
-                      )
-                    }
                     if (
                       group.category === 'general_deductions' &&
                       generalDeductionResolved.status === 'pending_itemized'
@@ -540,9 +586,17 @@ export function ChecklistResult({
                 )}
                 {(() => {
                   const fItems = getFormulaItems(group)
+                  const shouldWrapFormulaBox =
+                    group.category === 'gross_income' || group.category === 'special_deductions'
                   return fItems && fItems.length > 0 ? (
                     <div className="mb-4">
-                      <FormulaRow items={fItems} />
+                      {shouldWrapFormulaBox ? (
+                        <div className={FORMULA_SECTION_BOX_CLASS}>
+                          <FormulaRow items={fItems} />
+                        </div>
+                      ) : (
+                        <FormulaRow items={fItems} />
+                      )}
                     </div>
                   ) : null
                 })()}
@@ -594,9 +648,10 @@ export function ChecklistResult({
 
           <div className="print-only mt-8">
             <TaxSummaryPanel
-              grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
+              grossIncome={grossIncomeAmount}
               exemptionAmount={exemptionAmount}
               generalDeductionAmount={generalDeductionAmount}
+              generalDeductionMethod={generalDeductionMethod}
               specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
               hasSpecialDeductions={hasSpecialDeductions}
               printMode
@@ -607,9 +662,10 @@ export function ChecklistResult({
         {/* ── Sidebar ── */}
         <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
           <TaxSummaryPanel
-            grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
+            grossIncome={grossIncomeAmount}
             exemptionAmount={exemptionAmount}
             generalDeductionAmount={generalDeductionAmount}
+            generalDeductionMethod={generalDeductionMethod}
             specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
             hasSpecialDeductions={hasSpecialDeductions}
             onScrollToSection={handleScrollToSection}

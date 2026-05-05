@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@layer components {
+  .checklist-formula-card {
+    @apply shrink-0 overflow-hidden rounded-lg border-2 transition-all min-w-[120px];
+  }
+
+  .checklist-formula-label {
+    @apply whitespace-nowrap;
+  }
+}
+
 /*
   Prevent iOS Safari from auto-zooming when tapping inputs.
   font-size must be >= 16px to suppress the behavior.
