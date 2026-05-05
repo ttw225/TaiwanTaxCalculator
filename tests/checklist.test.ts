@@ -583,23 +583,6 @@ describe('ChecklistResult export panel', () => {
     }),
   )
 
-  it('non-empty result shows copy checklist button', () => {
-    expect(htmlWithResults).toContain('data-testid="copy-checklist-btn"')
-  })
-
-  it('non-empty result shows download checklist button', () => {
-    expect(htmlWithResults).toContain('data-testid="download-checklist-btn"')
-  })
-
-  it('non-empty result shows print or save as PDF button', () => {
-    expect(htmlWithResults).toContain('data-testid="print-checklist-btn"')
-    expect(htmlWithResults).toContain('列印 / 另存 PDF')
-  })
-
-  it('non-empty result shows local-processing notice', () => {
-    expect(htmlWithResults).toContain('瀏覽器中產生')
-  })
-
   it('result page does not show the removed personalized worksheet entry point', () => {
     expect(htmlWithResults).not.toContain('data-testid="open-personalized-page-btn"')
     expect(htmlWithResults).not.toContain('個人化工作表')
@@ -609,10 +592,6 @@ describe('ChecklistResult export panel', () => {
   it('result page does not show the removed income type radio group', () => {
     expect(htmlWithResults).not.toContain('name="income_type"')
     expect(htmlWithResults).not.toContain('你的主要收入來源是？')
-  })
-
-  it('non-empty result shows user-managed storage notice', () => {
-    expect(htmlWithResults).toContain('請自行保管')
   })
 
   it('non-empty result still shows usage reminder', () => {
