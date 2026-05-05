@@ -186,18 +186,17 @@ describe('situation single-source flow', () => {
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
   })
 
-  it('shows situation labels with prefix when the merged exemption item is triggered by multiple income sources', () => {
+  it('hides source situation labels even when items are triggered by income situations', () => {
     renderApp()
     clickButtonByText('薪資收入')
     clickButtonByText('股利收入')
     clickButtonByText('產生節稅清單')
 
     const multiSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-exemption-general"]')
-    expect(multiSource?.textContent).toContain('情境：薪資收入、股利收入')
-    expect(multiSource?.textContent).not.toContain('來源')
+    expect(multiSource).toBeNull()
 
     const singleSource = container.querySelector<HTMLElement>('[data-testid="card-source-situations-gross-income"]')
-    expect(singleSource?.textContent).toContain('情境：薪資收入')
+    expect(singleSource).toBeNull()
   })
 
   it('hides situation labels for standalone one-to-one situations', () => {

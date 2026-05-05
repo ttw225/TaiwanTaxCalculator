@@ -19,8 +19,7 @@ export function ChecklistCardShell({
   onRemove,
   children,
 }: ChecklistCardShellProps) {
-  const visibleSourceLabels = sourceSituationLabels.slice(0, 2)
-  const hiddenSourceCount = sourceSituationLabels.length - visibleSourceLabels.length
+  void sourceSituationLabels
 
   return (
     <div
@@ -43,17 +42,6 @@ export function ChecklistCardShell({
       </div>
 
       <p className="text-sm text-gray-700 mb-3">{item.why_it_matters}</p>
-
-      {sourceSituationLabels.length > 0 && (
-        <p
-          className="mb-3 text-xs text-indigo-700"
-          data-testid={`card-source-situations-${item.id}`}
-          title={`情境：${sourceSituationLabels.join('、')}`}
-        >
-          情境：{visibleSourceLabels.join('、')}
-          {hiddenSourceCount > 0 ? ` +${hiddenSourceCount}` : ''}
-        </p>
-      )}
 
       {item.eligibility_cues.length > 0 && (
         <ChecklistCardSection label="適用條件">
