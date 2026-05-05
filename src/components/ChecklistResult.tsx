@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type {
   CardInputMap,
+  CategoryId,
   Situation,
   SituationId,
 } from '../types/content'
@@ -10,7 +11,8 @@ import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
-import { parseGrossIncomePersons, calcTotalGrossIncome } from '../lib/grossIncome'
+import { parseGrossIncomePersons, calcTotalGrossIncome, calcPersonNetIncome } from '../lib/grossIncome'
+import { FormulaRow } from './checklist/FormulaRow'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
 import { GrossIncomeCard } from './GrossIncomeCard'
@@ -49,6 +51,40 @@ interface Props {
   onScrollHandled?: () => void
 }
 
+type SpecialFieldDef =
+  | { type: 'amount'; fieldId: string; capKey: string | null }
+  | { type: 'count'; fieldId: string; perUnitKey: string }
+  | { type: 'split'; fieldId: string; firstKey: string; additionalKey: string }
+
+const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFieldDef[] }> = {
+  'savings-investment-deduction': {
+    label: '儲蓄投資',
+    fields: [{ type: 'amount', fieldId: 'savings_investment_amount', capKey: 'special_deduction_savings_investment' }],
+  },
+  'disability-special-deduction': {
+    label: '身心障礙',
+    fields: [{ type: 'count', fieldId: 'disability_count', perUnitKey: 'special_deduction_disability' }],
+  },
+  'childcare-deduction': {
+    label: '幼兒學前',
+    fields: [
+      { type: 'split', fieldId: 'childcare_count', firstKey: 'special_deduction_childcare_first', additionalKey: 'special_deduction_childcare_additional' },
+    ],
+  },
+  'education-tuition-deduction': {
+    label: '教育學費',
+    fields: [{ type: 'count', fieldId: 'education_count', perUnitKey: 'special_deduction_education_tuition' }],
+  },
+  'long-term-care-deduction': {
+    label: '長期照顧',
+    fields: [{ type: 'count', fieldId: 'long_term_care_count', perUnitKey: 'special_deduction_long_term_care' }],
+  },
+  'rent-deduction': {
+    label: '房屋租金支出',
+    fields: [{ type: 'amount', fieldId: 'rent_amount', capKey: 'special_deduction_rent' }],
+  },
+}
+
 const STANDARD_DEDUCTION_SOURCE = {
   label: '114年度申報書說明',
   authority: '財政部電子申報繳稅服務網',
@@ -64,6 +100,35 @@ const ITEMIZED_EDUCATION_ITEM_IDS = new Set([
 
 function formatTwd(value: number) {
   return value.toLocaleString('zh-TW')
+}
+
+function getSpecialDeductionItemAmount(
+  itemId: string,
+  inputs: Record<string, string>,
+): number | null {
+  const meta = SPECIAL_DEDUCTION_META[itemId]
+  if (!meta) return null
+  let total = 0
+  for (const f of meta.fields) {
+    const raw = inputs[f.fieldId] ?? ''
+    if (raw === '') return null   // any unfilled field → unfilled card
+    const num = Number(raw.replace(/,/g, ''))
+    if (f.type === 'amount') {
+      if (!Number.isFinite(num) || num <= 0) return null
+      const cap = f.capKey ? getNumber(f.capKey) : Infinity
+      total += Math.min(num, cap)
+    } else if (f.type === 'split') {
+      if (Number.isFinite(num) && num < 0) return null
+      if (Number.isFinite(num) && num > 0) {
+        const count = Math.floor(num)
+        total += getNumber(f.firstKey) + Math.max(count - 1, 0) * getNumber(f.additionalKey)
+      }
+    } else {
+      if (Number.isFinite(num) && num < 0) return null
+      if (Number.isFinite(num) && num > 0) total += Math.floor(num) * getNumber(f.perUnitKey)
+    }
+  }
+  return total
 }
 
 function StandardItemizedEducationPanel({
@@ -459,6 +524,110 @@ export function ChecklistResult({
     return calcTotalGrossIncome(persons)
   }, [cardInputMap, isMarriedFiling])
 
+  const exemptionAmount = useMemo(() => {
+    const inputs = cardInputMap['exemption-general'] ?? {}
+    const under70 = Number(inputs['exemption_under70_count'] ?? '') || 0
+    const over70 = Number(inputs['exemption_over70_count'] ?? '') || 0
+    if (under70 === 0 && over70 === 0) return null
+    return under70 * getNumber('exemption_general') + over70 * getNumber('exemption_senior_70')
+  }, [cardInputMap])
+
+  const generalDeductionAmount = useMemo(() => {
+    const key = isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single'
+    return getNumber(key)
+  }, [isMarriedFiling])
+
+  const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
+  const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
+
+  const specialDeductionAmount = useMemo(() => {
+    const items = specialDeductionGroup?.items ?? []
+    if (items.length === 0) return null
+    let total = 0
+    for (const item of items) {
+      const meta = SPECIAL_DEDUCTION_META[item.id]
+      if (!meta) continue
+      const inputs = cardInputMap[item.id] ?? {}
+      for (const f of meta.fields) {
+        const raw = inputs[f.fieldId] ?? ''
+        const num = Number(raw.replace(/,/g, ''))
+        if (f.type === 'amount') {
+          // Amount field: must be explicitly positive; empty/0 blocks calculation
+          if (!Number.isFinite(num) || num <= 0) return null
+          const cap = f.capKey ? getNumber(f.capKey) : Infinity
+          total += Math.min(num, cap)
+        } else if (f.type === 'split') {
+          // Split count: 1st unit at firstKey rate, additional at additionalKey rate
+          if (Number.isFinite(num) && num < 0) return null
+          if (Number.isFinite(num) && num > 0) {
+            const count = Math.floor(num)
+            total += getNumber(f.firstKey) + Math.max(count - 1, 0) * getNumber(f.additionalKey)
+          }
+        } else {
+          // Count field: empty/NaN treated as 0 (doesn't block); negative is invalid
+          if (Number.isFinite(num) && num < 0) return null
+          if (Number.isFinite(num) && num > 0) {
+            total += Math.floor(num) * getNumber(f.perUnitKey)
+          }
+        }
+      }
+    }
+    return total
+  }, [specialDeductionGroup, cardInputMap])
+
+  const specialDeductionFormulaItems = useMemo(
+    () =>
+      (specialDeductionGroup?.items ?? [])
+        .filter((item) => SPECIAL_DEDUCTION_META[item.id])
+        .map((item) => ({
+          id: item.id,
+          label: SPECIAL_DEDUCTION_META[item.id].label,
+          amount: getSpecialDeductionItemAmount(item.id, cardInputMap[item.id] ?? {}),
+        })),
+    [specialDeductionGroup, cardInputMap],
+  )
+
+  const grossIncomeFormulaItems = useMemo(() => {
+    const hasGrossIncomeCard = groups.some((g) =>
+      g.items.some((item) => item.id === 'gross-income'),
+    )
+    if (!hasGrossIncomeCard) return null
+    const inputs = cardInputMap['gross-income'] ?? {}
+    const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
+    return persons.map((p) => ({
+      id: p.id,
+      label: p.label,
+      amount: p.income > 0 ? calcPersonNetIncome(p.income) : null,
+    }))
+  }, [groups, cardInputMap, isMarriedFiling])
+
+  function handleScrollToSection(categoryId: string) {
+    const el = sectionRefs.current[categoryId as CategoryId]
+    if (!el) return
+    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
+  }
+
+  function getSectionSubtotal(group: CategoryGroup): number | null {
+    switch (group.category) {
+      case 'gross_income':
+        return grossIncomeTotal > 0 ? grossIncomeTotal : null
+      case 'exemptions':
+        return exemptionAmount
+      case 'general_deductions':
+        return generalDeductionAmount
+      case 'special_deductions':
+        return specialDeductionAmount
+      default:
+        return null
+    }
+  }
+
+  function getFormulaItems(group: CategoryGroup) {
+    if (group.category === 'special_deductions') return specialDeductionFormulaItems
+    if (group.category === 'gross_income') return grossIncomeFormulaItems
+    return null
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 print-container">
       <AddSituationModal
@@ -524,15 +693,32 @@ export function ChecklistResult({
               >
                 <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700 flex items-baseline gap-2">
                   <span>{group.label}</span>
-                  {group.category === 'gross_income' && grossIncomeTotal > 0 && (
-                    <span className="text-sm font-semibold text-green-700 tabular-nums">
-                      {grossIncomeTotal.toLocaleString('zh-TW')} 元
-                    </span>
-                  )}
+                  {(() => {
+                    const fItems = getFormulaItems(group)
+                    if (fItems && fItems.length > 0) {
+                      return (
+                        <span className="text-xs font-normal text-gray-400">小計（依公式計算）</span>
+                      )
+                    }
+                    const sub = getSectionSubtotal(group)
+                    return sub !== null ? (
+                      <span className="text-sm font-semibold text-green-700 tabular-nums">
+                        {sub.toLocaleString('zh-TW')} 元
+                      </span>
+                    ) : null
+                  })()}
                 </h2>
                 {group.category === 'general_deductions' && (
                   <StandardItemizedEducationPanel groups={groups} selectedSituations={selectedSituations} />
                 )}
+                {(() => {
+                  const fItems = getFormulaItems(group)
+                  return fItems && fItems.length > 0 ? (
+                    <div className="mb-4">
+                      <FormulaRow items={fItems} />
+                    </div>
+                  ) : null
+                })()}
                 <div className="space-y-3">
                   {group.items.map((item) => (
                     <div
@@ -591,6 +777,11 @@ export function ChecklistResult({
         <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-6">
           <TaxSummaryPanel
             grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
+            exemptionAmount={exemptionAmount}
+            generalDeductionAmount={generalDeductionAmount}
+            specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
+            hasSpecialDeductions={hasSpecialDeductions}
+            onScrollToSection={handleScrollToSection}
           />
         </aside>
       </div>

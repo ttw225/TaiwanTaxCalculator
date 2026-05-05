@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type {
   CardInputMap,
   ChecklistItem,
@@ -7,7 +7,7 @@ import type {
   SituationGroup,
 } from './types/content'
 import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from './content/deductions'
-import { applyPublicationGate, filterBySituations, groupByCategory, sortByTriage } from './lib/checklist'
+import { applyPublicationGate, filterBySituations, groupByCategory } from './lib/checklist'
 import type { CategoryGroup } from './lib/checklist'
 import {
   clearSavedSituationSelection,
@@ -100,21 +100,17 @@ function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInpu
   return next
 }
 
-function getGroupedItemsBySelection(
-  selected: SituationId[],
-  sortedCardInputMap: CardInputMap,
-): CategoryGroup[] {
+function getGroupedItemsBySelection(selected: SituationId[]): CategoryGroup[] {
   const { effectiveItems } = getEffectiveState(selected)
-  return sortByTriage(groupByCategory(effectiveItems), sortedCardInputMap)
+  return groupByCategory(effectiveItems)
 }
 
 function getScrollTargetItemIdAfterAdd(
   currentSelected: SituationId[],
   nextSelected: SituationId[],
-  sortedCardInputMap: CardInputMap,
 ): string | null {
-  const currentGroups = getGroupedItemsBySelection(currentSelected, sortedCardInputMap)
-  const nextGroups = getGroupedItemsBySelection(nextSelected, sortedCardInputMap)
+  const currentGroups = getGroupedItemsBySelection(currentSelected)
+  const nextGroups = getGroupedItemsBySelection(nextSelected)
 
   const currentItemIdSet = new Set(currentGroups.flatMap((group) => group.items.map((item) => item.id)))
   const nextItemsInRenderOrder = nextGroups.flatMap((group) => group.items)
@@ -158,8 +154,6 @@ function App() {
   const [selected, setSelected] = useState<SituationId[]>(() => loadSavedSituationSelection(SITUATION_IDS))
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>({})
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [sortedCardInputMap, setSortedCardInputMap] = useState<CardInputMap>({})
   const [pendingRemovalEffect, setPendingRemovalEffect] = useState<RemovalEffect | null>(null)
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null)
 
@@ -204,7 +198,6 @@ function App() {
     setSelected([])
     setAppState('selecting')
     setCardInputMap({})
-    setSortedCardInputMap({})
     setPendingRemovalEffect(null)
     setScrollToItemId(null)
     clearSavedSituationSelection()
@@ -219,7 +212,7 @@ function App() {
     if (uniqueAddedIds.length === 0) return
 
     const nextSelected = [...selected, ...uniqueAddedIds]
-    setScrollToItemId(getScrollTargetItemIdAfterAdd(selected, nextSelected, sortedCardInputMap))
+    setScrollToItemId(getScrollTargetItemIdAfterAdd(selected, nextSelected))
     setSelected(nextSelected)
   }
 
@@ -256,7 +249,6 @@ function App() {
   function applyRemovalEffect(effect: RemovalEffect) {
     setSelected(effect.nextSelected)
     setCardInputMap((prev) => omitIdsFromCardInputMap(prev, effect.removedItemIds))
-    setSortedCardInputMap((prev) => omitIdsFromCardInputMap(prev, effect.removedItemIds))
     if (effect.nextSelected.length === 0) {
       // Keep this behavior as the canonical UX: empty checklist returns to page one.
       setScrollToItemId(null)
@@ -287,23 +279,15 @@ function App() {
   }
 
   const handleCardInputChange = useCallback((itemId: string, fieldId: string, value: string) => {
-    setCardInputMap((prev) => {
-      const updated = {
-        ...prev,
-        [itemId]: { ...(prev[itemId] ?? {}), [fieldId]: value },
-      }
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => {
-        setSortedCardInputMap(updated)
-      }, 300)
-      return updated
-    })
+    setCardInputMap((prev) => ({
+      ...prev,
+      [itemId]: { ...(prev[itemId] ?? {}), [fieldId]: value },
+    }))
   }, [])
 
   const content = (() => {
     const { effectiveItems } = getEffectiveState(selected)
-    const grouped = groupByCategory(effectiveItems)
-    const groups = sortByTriage(grouped, sortedCardInputMap)
+    const groups = groupByCategory(effectiveItems)
     const addableSituationGroups = getAddableSituationGroups(SITUATION_GROUPS, SITUATIONS, selected)
     const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
 
