@@ -264,9 +264,9 @@ describe('situation single-source flow', () => {
     changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 
     clickByTestId('remove-item-rent-deduction')
-    expect(container.textContent).toContain('確認移除此項目')
-    expect(container.textContent).not.toContain('會一併移除的項目')
-    expect(container.textContent).toContain('此次移除會清除已填寫的資料。')
+    expect(container.textContent).toContain('確認移除此項目：房屋租金支出')
+    expect(container.textContent).toContain('將清除「房屋租金支出」已填寫的資料。')
+    expect(container.textContent).toContain('您可以隨時加回此項目')
     clickByTestId('confirm-remove-item-btn')
     expect(container.textContent).toContain('節稅清單')
     expect(container.textContent).not.toContain('房屋租金支出')

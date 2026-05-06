@@ -61,7 +61,11 @@ interface Props {
 - Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
 - Card routing: `item.id === 'gross-income'` → renders `GrossIncomeCard`; all others → `DeductionCard`.
 - Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married` (no `×` button).
-- Remove dialog is single-card scoped; it no longer lists co-removed cards.
+- Remove dialog is single-card scoped. Copy contract:
+  - Title: `確認移除此項目：{itemTitle}`
+  - Body:
+    - `將清除「{itemTitle}」已填寫的資料。`
+    - `您可以隨時加回此項目`
 - Computes `grossIncomeTotal` via `useMemo` from `cardInputMap['gross-income']` + `parseGrossIncomePersons` + `calcTotalGrossIncome` (**aggregate net salary income per person** after modeled 薪資所得特別扣除額, not sum of raw inputs).
 - `gross_income` section header shows `grossIncomeTotal` inline when > 0.
 - **`onReset`**: declared on props but **not used** in component body (reserved / dead API until wired).

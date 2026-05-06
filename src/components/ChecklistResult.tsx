@@ -239,30 +239,21 @@ function RemoveImpactDialog({
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 p-4 no-print">
       <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
-          <h2 className="text-base font-semibold text-gray-900">確認移除此項目</h2>
-          <p className="mt-1 text-xs text-gray-500">{impact.itemTitle}</p>
+          <h2 className="text-base font-semibold text-gray-900">
+            確認移除此項目：{impact.itemTitle}
+          </h2>
         </div>
 
-        <div className="space-y-3 px-4 py-3 text-base text-gray-600">
-          <p>移除後，這張卡片會從目前清單中隱藏。</p>
-
-          {impact.hasInputLoss && (
-            <p className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-amber-700">
-              此次移除會清除已填寫的資料。
-            </p>
-          )}
-          {!impact.hasInputLoss && (
-            <p className="text-sm text-gray-500">
-              之後可透過重新計算或重新選擇情境產生新的清單。
-            </p>
-          )}
+        <div className="px-4 py-3 text-base text-gray-600">
+          <p>將清除「{impact.itemTitle}」已填寫的資料。</p>
+          <p className="mt-1 text-sm text-gray-500">您可以隨時加回此項目</p>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             data-testid="cancel-remove-item-btn"
           >
             取消
@@ -270,7 +261,7 @@ function RemoveImpactDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+            className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
             data-testid="confirm-remove-item-btn"
           >
             確認移除

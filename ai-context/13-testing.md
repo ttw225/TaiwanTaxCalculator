@@ -25,6 +25,7 @@
 - **Married + salary**: `standard-deduction-single` excluded when `married` selected.
 - **Card removal**: remove action hides only the target card and does not mutate selected situations.
 - **Non-removable cards**: exemption + standard deduction cards never render remove buttons.
+- **Remove dialog copy**: title includes the item title (`確認移除此項目：...`); body is fixed to `移除會清除已填寫的資料。`
 - **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.
 - **Situations**: count **14**; every `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals all ids, no duplicates, fixed subgroup ordering tests.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
