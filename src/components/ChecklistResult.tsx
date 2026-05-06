@@ -7,7 +7,7 @@ import type {
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
-import { resolveGeneralDeduction } from '../lib/generalDeductionEffective'
+import { resolveGeneralDeduction, type ItemizedCalcContext } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
@@ -22,8 +22,6 @@ import { TaxSummaryPanel } from './TaxSummaryPanel'
 export interface RemovalImpactPreview {
   itemId: string
   itemTitle: string
-  affectedSituationLabels: string[]
-  removedItemTitles: string[]
   hasInputLoss: boolean
 }
 
@@ -87,6 +85,11 @@ const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFie
 }
 
 const FORMULA_SECTION_BOX_CLASS = 'rounded-lg border border-gray-200 px-4 py-3'
+const NON_REMOVABLE_ITEM_IDS = new Set([
+  'exemption-general',
+  'standard-deduction-single',
+  'standard-deduction-married',
+])
 
 function getSpecialDeductionItemAmount(
   itemId: string,
@@ -232,40 +235,25 @@ function RemoveImpactDialog({
   onCancel: () => void
   onConfirm: () => void
 }) {
-  const previewTitles = impact.removedItemTitles.slice(0, 3)
-  const hasMore = impact.removedItemTitles.length > previewTitles.length
-
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 p-4 no-print">
       <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
-          <h2 className="text-base font-semibold text-gray-900">確認移除此項目</h2>
-          <p className="mt-1 text-xs text-gray-500">{impact.itemTitle}</p>
+          <h2 className="text-base font-semibold text-gray-900">
+            確認移除此項目：{impact.itemTitle}
+          </h2>
         </div>
 
-        <div className="space-y-3 px-4 py-3 text-base text-gray-600">
-          <div>
-            <p className="mb-1">會一併移除的項目（{impact.removedItemTitles.length}）：</p>
-            <ul className="list-disc space-y-0.5 pl-4 text-gray-700">
-              {previewTitles.map((title) => (
-                <li key={title}>{title}</li>
-              ))}
-              {hasMore && <li>...</li>}
-            </ul>
-          </div>
-
-          {impact.hasInputLoss && (
-            <p className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-amber-700">
-              此次移除會清除已填寫的資料。
-            </p>
-          )}
+        <div className="px-4 py-3 text-base text-gray-600">
+          <p>將清除「{impact.itemTitle}」已填寫的資料。</p>
+          <p className="mt-1 text-sm text-gray-500">您可以隨時加回此項目</p>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             data-testid="cancel-remove-item-btn"
           >
             取消
@@ -273,7 +261,7 @@ function RemoveImpactDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+            className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
             data-testid="confirm-remove-item-btn"
           >
             確認移除
@@ -360,22 +348,6 @@ export function ChecklistResult({
     return under70 * getNumber('exemption_general') + over70 * getNumber('exemption_senior_70')
   }, [cardInputMap])
 
-  const generalDeductionResolved = useMemo(
-    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling),
-    [groups, cardInputMap, isMarriedFiling],
-  )
-
-  const generalDeductionAmount =
-    generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
-  const generalDeductionMethod =
-    generalDeductionResolved.status === 'pending_itemized'
-      ? null
-      : generalDeductionResolved.status === 'standard_only' || generalDeductionAmount === null
-        ? 'standard'
-        : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
-            ? 'itemized'
-            : 'standard')
-
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
 
@@ -443,6 +415,44 @@ export function ChecklistResult({
     if (grossIncomeFormulaItems.some((item) => item.amount === null)) return null
     return grossIncomeFormulaItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
   }, [grossIncomeFormulaItems])
+
+  const savingsInvestmentEnabled = useMemo(() => {
+    const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
+    return (specialDeductionGroup?.items ?? []).some((i) => i.id === 'savings-investment-deduction')
+  }, [groups])
+
+  const savingsInvestmentDeductionAmount = useMemo(() => {
+    if (!savingsInvestmentEnabled) return null
+    return getSpecialDeductionItemAmount(
+      'savings-investment-deduction',
+      cardInputMap['savings-investment-deduction'] ?? {},
+    )
+  }, [cardInputMap, savingsInvestmentEnabled])
+
+  const itemizedContext: Partial<ItemizedCalcContext> = useMemo(
+    () => ({
+      grossIncomeAmount,
+      savingsInvestmentEnabled,
+      savingsInvestmentDeductionAmount,
+    }),
+    [grossIncomeAmount, savingsInvestmentEnabled, savingsInvestmentDeductionAmount],
+  )
+
+  const generalDeductionResolved = useMemo(
+    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling, itemizedContext),
+    [groups, cardInputMap, isMarriedFiling, itemizedContext],
+  )
+
+  const generalDeductionAmount =
+    generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
+  const generalDeductionMethod =
+    generalDeductionResolved.status === 'pending_itemized'
+      ? null
+      : generalDeductionResolved.status === 'standard_only' || generalDeductionAmount === null
+        ? 'standard'
+        : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
+            ? 'itemized'
+            : 'standard')
 
   function handleScrollToSection(categoryId: string) {
     const el = sectionRefs.current[categoryId as CategoryId]
@@ -574,6 +584,7 @@ export function ChecklistResult({
                     groups={groups}
                     selectedSituations={selectedSituations}
                     cardInputMap={cardInputMap}
+                    itemizedContext={itemizedContext}
                   />
                 )}
                 {(() => {
@@ -607,7 +618,7 @@ export function ChecklistResult({
                           inputValues={cardInputMap[item.id] ?? {}}
                           isMarriedFiling={isMarriedFiling}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
-                          removable
+                          removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
                           onRemove={() => onRemoveItem?.(item.id)}
                         />
@@ -616,8 +627,9 @@ export function ChecklistResult({
                           item={item}
                           inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
                           inputValues={cardInputMap[item.id] ?? {}}
+                          feedbackContext={itemizedContext}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
-                          removable
+                          removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
                           onRemove={() => onRemoveItem?.(item.id)}
                         />

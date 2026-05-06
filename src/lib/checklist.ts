@@ -1,14 +1,29 @@
 import type { CategoryId, ChecklistItem, SituationId } from '../types/content'
 
-// Return items that match at least one of the selected situations
+const BASELINE_ITEM_IDS = new Set([
+  'exemption-general',
+  'standard-deduction-single',
+  'standard-deduction-married',
+])
+
+function getBaselineItemIds(selected: SituationId[]) {
+  return new Set([
+    'exemption-general',
+    selected.includes('married') ? 'standard-deduction-married' : 'standard-deduction-single',
+  ])
+}
+
+// Return baseline result-page items plus items that match at least one selected situation.
 export function filterBySituations(
   items: ChecklistItem[],
   selected: SituationId[],
 ): ChecklistItem[] {
   if (selected.length === 0) return []
-  const matched = items.filter((item) => item.situations.some((s) => selected.includes(s)))
-  if (!selected.includes('married')) return matched
-  return matched.filter((item) => item.id !== 'standard-deduction-single')
+  const baselineIds = getBaselineItemIds(selected)
+  return items.filter((item) =>
+    baselineIds.has(item.id) ||
+    (!BASELINE_ITEM_IDS.has(item.id) && item.situations.some((s) => selected.includes(s)))
+  )
 }
 
 // Display order for categories

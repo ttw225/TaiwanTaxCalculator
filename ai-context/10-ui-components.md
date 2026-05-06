@@ -59,7 +59,15 @@ interface Props {
 - Root uses `print-container` for print layout.
 - Layout: `max-w-4xl` with `lg:grid lg:grid-cols-[1fr_260px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
 - Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
+- Add-situation modal lists situations not currently present in `selected`.
 - Card routing: `item.id === 'gross-income'` → renders `GrossIncomeCard`; all others → `DeductionCard`.
+- Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married` (no `×` button).
+- Result cards are derived from `filterBySituations(CHECKLIST_ITEMS, selected)`.
+- Remove dialog is single-card scoped. Copy contract:
+  - Title: `確認移除此項目：{itemTitle}`
+  - Body:
+    - `將清除「{itemTitle}」已填寫的資料。`
+    - `您可以隨時加回此項目`
 - Computes `grossIncomeTotal` via `useMemo` from `cardInputMap['gross-income']` + `parseGrossIncomePersons` + `calcTotalGrossIncome` (**aggregate net salary income per person** after modeled 薪資所得特別扣除額, not sum of raw inputs).
 - `gross_income` section header shows `grossIncomeTotal` inline when > 0.
 - **`onReset`**: declared on props but **not used** in component body (reserved / dead API until wired).
@@ -126,7 +134,7 @@ interface Props {
 - Sticky right-sidebar panel in `ChecklistResult` (desktop, `lg:sticky lg:top-6`, `no-print`).
 - Rows: 綜合所得總額、免稅額、一般扣除額、（選）特別扣除額；所得淨額與應納稅額試算。
 - `generalDeductionAmount === null` → that row shows「前往填寫」捲動至 `general_deductions`，且所得淨額／應納稅額為「待計算」（與其他必填列一致）。
-- Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`).
+- Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`) using an itemized calc context derived in [`ChecklistResult.tsx`](../src/components/ChecklistResult.tsx) (e.g. `grossIncomeAmount`, `savingsInvestmentDeductionAmount`).
 
 ## `DecisionToolsPanel.tsx`
 

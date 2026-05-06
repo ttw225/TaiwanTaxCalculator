@@ -59,12 +59,20 @@ export interface CardInlineField {
   type: 'number'
   unit: string
   capKey: string | null
+  /** If set: field shows contextual limit feedback that cannot be represented by a static capKey. */
+  feedbackRule?: 'qualified-donation' | 'mortgage-interest' | 'unlimited'
   /** If set: user enters a count; deduction = count × getNumber(perUnitKey) */
   perUnitKey?: string
   /** If set: first unit uses firstKey rate, additional units use additionalKey rate */
   splitPerUnitKeys?: { firstKey: string; additionalKey: string }
   /** Optional upper bound enforced in the input element */
   max?: number
+}
+
+export interface CardInlineFeedbackContext {
+  grossIncomeAmount: number | null
+  savingsInvestmentEnabled: boolean
+  savingsInvestmentDeductionAmount: number | null
 }
 
 export type CardInputMap = Record<string, Record<string, string>>

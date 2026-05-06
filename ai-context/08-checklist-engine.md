@@ -9,8 +9,13 @@ export function filterBySituations(items: ChecklistItem[], selected: SituationId
 ```
 
 - Empty `selected` → `[]`.
-- Otherwise: items where `item.situations.some(s => selected.includes(s))`.
-- **Married rule**: if `'married'` is in `selected`, **exclude** item `id === 'standard-deduction-single'` (married filers use `standard-deduction-married`).
+- Otherwise, return result-page baseline items plus situation-matched items.
+- Baseline items:
+  - always include `exemption-general`
+  - include `standard-deduction-married` when `married` is selected
+  - otherwise include `standard-deduction-single`
+- Non-baseline items match when `item.situations.some(s => selected.includes(s))`.
+- Baseline item content uses `situations: []`; the engine derives all result cards from `selected`.
 
 ## `CATEGORY_ORDER` / `CATEGORY_LABELS`
 

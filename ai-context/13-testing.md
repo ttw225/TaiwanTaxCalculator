@@ -11,22 +11,30 @@
 |------|--------|
 | [`tests/foundation.test.ts`](../tests/foundation.test.ts) | `numbers_2026.json`, `getNumber`, `getBrackets`, `readLocal` / `writeLocal` / `removeLocal` |
 | [`tests/grossIncome.test.ts`](../tests/grossIncome.test.ts) | [`grossIncome.ts`](../src/lib/grossIncome.ts): cap, per-person deduction/net, parsing `persons_json`, `calcTotalGrossIncome`, labels |
-| [`tests/generalDeductionEffective.test.ts`](../tests/generalDeductionEffective.test.ts) | `resolveGeneralDeduction` vs standard vs itemized checklist inputs |
+| [`tests/generalDeductionEffective.test.ts`](../tests/generalDeductionEffective.test.ts) | `resolveGeneralDeduction` + `getItemizedItemAmount` (includes itemized calc context: donation cap vs gross income, mortgage vs savings-investment dependency) |
 | [`tests/decisions.test.ts`](../tests/decisions.test.ts) | `calcBracketTax`, `calcDividendOptions`, `calcCoupleFilingOptions`, `checkAmtThreshold` |
 | [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` |
 | [`tests/decision-tools.test.tsx`](../tests/decision-tools.test.tsx) | `DecisionToolsPanel` visibility vs selected situations |
 | [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, App clear integration |
-| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, remove dialog, multi-source labels, legacy key removal |
+| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, selection-driven add/remove, non-removable cards, remove dialog, legacy key removal |
 | [`tests/back-to-top-button.test.tsx`](../tests/back-to-top-button.test.tsx) | `BackToTopButton` threshold, scroll animation vs reduced motion |
 | [`tests/schema-fixture.ts`](../tests/schema-fixture.ts) | **Compile-only** `ChecklistItem` fixture for `pnpm typecheck`; **not** picked up by Vitest `include` |
 
 ## Representative invariants
 
-- **Married + salary**: `standard-deduction-single` excluded when `married` selected.
+- **Baseline items**: every non-empty selection includes `exemption-general` plus the correct standard deduction card.
+- **Married selection**: `standard-deduction-single` excluded when `married` selected.
+- **Card removal**: remove action deletes only the target active card (non-removable cards excluded) and clears that card input data.
+- **Add modal**: selected situations are omitted; after removing a related card, that situation becomes addable again.
+- **Non-removable cards**: exemption + standard deduction cards never render remove buttons.
+- **Remove dialog copy**: title includes the item title (`確認移除此項目：...`); body uses item-aware copy (`將清除「{itemTitle}」已填寫的資料。`) and follow-up hint (`您可以隨時加回此項目`).
 - **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.
 - **Situations**: count **14**; every `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals all ids, no duplicates, fixed subgroup ordering tests.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
 - **AMT**: threshold **1_000_000** inclusive boundary.
+- **Itemized dependencies**:
+  - Donations: qualified donations are capped at 20% of `grossIncomeAmount`; if the qualified amount is filled but gross income is missing, itemized line is treated as unfilled (`null`).
+  - Mortgage interest: when `savings-investment-deduction` is enabled, mortgage interest subtracts the capped savings-investment deduction first; if savings-investment is enabled but unfilled, subtraction is deferred (treated as 0) so the mortgage line remains responsive.
 
 ## Integration patterns
 

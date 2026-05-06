@@ -61,7 +61,7 @@ describe('resolveGeneralDeduction', () => {
       },
     ]
     const cardInputMap: CardInputMap = {
-      'donations-deduction': { donation_amount: '500000' },
+      'donations-deduction': { donation_amount_government: '500000' },
     }
     expect(resolveGeneralDeduction(groups, cardInputMap, false)).toEqual({
       status: 'complete',
@@ -78,7 +78,7 @@ describe('resolveGeneralDeduction', () => {
       },
     ]
     const cardInputMap: CardInputMap = {
-      'donations-deduction': { donation_amount: '50000' },
+      'donations-deduction': { donation_amount_government: '50000' },
     }
     expect(resolveGeneralDeduction(groups, cardInputMap, false)).toEqual({
       status: 'complete',
@@ -112,7 +112,7 @@ describe('resolveGeneralDeduction', () => {
       },
     ]
     const partial: CardInputMap = {
-      'donations-deduction': { donation_amount: '400000' },
+      'donations-deduction': { donation_amount_government: '400000' },
     }
     expect(resolveGeneralDeduction(groups, partial, false)).toEqual({ status: 'pending_itemized' })
   })
@@ -129,7 +129,7 @@ describe('resolveGeneralDeduction', () => {
   it('treats negative inputs as invalid in itemized formula', () => {
     expect(
       getItemizedItemAmount('donations-deduction', {
-        donation_amount: '-1',
+        donation_amount_government: '-1',
       }),
     ).toBeNull()
     expect(
@@ -138,5 +138,45 @@ describe('resolveGeneralDeduction', () => {
         insurance_nhi_amount: '0',
       }),
     ).toBeNull()
+  })
+
+  it('caps qualified donations at 20% of gross income', () => {
+    expect(
+      getItemizedItemAmount(
+        'donations-deduction',
+        { donation_amount_qualified: '300000', donation_amount_government: '0' },
+        { grossIncomeAmount: 1_000_000 },
+      ),
+    ).toBe(200_000)
+  })
+
+  it('treats qualified donations as pending when gross income is missing', () => {
+    expect(
+      getItemizedItemAmount(
+        'donations-deduction',
+        { donation_amount_qualified: '1' },
+        { grossIncomeAmount: null },
+      ),
+    ).toBeNull()
+  })
+
+  it('subtracts savings investment deduction from mortgage interest when enabled', () => {
+    expect(
+      getItemizedItemAmount(
+        'mortgage-interest-deduction',
+        { mortgage_interest_amount: '300000' },
+        { savingsInvestmentEnabled: true, savingsInvestmentDeductionAmount: 100_000 },
+      ),
+    ).toBe(200_000)
+  })
+
+  it('keeps mortgage interest responsive when savings investment is enabled but unfilled', () => {
+    expect(
+      getItemizedItemAmount(
+        'mortgage-interest-deduction',
+        { mortgage_interest_amount: '1' },
+        { savingsInvestmentEnabled: true, savingsInvestmentDeductionAmount: null },
+      ),
+    ).toBe(1)
   })
 })

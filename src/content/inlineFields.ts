@@ -8,6 +8,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       type: 'number',
       unit: '元',
       capKey: null,
+      feedbackRule: 'mortgage-interest',
     },
   ],
   'rent-deduction': [
@@ -30,11 +31,20 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
   ],
   'donations-deduction': [
     {
-      id: 'donation_amount',
-      label: '今年對符合資格機構的捐贈總額',
+      id: 'donation_amount_qualified',
+      label: '一般捐贈金額（適用綜合所得總額 20% 上限）',
       type: 'number',
       unit: '元',
       capKey: null,
+      feedbackRule: 'qualified-donation',
+    },
+    {
+      id: 'donation_amount_government',
+      label: '政府機關捐贈金額（無金額上限）',
+      type: 'number',
+      unit: '元',
+      capKey: null,
+      feedbackRule: 'unlimited',
     },
   ],
   'insurance-deduction': [

@@ -38,7 +38,7 @@ describe('filterBySituations', () => {
     expect(filterBySituations(published, [])).toHaveLength(0)
   })
 
-  it('salary_income returns exemption, standard deduction, and salary special deduction', () => {
+  it('salary_income returns baseline items plus gross income', () => {
     const items = filterBySituations(published, ['salary_income'])
     const ids = items.map((i) => i.id)
     expect(ids).toContain('exemption-general')
@@ -46,10 +46,12 @@ describe('filterBySituations', () => {
     expect(ids).toContain('gross-income')
   })
 
-  it('married returns married standard deduction', () => {
+  it('married returns exemption and married standard deduction', () => {
     const items = filterBySituations(published, ['married'])
     const ids = items.map((i) => i.id)
+    expect(ids).toContain('exemption-general')
     expect(ids).toContain('standard-deduction-married')
+    expect(ids).not.toContain('standard-deduction-single')
   })
 
   it('married with salary_income does not return single standard deduction', () => {
@@ -68,6 +70,8 @@ describe('filterBySituations', () => {
   it('rent returns rent deduction item', () => {
     const items = filterBySituations(published, ['rent'])
     const ids = items.map((i) => i.id)
+    expect(ids).toContain('exemption-general')
+    expect(ids).toContain('standard-deduction-single')
     expect(ids).toContain('rent-deduction')
   })
 
@@ -77,10 +81,11 @@ describe('filterBySituations', () => {
     expect(ids).toContain('overseas-income-amt')
   })
 
-  it('any income source returns the merged exemption item', () => {
-    for (const id of ['salary_income', 'dividends', 'overseas_income'] as const) {
+  it('any non-empty situation returns baseline exemption and standard deduction', () => {
+    for (const id of ['rent', 'donations', 'salary_income', 'dividends', 'overseas_income'] as const) {
       const ids = filterBySituations(published, [id]).map((i) => i.id)
       expect(ids).toContain('exemption-general')
+      expect(ids).toContain('standard-deduction-single')
     }
   })
 
@@ -420,7 +425,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '500000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -445,7 +450,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '500000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -461,7 +466,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '131000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '131000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -479,7 +484,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '100000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '100000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -497,7 +502,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '500000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -514,7 +519,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '131000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '131000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -817,11 +822,30 @@ describe('DeductionCard inline input fields', () => {
   }
 
   const noCapField: CardInlineField = {
-    id: 'donation_amount',
+    id: 'donation_amount_government',
     label: '捐贈金額',
     type: 'number',
     unit: '元',
     capKey: null,
+  }
+
+  const qualifiedDonationField: CardInlineField = {
+    ...noCapField,
+    id: 'donation_amount_qualified',
+    label: '一般捐贈金額',
+    feedbackRule: 'qualified-donation',
+  }
+
+  const governmentDonationField: CardInlineField = {
+    ...noCapField,
+    feedbackRule: 'unlimited',
+  }
+
+  const mortgageInterestField: CardInlineField = {
+    ...noCapField,
+    id: 'mortgage_interest_amount',
+    label: '今年支付的房貸利息',
+    feedbackRule: 'mortgage-interest',
   }
 
   it('renders without input area when inlineFields is empty', () => {
@@ -844,7 +868,7 @@ describe('DeductionCard inline input fields', () => {
     expect(html).toContain('元')
   })
 
-  it('shows within-cap feedback when value <= cap', () => {
+  it('shows green cap feedback when value <= cap', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -852,11 +876,11 @@ describe('DeductionCard inline input fields', () => {
         inputValues: { salary_amount: '100000' },
       }),
     )
-    expect(html).toContain('填入金額在可申報範圍內')
-    expect(html).toContain('218,000')
+    expect(html).toContain('text-green-700')
+    expect(html).toContain('可申報上限為 218,000 元')
   })
 
-  it('shows exceeds-cap feedback when value > cap', () => {
+  it('shows red cap feedback when value > cap', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -864,11 +888,11 @@ describe('DeductionCard inline input fields', () => {
         inputValues: { salary_amount: '300000' },
       }),
     )
-    expect(html).toContain('填入金額超過上限')
-    expect(html).toContain('218,000')
+    expect(html).toContain('text-red-700')
+    expect(html).toContain('可申報上限為 218,000 元，超過上限時以上限試算')
   })
 
-  it('shows no feedback when field is empty', () => {
+  it('shows cap hint when capped field is empty', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -876,8 +900,7 @@ describe('DeductionCard inline input fields', () => {
         inputValues: { salary_amount: '' },
       }),
     )
-    expect(html).not.toContain('填入金額在可申報範圍內')
-    expect(html).not.toContain('填入金額超過上限')
+    expect(html).toContain('可申報上限為 218,000 元')
   })
 
   it('shows no feedback when capKey is null', () => {
@@ -885,11 +908,100 @@ describe('DeductionCard inline input fields', () => {
       createElement(DeductionCard, {
         item: makeItem(),
         inlineFields: [noCapField],
-        inputValues: { donation_amount: '50000' },
+        inputValues: { donation_amount_government: '50000' },
       }),
     )
-    expect(html).not.toContain('填入金額在可申報範圍內')
-    expect(html).not.toContain('填入金額超過上限')
+    expect(html).not.toContain('超過上限時以上限試算')
+  })
+
+  it('shows qualified donation cap feedback from gross income', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [qualifiedDonationField],
+        inputValues: { donation_amount_qualified: '300000' },
+        feedbackContext: { grossIncomeAmount: 1_000_000 },
+      }),
+    )
+    expect(html).toContain('text-red-700')
+    expect(html).toContain('可申報上限為 200,000 元，超過上限時以上限試算')
+  })
+
+  it('shows qualified donation cap hint before input when gross income exists', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [qualifiedDonationField],
+        inputValues: { donation_amount_qualified: '' },
+        feedbackContext: { grossIncomeAmount: 1_000_000 },
+      }),
+    )
+    expect(html).toContain('可申報上限為 200,000 元')
+    expect(html).toContain('綜合所得總額 20%')
+  })
+
+  it('asks for gross income before qualified donation cap can be judged', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [qualifiedDonationField],
+        inputValues: { donation_amount_qualified: '1' },
+        feedbackContext: { grossIncomeAmount: null },
+      }),
+    )
+    expect(html).toContain('需先填寫綜合所得總額，才能計算一般捐贈上限')
+  })
+
+  it('shows no-limit feedback for government donations', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [governmentDonationField],
+        inputValues: { donation_amount_government: '50000' },
+      }),
+    )
+    expect(html).toContain('此類捐贈無金額上限')
+  })
+
+  it('shows no-limit hint for government donations before input', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [governmentDonationField],
+        inputValues: { donation_amount_government: '' },
+      }),
+    )
+    expect(html).toContain('此類捐贈無金額上限')
+  })
+
+  it('shows mortgage interest cap feedback after savings investment deduction', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [mortgageInterestField],
+        inputValues: { mortgage_interest_amount: '450000' },
+        feedbackContext: {
+          savingsInvestmentEnabled: true,
+          savingsInvestmentDeductionAmount: 100_000,
+        },
+      }),
+    )
+    expect(html).toContain('text-red-700')
+    expect(html).toContain('可申報上限為 300,000 元，超過上限時以上限試算')
+    expect(html).toContain('扣除儲蓄投資扣除額後為 350,000 元')
+  })
+
+  it('shows mortgage interest cap hint before input', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [mortgageInterestField],
+        inputValues: { mortgage_interest_amount: '' },
+        feedbackContext: { savingsInvestmentEnabled: true },
+      }),
+    )
+    expect(html).toContain('可申報上限為 300,000 元')
+    expect(html).toContain('須先扣除儲蓄投資扣除額')
   })
 
   it('shows privacy notice when inlineFields is non-empty', () => {
@@ -928,4 +1040,3 @@ describe('DeductionCard show_wealth_clause_notice', () => {
     expect(html).toContain(WEALTH_CLAUSE_NOTICE)
   })
 })
-

@@ -149,7 +149,7 @@ function changeInputByTestId(testId: string, value: string) {
 }
 
 describe('situation single-source flow', () => {
-  it('supports grouped situation add modal and synchronized removal', () => {
+  it('supports grouped situation add modal and removes only the target card', () => {
     renderApp()
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
@@ -172,20 +172,37 @@ describe('situation single-source flow', () => {
       runNextAnimationFrame(500)
       runNextAnimationFrame(1000)
     })
-    const expectedTargetY = DONATION_TARGET_TOP + DONATION_TARGET_HEIGHT / 2 - VIEWPORT_HEIGHT / 2
-    expect(requestAnimationFrameSpy).toHaveBeenCalled()
-    expect(scrollToSpy).toHaveBeenLastCalledWith(0, expectedTargetY)
     expect(container.textContent).toContain('房屋租金支出')
     expect(container.textContent).toContain('捐贈扣除額')
 
-    clickByTestId('remove-item-standard-deduction-single')
-    expect(container.textContent).toContain('確認移除此項目')
-    expect(container.textContent).not.toContain('會取消第一頁情境')
-    clickByTestId('confirm-remove-item-btn')
-    expect(container.textContent).not.toContain('來源情境：')
-    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
+    clickByTestId('remove-item-rent-deduction')
+    expect(container.textContent).not.toContain('確認移除此項目')
+    expect(container.textContent).not.toContain('房屋租金支出')
+    expect(container.textContent).toContain('薪資收入')
+    expect(container.textContent).toContain('免稅額')
+    expect(container.textContent).toContain('標準扣除額（單身）')
+    const savedSelectionAfterRemove = localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY) ?? ''
+    expect(savedSelectionAfterRemove).not.toContain('rent')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
   })
+  it('does not show remove button for non-removable cards', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.querySelector('[data-testid="remove-item-exemption-general"]')).toBeNull()
+    expect(container.querySelector('[data-testid="remove-item-standard-deduction-single"]')).toBeNull()
+  })
+
+  it('keeps non-removable standard deduction without a remove button in married mode too', () => {
+    renderApp()
+    clickButtonByText('配偶合併申報')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.querySelector('[data-testid="remove-item-standard-deduction-married"]')).toBeNull()
+  })
+
 
   it('hides source situation labels even when items are triggered by income situations', () => {
     renderApp()
@@ -238,6 +255,35 @@ describe('situation single-source flow', () => {
     expect(container.textContent).not.toContain('房屋租金支出')
   })
 
+  it('shows baseline exemption and standard deduction for rent-only results', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.textContent).toContain('免稅額')
+    expect(container.textContent).toContain('標準扣除額（單身）')
+    expect(container.textContent).toContain('房屋租金支出')
+  })
+
+  it('omits selected situations in add modal and shows them again after removing their card', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('捐贈')
+    clickButtonByText('產生節稅清單')
+
+    clickByTestId('open-add-situation-modal-btn')
+    expect(container.querySelector('[data-testid="add-situation-checkbox-salary_income"]')).toBeNull()
+    expect(container.querySelector('[data-testid="add-situation-checkbox-rent"]')).not.toBeNull()
+    clickByTestId('cancel-add-situations-btn')
+
+    clickByTestId('remove-item-gross-income')
+    expect(container.querySelector('[data-testid="checklist-item-gross-income"]')).toBeNull()
+
+    clickByTestId('open-add-situation-modal-btn')
+    expect(container.querySelector('[data-testid="add-situation-checkbox-salary_income"]')).not.toBeNull()
+    clickByTestId('cancel-add-situations-btn')
+  })
+
   it('shows confirmation when removing a card with existing input', () => {
     renderApp()
     clickButtonByText('房屋租金支出')
@@ -245,11 +291,52 @@ describe('situation single-source flow', () => {
     changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 
     clickByTestId('remove-item-rent-deduction')
-    expect(container.textContent).toContain('確認移除此項目')
+    expect(container.textContent).toContain('確認移除此項目：房屋租金支出')
+    expect(container.textContent).toContain('將清除「房屋租金支出」已填寫的資料。')
+    expect(container.textContent).toContain('您可以隨時加回此項目')
     clickByTestId('confirm-remove-item-btn')
-    expect(scrollToSpy).toHaveBeenCalledTimes(2)
     expect(container.textContent).toContain('台灣所得稅節稅助理')
-    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(container.querySelector('[data-testid="checklist-item-rent-deduction"]')).toBeNull()
+    const savedSelectionAfterConfirmRemove = localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY) ?? ''
+    expect(savedSelectionAfterConfirmRemove).not.toContain('rent')
+    const savedInputs = localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY) ?? ''
+    expect(savedInputs).not.toContain('rent-deduction')
+  })
+
+  it('can re-add a removed card from add modal', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('捐贈')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.querySelector('[data-testid="checklist-item-gross-income"]')).not.toBeNull()
+    clickByTestId('remove-item-gross-income')
+    expect(container.querySelector('[data-testid="checklist-item-gross-income"]')).toBeNull()
+
+    clickByTestId('open-add-situation-modal-btn')
+    clickByTestId('add-situation-checkbox-salary_income')
+    clickByTestId('confirm-add-situations-btn')
+
+    expect(container.querySelector('[data-testid="checklist-item-gross-income"]')).not.toBeNull()
+  })
+
+  it('does not restore removed gross income after refresh', () => {
+    const root = renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('捐贈')
+    clickButtonByText('產生節稅清單')
+
+    clickByTestId('remove-item-gross-income')
+    expect(container.querySelector('[data-testid="checklist-item-gross-income"]')).toBeNull()
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).not.toContain('salary_income')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp()
+    expect(container.querySelector('[data-testid="checklist-item-gross-income"]')).toBeNull()
+    expect(container.textContent).toContain('捐贈扣除額')
   })
 
   it('clears legacy overrides key on startup', () => {

@@ -17,7 +17,7 @@ const sampleItem: ChecklistItem = {
   id: 'deduction-standard-single',
   title: '標準扣除額（單身）',
   category: 'general_deductions',
-  situations: ['salary_income'],
+  situations: [],
   why_it_matters: '可直接扣除 131,000 元，無需收集憑證',
   eligibility_cues: ['所有納稅義務人均可適用'],
   documents_to_prepare: [],

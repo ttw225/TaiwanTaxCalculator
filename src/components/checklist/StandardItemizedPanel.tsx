@@ -1,17 +1,10 @@
 import type { CardInputMap, SituationId } from '../../types/content'
 import type { CategoryGroup } from '../../lib/checklist'
-import { getItemizedItemAmount, ITEMIZED_ITEM_IDS } from '../../lib/generalDeductionEffective'
+import { getItemizedItemAmount, ITEMIZED_ITEM_IDS, type ItemizedCalcContext } from '../../lib/generalDeductionEffective'
 import { getNumber } from '../../lib/numbers'
 import { FormulaRow } from './FormulaRow'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const ITEMIZED_ITEM_META: Record<string, { label: string }> = {
-  'donations-deduction': { label: '捐贈' },
-  'insurance-deduction': { label: '保險費' },
-  'medical-deduction': { label: '醫療費' },
-  'mortgage-interest-deduction': { label: '房貸利息' },
-}
 
 const SOURCE = {
   label: '114年度申報書說明',
@@ -102,9 +95,10 @@ interface Props {
   groups: CategoryGroup[]
   selectedSituations: SituationId[]
   cardInputMap: CardInputMap
+  itemizedContext?: Partial<ItemizedCalcContext>
 }
 
-export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap }: Props) {
+export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap, itemizedContext }: Props) {
   const isMarried = selectedSituations.includes('married')
   const standardKey = isMarried ? 'standard_deduction_married' : 'standard_deduction_single'
   const standardAmount = getNumber(standardKey)
@@ -138,8 +132,8 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
   // Build formula row items
   const formulaItems = presentItems.map((item) => ({
     id: item.id,
-    label: ITEMIZED_ITEM_META[item.id]?.label ?? item.title,
-    amount: getItemizedItemAmount(item.id, cardInputMap[item.id] ?? {}),
+    label: item.title,
+    amount: getItemizedItemAmount(item.id, cardInputMap[item.id] ?? {}, itemizedContext),
   }))
 
   const filledItems = formulaItems.filter((i) => i.amount !== null)

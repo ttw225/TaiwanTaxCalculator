@@ -40,29 +40,17 @@ const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
 
 type AppState = 'selecting' | 'results'
 
-interface EffectiveState {
-  effectiveItemIds: Set<string>
-  effectiveItems: ChecklistItem[]
-}
-
 interface RemovalEffect {
-  nextSelected: SituationId[]
-  removedItemIds: string[]
+  itemId: string
   preview: RemovalImpactPreview
   requiresConfirm: boolean
 }
 
-function getEffectiveState(
-  selected: SituationId[],
-): EffectiveState {
-  const filteredBySituations = filterBySituations(CHECKLIST_ITEMS, selected)
-  const effectiveItemIds = new Set(filteredBySituations.map((item) => item.id))
-
-  return {
-    effectiveItemIds,
-    effectiveItems: CHECKLIST_ITEMS.filter((item) => effectiveItemIds.has(item.id)),
-  }
-}
+const NON_REMOVABLE_ITEM_IDS = new Set([
+  'exemption-general',
+  'standard-deduction-single',
+  'standard-deduction-married',
+])
 
 interface AddableSituationGroup {
   id: string
@@ -110,8 +98,7 @@ function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInpu
 }
 
 function getGroupedItemsBySelection(selected: SituationId[]): CategoryGroup[] {
-  const { effectiveItems } = getEffectiveState(selected)
-  return groupByCategory(effectiveItems)
+  return groupByCategory(filterBySituations(CHECKLIST_ITEMS, selected))
 }
 
 function getScrollTargetItemIdAfterAdd(
@@ -244,10 +231,9 @@ function App() {
     setPendingRemovalEffect(null)
     if (ids.length === 0) return
 
-    const uniqueAddedIds = ids.filter((id) => !selected.includes(id))
-    if (uniqueAddedIds.length === 0) return
+    const nextSelected = Array.from(new Set([...selected, ...ids]))
+    if (nextSelected.length === selected.length) return
 
-    const nextSelected = [...selected, ...uniqueAddedIds]
     setScrollToItemId(getScrollTargetItemIdAfterAdd(selected, nextSelected))
     setSelected(nextSelected)
   }
@@ -256,37 +242,27 @@ function App() {
     const targetItem = ITEM_BY_ID.get(itemId)
     if (!targetItem) return null
 
-    const current = getEffectiveState(selected)
-    const nextSelected = selected.filter((id) => !targetItem.situations.includes(id))
-    const next = getEffectiveState(nextSelected)
-
-    const removedItemIds = Array.from(current.effectiveItemIds).filter((id) => !next.effectiveItemIds.has(id))
-    const affectedSituationIds = selected.filter((id) => targetItem.situations.includes(id))
-    const affectedSituationLabels = affectedSituationIds
-      .map((id) => SITUATION_LABEL_BY_ID.get(id) ?? id)
-    const removedItemTitles = removedItemIds
-      .map((id) => ITEM_BY_ID.get(id)?.title ?? id)
-    const hasInputLoss = removedItemIds.some((id) => hasCardData(id, cardInputMap))
+    const hasInputLoss = hasCardData(itemId, cardInputMap)
 
     return {
-      nextSelected,
-      removedItemIds,
+      itemId,
       preview: {
         itemId,
         itemTitle: targetItem.title,
-        affectedSituationLabels,
-        removedItemTitles,
         hasInputLoss,
       },
-      requiresConfirm: removedItemIds.length > 1 || hasInputLoss,
+      requiresConfirm: hasInputLoss,
     }
   }
 
   function applyRemovalEffect(effect: RemovalEffect) {
-    setSelected(effect.nextSelected)
-    setCardInputMap((prev) => omitIdsFromCardInputMap(prev, effect.removedItemIds))
-    if (effect.nextSelected.length === 0) {
-      // Keep this behavior as the canonical UX: empty checklist returns to page one.
+    const targetItem = ITEM_BY_ID.get(effect.itemId)
+    if (!targetItem) return
+    const removedSituationIds = new Set(targetItem.situations)
+    const nextSelected = selected.filter((situationId) => !removedSituationIds.has(situationId))
+    setSelected(nextSelected)
+    setCardInputMap((prev) => omitIdsFromCardInputMap(prev, [effect.itemId]))
+    if (nextSelected.length === 0) {
       setScrollToItemId(null)
       setAppState('selecting')
       saveChecklistViewState('selecting')
@@ -295,6 +271,7 @@ function App() {
   }
 
   function handleRemoveItem(itemId: string) {
+    if (NON_REMOVABLE_ITEM_IDS.has(itemId)) return
     const effect = createRemovalEffect(itemId)
     if (!effect) return
     if (!effect.requiresConfirm) {
@@ -323,9 +300,13 @@ function App() {
   }, [])
 
   const content = (() => {
-    const { effectiveItems } = getEffectiveState(selected)
+    const effectiveItems = filterBySituations(CHECKLIST_ITEMS, selected)
     const groups = groupByCategory(effectiveItems)
-    const addableSituationGroups = getAddableSituationGroups(SITUATION_GROUPS, SITUATIONS, selected)
+    const addableSituationGroups = getAddableSituationGroups(
+      SITUATION_GROUPS,
+      SITUATIONS,
+      selected,
+    )
     const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
 
     if (appState === 'results') {

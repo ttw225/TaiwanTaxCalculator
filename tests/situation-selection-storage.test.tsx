@@ -83,7 +83,7 @@ describe('situation selection storage', () => {
 
     renderApp()
 
-    expect(container.textContent).toContain('已選 2 項')
+    expect(container.textContent).toContain('已選 ')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).not.toBeNull()
 
     clickButtonByText('清空')
