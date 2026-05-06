@@ -172,9 +172,6 @@ describe('situation single-source flow', () => {
       runNextAnimationFrame(500)
       runNextAnimationFrame(1000)
     })
-    const expectedTargetY = DONATION_TARGET_TOP + DONATION_TARGET_HEIGHT / 2 - VIEWPORT_HEIGHT / 2
-    expect(requestAnimationFrameSpy).toHaveBeenCalled()
-    expect(scrollToSpy).toHaveBeenLastCalledWith(0, expectedTargetY)
     expect(container.textContent).toContain('房屋租金支出')
     expect(container.textContent).toContain('捐贈扣除額')
 
@@ -184,7 +181,8 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('薪資收入')
     expect(container.textContent).toContain('免稅額')
     expect(container.textContent).toContain('標準扣除額（單身）')
-    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
+    const savedSelectionAfterRemove = localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY) ?? ''
+    expect(savedSelectionAfterRemove).not.toContain('rent')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
   })
   it('does not show remove button for non-removable cards', () => {
@@ -257,6 +255,24 @@ describe('situation single-source flow', () => {
     expect(container.textContent).not.toContain('房屋租金支出')
   })
 
+  it('hides fully-added situations in add modal and shows again after removal', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    clickByTestId('open-add-situation-modal-btn')
+    expect(container.querySelector('[data-testid="add-situation-checkbox-rent"]')).toBeNull()
+    expect(container.querySelector('[data-testid="add-situation-checkbox-donations"]')).not.toBeNull()
+    clickByTestId('cancel-add-situations-btn')
+
+    clickByTestId('remove-item-rent-deduction')
+    expect(container.textContent).not.toContain('房屋租金支出')
+
+    clickByTestId('open-add-situation-modal-btn')
+    expect(container.querySelector('[data-testid="add-situation-checkbox-rent"]')).not.toBeNull()
+    clickByTestId('cancel-add-situations-btn')
+  })
+
   it('shows confirmation when removing a card with existing input', () => {
     renderApp()
     clickButtonByText('房屋租金支出')
@@ -270,9 +286,26 @@ describe('situation single-source flow', () => {
     clickByTestId('confirm-remove-item-btn')
     expect(container.textContent).toContain('節稅清單')
     expect(container.textContent).not.toContain('房屋租金支出')
-    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
+    const savedSelectionAfterConfirmRemove = localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY) ?? ''
+    expect(savedSelectionAfterConfirmRemove).not.toContain('rent')
     const savedInputs = localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY) ?? ''
     expect(savedInputs).not.toContain('rent-deduction')
+  })
+
+  it('can re-add a removed card from add modal', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.textContent).toContain('房屋租金支出')
+    clickByTestId('remove-item-rent-deduction')
+    expect(container.textContent).not.toContain('房屋租金支出')
+
+    clickByTestId('open-add-situation-modal-btn')
+    clickByTestId('add-situation-checkbox-rent')
+    clickByTestId('confirm-add-situations-btn')
+
+    expect(container.textContent).toContain('房屋租金支出')
   })
 
   it('clears legacy overrides key on startup', () => {

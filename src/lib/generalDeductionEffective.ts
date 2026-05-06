@@ -10,6 +10,15 @@ export const ITEMIZED_ITEM_IDS = new Set<string>([
   'mortgage-interest-deduction',
 ])
 
+export interface ItemizedCalcContext {
+  /** Gross income total (used for the 20% donation cap). */
+  grossIncomeAmount: number | null
+  /** Whether the savings-investment deduction card is enabled (present in checklist). */
+  savingsInvestmentEnabled: boolean
+  /** Capped savings-investment deduction amount; null means enabled but still unfilled. */
+  savingsInvestmentDeductionAmount: number | null
+}
+
 export function parseNum(raw: string): number | null {
   if (raw.trim() === '') return null
   const n = Number(raw.replace(/,/g, ''))
@@ -20,10 +29,29 @@ export function parseNum(raw: string): number | null {
 export function getItemizedItemAmount(
   itemId: string,
   inputs: Record<string, string>,
+  context?: Partial<ItemizedCalcContext>,
 ): number | null {
+  const ctx: ItemizedCalcContext = {
+    grossIncomeAmount: null,
+    savingsInvestmentEnabled: false,
+    savingsInvestmentDeductionAmount: null,
+    ...context,
+  }
   switch (itemId) {
-    case 'donations-deduction':
-      return parseNum(inputs['donation_amount'] ?? '')
+    case 'donations-deduction': {
+      const qualifiedRaw = inputs['donation_amount_qualified'] ?? ''
+      const governmentRaw = inputs['donation_amount_government'] ?? ''
+
+      if (qualifiedRaw.trim() === '' && governmentRaw.trim() === '') return null
+
+      const qualified = qualifiedRaw.trim() !== '' ? parseNum(qualifiedRaw) : 0
+      const government = governmentRaw.trim() !== '' ? parseNum(governmentRaw) : 0
+      if (qualified === null || government === null) return null
+
+      if (qualified > 0 && ctx.grossIncomeAmount === null) return null
+      const qualifiedCap = ctx.grossIncomeAmount === null ? 0 : ctx.grossIncomeAmount * 0.2
+      return government + Math.min(qualified, qualifiedCap)
+    }
 
     case 'insurance-deduction': {
       const personal = inputs['insurance_personal_amount'] ?? ''
@@ -41,7 +69,15 @@ export function getItemizedItemAmount(
     case 'mortgage-interest-deduction': {
       const raw = parseNum(inputs['mortgage_interest_amount'] ?? '')
       if (raw === null) return null
-      return Math.min(raw, getNumber('itemized_deduction_mortgage_interest'))
+      const cap = getNumber('itemized_deduction_mortgage_interest')
+
+      if (!ctx.savingsInvestmentEnabled) {
+        return Math.min(raw, cap)
+      }
+
+      const savingsDeduction = ctx.savingsInvestmentDeductionAmount ?? 0
+      const remaining = Math.max(0, raw - savingsDeduction)
+      return Math.min(remaining, cap)
     }
 
     default:
@@ -58,6 +94,7 @@ export function resolveGeneralDeduction(
   groups: CategoryGroup[],
   cardInputMap: CardInputMap,
   isMarriedFiling: boolean,
+  context?: Partial<ItemizedCalcContext>,
 ): GeneralDeductionResolution {
   const standardKey = isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single'
   const standard = getNumber(standardKey)
@@ -72,7 +109,7 @@ export function resolveGeneralDeduction(
 
   let sum = 0
   for (const item of presentItems) {
-    const line = getItemizedItemAmount(item.id, cardInputMap[item.id] ?? {})
+    const line = getItemizedItemAmount(item.id, cardInputMap[item.id] ?? {}, context)
     if (line === null) {
       return { status: 'pending_itemized' }
     }

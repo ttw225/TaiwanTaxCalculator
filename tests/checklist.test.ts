@@ -420,7 +420,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '500000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -445,7 +445,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '500000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -461,7 +461,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '131000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '131000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -479,7 +479,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '100000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '100000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -497,7 +497,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '500000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -514,7 +514,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
         groups,
         totalSelected: 1,
         selectedSituations: ['donations'],
-        cardInputMap: { 'donations-deduction': { donation_amount: '131000' } },
+        cardInputMap: { 'donations-deduction': { donation_amount_government: '131000' } },
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -817,7 +817,7 @@ describe('DeductionCard inline input fields', () => {
   }
 
   const noCapField: CardInlineField = {
-    id: 'donation_amount',
+    id: 'donation_amount_government',
     label: '捐贈金額',
     type: 'number',
     unit: '元',
@@ -885,7 +885,7 @@ describe('DeductionCard inline input fields', () => {
       createElement(DeductionCard, {
         item: makeItem(),
         inlineFields: [noCapField],
-        inputValues: { donation_amount: '50000' },
+        inputValues: { donation_amount_government: '50000' },
       }),
     )
     expect(html).not.toContain('填入金額在可申報範圍內')

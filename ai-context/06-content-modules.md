@@ -67,9 +67,11 @@ Logic and inputs live in [`src/lib/decisions.ts`](../src/lib/decisions.ts) and [
 | Checklist item id | Field `id` | `capKey` |
 |-------------------|------------|----------|
 | `mortgage-interest-deduction` | `mortgage_interest_amount` | `null` |
-| `rent-deduction` | `rent_amount` | `null` |
+| `rent-deduction` | `rent_amount` | `special_deduction_rent` |
 | `medical-deduction` | `medical_amount` | `null` |
-| `donations-deduction` | `donation_amount` | `null` |
+| `donations-deduction` | `donation_amount_qualified` | `null` |
+| `donations-deduction` | `donation_amount_government` | `null` |
+| `savings-investment-deduction` | `savings_investment_amount` | `special_deduction_savings_investment` |
 
 All fields: `type: 'number'`, `unit: '元'`.
 

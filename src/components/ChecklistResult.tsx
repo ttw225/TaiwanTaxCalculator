@@ -7,7 +7,7 @@ import type {
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
-import { resolveGeneralDeduction } from '../lib/generalDeductionEffective'
+import { resolveGeneralDeduction, type ItemizedCalcContext } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
@@ -348,22 +348,6 @@ export function ChecklistResult({
     return under70 * getNumber('exemption_general') + over70 * getNumber('exemption_senior_70')
   }, [cardInputMap])
 
-  const generalDeductionResolved = useMemo(
-    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling),
-    [groups, cardInputMap, isMarriedFiling],
-  )
-
-  const generalDeductionAmount =
-    generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
-  const generalDeductionMethod =
-    generalDeductionResolved.status === 'pending_itemized'
-      ? null
-      : generalDeductionResolved.status === 'standard_only' || generalDeductionAmount === null
-        ? 'standard'
-        : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
-            ? 'itemized'
-            : 'standard')
-
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
 
@@ -431,6 +415,44 @@ export function ChecklistResult({
     if (grossIncomeFormulaItems.some((item) => item.amount === null)) return null
     return grossIncomeFormulaItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
   }, [grossIncomeFormulaItems])
+
+  const savingsInvestmentEnabled = useMemo(() => {
+    const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
+    return (specialDeductionGroup?.items ?? []).some((i) => i.id === 'savings-investment-deduction')
+  }, [groups])
+
+  const savingsInvestmentDeductionAmount = useMemo(() => {
+    if (!savingsInvestmentEnabled) return null
+    return getSpecialDeductionItemAmount(
+      'savings-investment-deduction',
+      cardInputMap['savings-investment-deduction'] ?? {},
+    )
+  }, [cardInputMap, savingsInvestmentEnabled])
+
+  const itemizedContext: Partial<ItemizedCalcContext> = useMemo(
+    () => ({
+      grossIncomeAmount,
+      savingsInvestmentEnabled,
+      savingsInvestmentDeductionAmount,
+    }),
+    [grossIncomeAmount, savingsInvestmentEnabled, savingsInvestmentDeductionAmount],
+  )
+
+  const generalDeductionResolved = useMemo(
+    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling, itemizedContext),
+    [groups, cardInputMap, isMarriedFiling, itemizedContext],
+  )
+
+  const generalDeductionAmount =
+    generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
+  const generalDeductionMethod =
+    generalDeductionResolved.status === 'pending_itemized'
+      ? null
+      : generalDeductionResolved.status === 'standard_only' || generalDeductionAmount === null
+        ? 'standard'
+        : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
+            ? 'itemized'
+            : 'standard')
 
   function handleScrollToSection(categoryId: string) {
     const el = sectionRefs.current[categoryId as CategoryId]
@@ -562,6 +584,7 @@ export function ChecklistResult({
                     groups={groups}
                     selectedSituations={selectedSituations}
                     cardInputMap={cardInputMap}
+                    itemizedContext={itemizedContext}
                   />
                 )}
                 {(() => {
