@@ -1,4 +1,4 @@
-import type { CardInlineField, ChecklistItem } from '../types/content'
+import type { CardInlineFeedbackContext, CardInlineField, ChecklistItem } from '../types/content'
 import { ChecklistCardShell } from './checklist/ChecklistCardShell'
 import { ChecklistInlineAmountFields } from './checklist/ChecklistInlineAmountFields'
 
@@ -6,6 +6,7 @@ interface Props {
   item: ChecklistItem
   inlineFields?: CardInlineField[]
   inputValues?: Record<string, string>
+  feedbackContext?: Partial<CardInlineFeedbackContext>
   sourceSituationLabels?: string[]
   removable?: boolean
   onInputChange?: (fieldId: string, value: string) => void
@@ -16,6 +17,7 @@ export function DeductionCard({
   item,
   inlineFields = [],
   inputValues = {},
+  feedbackContext,
   sourceSituationLabels = [],
   removable = false,
   onInputChange,
@@ -32,6 +34,7 @@ export function DeductionCard({
         itemId={item.id}
         inlineFields={inlineFields}
         inputValues={inputValues}
+        feedbackContext={feedbackContext}
         onInputChange={onInputChange}
       />
     </ChecklistCardShell>

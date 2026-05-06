@@ -1,10 +1,64 @@
-import type { CardInlineField } from '../../types/content'
+import type { ReactNode } from 'react'
+import type { CardInlineFeedbackContext, CardInlineField } from '../../types/content'
 import { getNumber } from '../../lib/numbers'
 
-function InlineFeedback({ field, value }: { field: CardInlineField; value: string }) {
-  if (!value) return null
+function parseAmount(value: string) {
+  const amount = Number(value.replace(/,/g, ''))
+  return Number.isFinite(amount) ? amount : null
+}
+
+function formatAmount(value: number) {
+  return Math.round(value).toLocaleString('zh-TW')
+}
+
+function CapFeedback({
+  value,
+  cap,
+  children,
+}: {
+  value: number
+  cap: number
+  children?: ReactNode
+}) {
+  const formatted = formatAmount(cap)
+  if (value <= cap) {
+    return (
+      <p className="mt-1 text-base text-green-700">
+        可申報上限為 {formatted} 元
+        {children}
+      </p>
+    )
+  }
+  return (
+    <p className="mt-1 text-base text-red-700">
+      可申報上限為 {formatted} 元，超過上限時以上限試算
+      {children}
+    </p>
+  )
+}
+
+function CapHint({ cap, children }: { cap: number; children?: ReactNode }) {
+  return (
+    <p className="mt-1 text-base text-blue-700">
+      可申報上限為 {formatAmount(cap)} 元
+      {children}
+    </p>
+  )
+}
+
+function InlineFeedback({
+  field,
+  value,
+  feedbackContext,
+}: {
+  field: CardInlineField
+  value: string
+  feedbackContext?: Partial<CardInlineFeedbackContext>
+}) {
+  const hasValue = value.trim() !== ''
 
   if (field.splitPerUnitKeys) {
+    if (!hasValue) return null
     const count = Math.floor(Number(value))
     if (!Number.isFinite(count) || count <= 0) return null
     let firstRate: number, additionalRate: number
@@ -28,6 +82,7 @@ function InlineFeedback({ field, value }: { field: CardInlineField; value: strin
   }
 
   if (field.perUnitKey) {
+    if (!hasValue) return null
     const count = Number(value)
     if (!Number.isFinite(count) || count <= 0) return null
     let perUnit: number
@@ -45,10 +100,79 @@ function InlineFeedback({ field, value }: { field: CardInlineField; value: strin
     )
   }
 
-  if (!field.capKey) return null
-  const numVal = Number(value.replace(/,/g, ''))
-  if (isNaN(numVal) || numVal <= 0) return null
+  if (field.feedbackRule === 'unlimited') {
+    if (!hasValue) {
+      return (
+        <p className="mt-1 text-base text-blue-700">
+          此類捐贈無金額上限
+        </p>
+      )
+    }
+    const numVal = parseAmount(value)
+    if (numVal === null || numVal <= 0) return null
+    return (
+      <p className="mt-1 text-base text-green-700">
+        此類捐贈無金額上限
+      </p>
+    )
+  }
 
+  if (field.feedbackRule === 'qualified-donation') {
+    const grossIncomeAmount = feedbackContext?.grossIncomeAmount ?? null
+    if (grossIncomeAmount === null) {
+      return (
+        <p className="mt-1 text-base text-orange-700">
+          需先填寫綜合所得總額，才能計算一般捐贈上限
+        </p>
+      )
+    }
+    const cap = grossIncomeAmount * 0.2
+    if (!hasValue) {
+      return (
+        <CapHint cap={cap}>
+          （綜合所得總額 20%）
+        </CapHint>
+      )
+    }
+    const numVal = parseAmount(value)
+    if (numVal === null || numVal <= 0) return null
+    return <CapFeedback value={numVal} cap={cap} />
+  }
+
+  if (field.feedbackRule === 'mortgage-interest') {
+    let cap: number
+    try {
+      cap = getNumber('itemized_deduction_mortgage_interest')
+    } catch {
+      return null
+    }
+
+    const savingsDeduction = feedbackContext?.savingsInvestmentEnabled
+      ? (feedbackContext.savingsInvestmentDeductionAmount ?? 0)
+      : 0
+    if (!hasValue) {
+      return (
+        <CapHint cap={cap}>
+          {feedbackContext?.savingsInvestmentEnabled ? (
+            <>；須先扣除儲蓄投資扣除額</>
+          ) : null}
+        </CapHint>
+      )
+    }
+    const numVal = parseAmount(value)
+    if (numVal === null || numVal <= 0) return null
+    const eligibleAmount = Math.max(0, numVal - savingsDeduction)
+
+    return (
+      <CapFeedback value={eligibleAmount} cap={cap}>
+        {savingsDeduction > 0 ? (
+          <>；扣除儲蓄投資扣除額後為 {formatAmount(eligibleAmount)} 元</>
+        ) : null}
+      </CapFeedback>
+    )
+  }
+
+  if (!field.capKey) return null
   let cap: number
   try {
     cap = getNumber(field.capKey)
@@ -56,25 +180,19 @@ function InlineFeedback({ field, value }: { field: CardInlineField; value: strin
     return null
   }
 
-  const formatted = cap.toLocaleString('zh-TW')
-  if (numVal <= cap) {
-    return (
-      <p className="mt-1 text-base text-green-700">
-        填入金額在可申報範圍內（上限 {formatted} 元）
-      </p>
-    )
-  }
-  return (
-    <p className="mt-1 text-base text-orange-700">
-      填入金額超過上限；可申報上限為 {formatted} 元
-    </p>
-  )
+  if (!hasValue) return <CapHint cap={cap} />
+
+  const numVal = parseAmount(value)
+  if (numVal === null || numVal <= 0) return null
+
+  return <CapFeedback value={numVal} cap={cap} />
 }
 
 export interface ChecklistInlineAmountFieldsProps {
   itemId: string
   inlineFields: CardInlineField[]
   inputValues: Record<string, string>
+  feedbackContext?: Partial<CardInlineFeedbackContext>
   onInputChange?: (fieldId: string, value: string) => void
 }
 
@@ -82,6 +200,7 @@ export function ChecklistInlineAmountFields({
   itemId,
   inlineFields,
   inputValues,
+  feedbackContext,
   onInputChange,
 }: ChecklistInlineAmountFieldsProps) {
   if (inlineFields.length === 0) return null
@@ -110,7 +229,11 @@ export function ChecklistInlineAmountFields({
             />
             <span className="text-base text-gray-500">{field.unit}</span>
           </div>
-          <InlineFeedback field={field} value={inputValues[field.id] ?? ''} />
+          <InlineFeedback
+            field={field}
+            value={inputValues[field.id] ?? ''}
+            feedbackContext={feedbackContext}
+          />
         </div>
       ))}
       <div className="border-t border-blue-100 pt-2">

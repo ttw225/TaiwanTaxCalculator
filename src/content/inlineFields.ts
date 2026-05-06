@@ -8,6 +8,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       type: 'number',
       unit: '元',
       capKey: null,
+      feedbackRule: 'mortgage-interest',
     },
   ],
   'rent-deduction': [
@@ -35,6 +36,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       type: 'number',
       unit: '元',
       capKey: null,
+      feedbackRule: 'qualified-donation',
     },
     {
       id: 'donation_amount_government',
@@ -42,6 +44,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       type: 'number',
       unit: '元',
       capKey: null,
+      feedbackRule: 'unlimited',
     },
   ],
   'insurance-deduction': [

@@ -627,6 +627,7 @@ export function ChecklistResult({
                           item={item}
                           inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
                           inputValues={cardInputMap[item.id] ?? {}}
+                          feedbackContext={itemizedContext}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
                           removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
