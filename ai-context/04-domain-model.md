@@ -33,7 +33,7 @@ export interface Situation {
 ```
 
 - Labels/descriptions are **zh-TW** in [`src/content/deductions.ts`](../src/content/deductions.ts).
-- There is **no** separate `single` situation; single filer standard deduction is tied to `salary_income` on a specific checklist item ([`06-content-modules.md`](./06-content-modules.md)).
+- There is **no** separate `single` situation; the checklist engine adds the single-filer standard deduction as a result-page baseline item whenever `married` is not selected ([`08-checklist-engine.md`](./08-checklist-engine.md)).
 
 ## Situation groups (UI grouping only)
 
@@ -89,6 +89,7 @@ export interface ChecklistItem {
 ```
 
 - **`situations`**: Item is eligible if **any** selected situation matches, with the special married rule applied in the checklist engine ([`08-checklist-engine.md`](./08-checklist-engine.md)).
+- Baseline items (`exemption-general`, `standard-deduction-single`, `standard-deduction-married`) use `situations: []`; the checklist engine injects the correct baseline set whenever the selection is non-empty.
 
 ## Card inline fields
 

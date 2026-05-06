@@ -38,7 +38,7 @@ describe('filterBySituations', () => {
     expect(filterBySituations(published, [])).toHaveLength(0)
   })
 
-  it('salary_income returns exemption, standard deduction, and salary special deduction', () => {
+  it('salary_income returns baseline items plus gross income', () => {
     const items = filterBySituations(published, ['salary_income'])
     const ids = items.map((i) => i.id)
     expect(ids).toContain('exemption-general')
@@ -46,10 +46,12 @@ describe('filterBySituations', () => {
     expect(ids).toContain('gross-income')
   })
 
-  it('married returns married standard deduction', () => {
+  it('married returns exemption and married standard deduction', () => {
     const items = filterBySituations(published, ['married'])
     const ids = items.map((i) => i.id)
+    expect(ids).toContain('exemption-general')
     expect(ids).toContain('standard-deduction-married')
+    expect(ids).not.toContain('standard-deduction-single')
   })
 
   it('married with salary_income does not return single standard deduction', () => {
@@ -68,6 +70,8 @@ describe('filterBySituations', () => {
   it('rent returns rent deduction item', () => {
     const items = filterBySituations(published, ['rent'])
     const ids = items.map((i) => i.id)
+    expect(ids).toContain('exemption-general')
+    expect(ids).toContain('standard-deduction-single')
     expect(ids).toContain('rent-deduction')
   })
 
@@ -77,10 +81,11 @@ describe('filterBySituations', () => {
     expect(ids).toContain('overseas-income-amt')
   })
 
-  it('any income source returns the merged exemption item', () => {
-    for (const id of ['salary_income', 'dividends', 'overseas_income'] as const) {
+  it('any non-empty situation returns baseline exemption and standard deduction', () => {
+    for (const id of ['rent', 'donations', 'salary_income', 'dividends', 'overseas_income'] as const) {
       const ids = filterBySituations(published, [id]).map((i) => i.id)
       expect(ids).toContain('exemption-general')
+      expect(ids).toContain('standard-deduction-single')
     }
   })
 

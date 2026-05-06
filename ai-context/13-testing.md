@@ -16,15 +16,16 @@
 | [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` |
 | [`tests/decision-tools.test.tsx`](../tests/decision-tools.test.tsx) | `DecisionToolsPanel` visibility vs selected situations |
 | [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, App clear integration |
-| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, active-item-driven add/remove, non-removable cards, remove dialog, legacy key removal |
+| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, selection-driven add/remove, non-removable cards, remove dialog, legacy key removal |
 | [`tests/back-to-top-button.test.tsx`](../tests/back-to-top-button.test.tsx) | `BackToTopButton` threshold, scroll animation vs reduced motion |
 | [`tests/schema-fixture.ts`](../tests/schema-fixture.ts) | **Compile-only** `ChecklistItem` fixture for `pnpm typecheck`; **not** picked up by Vitest `include` |
 
 ## Representative invariants
 
-- **Married + salary**: `standard-deduction-single` excluded when `married` selected.
+- **Baseline items**: every non-empty selection includes `exemption-general` plus the correct standard deduction card.
+- **Married selection**: `standard-deduction-single` excluded when `married` selected.
 - **Card removal**: remove action deletes only the target active card (non-removable cards excluded) and clears that card input data.
-- **Add modal (strict addable)**: situations fully represented by current active cards are hidden; after removing a related card, that situation becomes addable again.
+- **Add modal**: selected situations are omitted; after removing a related card, that situation becomes addable again.
 - **Non-removable cards**: exemption + standard deduction cards never render remove buttons.
 - **Remove dialog copy**: title includes the item title (`確認移除此項目：...`); body uses item-aware copy (`將清除「{itemTitle}」已填寫的資料。`) and follow-up hint (`您可以隨時加回此項目`).
 - **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.

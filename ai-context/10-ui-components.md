@@ -59,10 +59,10 @@ interface Props {
 - Root uses `print-container` for print layout.
 - Layout: `max-w-4xl` with `lg:grid lg:grid-cols-[1fr_260px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
 - Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
-- Add-situation modal is strict-addable: it only lists situations that can add at least one card not currently in `activeItemIds` (joined items are hidden).
+- Add-situation modal lists situations not currently present in `selected`.
 - Card routing: `item.id === 'gross-income'` → renders `GrossIncomeCard`; all others → `DeductionCard`.
 - Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married` (no `×` button).
-- Card visibility is driven by `activeItemIds` in `App.tsx` (single source), not a hidden/dismissed overlay list.
+- Result cards are derived from `filterBySituations(CHECKLIST_ITEMS, selected)`.
 - Remove dialog is single-card scoped. Copy contract:
   - Title: `確認移除此項目：{itemTitle}`
   - Body:

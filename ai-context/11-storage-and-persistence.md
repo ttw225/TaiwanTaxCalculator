@@ -43,7 +43,7 @@ interface SavedSituationSelection { selected: SituationId[] }
 
 ## Cross-tab sync
 
-[`src/App.tsx`](../src/App.tsx) listens to `window` `storage` events for `SITUATION_SELECTION_STORAGE_KEY`; updates `selected` from `parseSavedSituationSelection(event.newValue, SITUATION_IDS)`, then rebuilds `activeItemIds` from the synced selection. If synced selection empty → `appState` `'selecting'`.
+[`src/App.tsx`](../src/App.tsx) listens to `window` `storage` events for `SITUATION_SELECTION_STORAGE_KEY`; updates `selected` from `parseSavedSituationSelection(event.newValue, SITUATION_IDS)`. Result cards are derived from the synced selection. If synced selection empty → `appState` `'selecting'`.
 
 ## Legacy key cleanup
 

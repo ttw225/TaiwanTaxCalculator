@@ -14,9 +14,9 @@ Reused constants (`SRC_ITA`, `SRC_MOF`, `SRC_MANUAL`, `SRC_TAX_SAVING_MANUAL`, `
 
 | `id` | `category` | `situations` |
 |------|--------------|--------------|
-| `exemption-general` | `exemptions` | `salary_income`, `dividends`, `overseas_income` |
-| `standard-deduction-single` | `general_deductions` | `salary_income` |
-| `standard-deduction-married` | `general_deductions` | `married` |
+| `exemption-general` | `exemptions` | baseline (`[]`) |
+| `standard-deduction-single` | `general_deductions` | baseline (`[]`) |
+| `standard-deduction-married` | `general_deductions` | baseline (`[]`) |
 | `donations-deduction` | `general_deductions` | `donations` |
 | `insurance-deduction` | `general_deductions` | `insurance` |
 | `medical-deduction` | `general_deductions` | `medical_expenses` |
@@ -32,6 +32,8 @@ Reused constants (`SRC_ITA`, `SRC_MOF`, `SRC_MANUAL`, `SRC_TAX_SAVING_MANUAL`, `
 | `rent-deduction` | `special_deductions` | `rent` |
 
 Dynamic prose in `why_it_matters` / eligibility hints uses local helpers backed by `numbers.ts` (e.g. `getNumber(...).toLocaleString('zh-TW')` and `getValidYear()`).
+
+Baseline items are not triggered by first-page situations. When `selected.length > 0`, the checklist engine always includes `exemption-general` plus one standard deduction card: `standard-deduction-married` when `married` is selected, otherwise `standard-deduction-single`.
 
 ### `SITUATIONS`
 

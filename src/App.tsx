@@ -40,11 +40,6 @@ const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
 
 type AppState = 'selecting' | 'results'
 
-interface EffectiveState {
-  effectiveItemIds: Set<string>
-  effectiveItems: ChecklistItem[]
-}
-
 interface RemovalEffect {
   itemId: string
   preview: RemovalImpactPreview
@@ -57,26 +52,6 @@ const NON_REMOVABLE_ITEM_IDS = new Set([
   'standard-deduction-married',
 ])
 
-function getEffectiveState(
-  selected: SituationId[],
-): EffectiveState {
-  const filteredBySituations = filterBySituations(CHECKLIST_ITEMS, selected)
-  const effectiveItemIds = new Set(filteredBySituations.map((item) => item.id))
-
-  return {
-    effectiveItemIds,
-    effectiveItems: CHECKLIST_ITEMS.filter((item) => effectiveItemIds.has(item.id)),
-  }
-}
-
-function getActiveItemIdsFromSelectedSituations(selected: SituationId[]): Set<string> {
-  return getEffectiveState(selected).effectiveItemIds
-}
-
-function getActiveItems(activeItemIds: Set<string>): ChecklistItem[] {
-  return CHECKLIST_ITEMS.filter((item) => activeItemIds.has(item.id))
-}
-
 interface AddableSituationGroup {
   id: string
   title: string
@@ -88,19 +63,13 @@ function getAddableSituationGroups(
   groups: SituationGroup[],
   situations: Situation[],
   selected: SituationId[],
-  activeItemIds: Set<string>,
 ): AddableSituationGroup[] {
   const selectedSet = new Set(selected)
   const situationMap = new Map(situations.map((s) => [s.id, s]))
   return groups
     .map((group) => {
       const addable = group.situationIds
-        .filter((id) => {
-          const nextSelected = selectedSet.has(id) ? selected : [...selected, id]
-          const nextActiveItemIds = getActiveItemIdsFromSelectedSituations(nextSelected)
-          const hasMissingItem = Array.from(nextActiveItemIds).some((itemId) => !activeItemIds.has(itemId))
-          return hasMissingItem && !selectedSet.has(id)
-        })
+        .filter((id) => !selectedSet.has(id))
         .map((id) => situationMap.get(id))
         .filter((s): s is Situation => Boolean(s))
       return {
@@ -128,16 +97,16 @@ function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInpu
   return next
 }
 
-function getGroupedItemsByActiveItemIds(activeItemIds: Set<string>): CategoryGroup[] {
-  return groupByCategory(getActiveItems(activeItemIds))
+function getGroupedItemsBySelection(selected: SituationId[]): CategoryGroup[] {
+  return groupByCategory(filterBySituations(CHECKLIST_ITEMS, selected))
 }
 
 function getScrollTargetItemIdAfterAdd(
-  currentActiveItemIds: Set<string>,
-  nextActiveItemIds: Set<string>,
+  currentSelected: SituationId[],
+  nextSelected: SituationId[],
 ): string | null {
-  const currentGroups = getGroupedItemsByActiveItemIds(currentActiveItemIds)
-  const nextGroups = getGroupedItemsByActiveItemIds(nextActiveItemIds)
+  const currentGroups = getGroupedItemsBySelection(currentSelected)
+  const nextGroups = getGroupedItemsBySelection(nextSelected)
 
   const currentItemIdSet = new Set(currentGroups.flatMap((group) => group.items.map((item) => item.id)))
   const nextItemsInRenderOrder = nextGroups.flatMap((group) => group.items)
@@ -178,7 +147,6 @@ function getItemSourceSituationLabelsById(
 
 function App() {
   const [selected, setSelected] = useState<SituationId[]>(() => loadSavedSituationSelection(SITUATION_IDS))
-  const [activeItemIds, setActiveItemIds] = useState<Set<string>>(() => getActiveItemIdsFromSelectedSituations(loadSavedSituationSelection(SITUATION_IDS)))
   const [appState, setAppState] = useState<AppState>(() => {
     const savedViewState = loadSavedChecklistViewState()
     const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
@@ -211,7 +179,6 @@ function App() {
       if (event.key === SITUATION_SELECTION_STORAGE_KEY) {
         const syncedSelection = parseSavedSituationSelection(event.newValue, SITUATION_IDS)
         setSelected(syncedSelection)
-        setActiveItemIds(getActiveItemIdsFromSelectedSituations(syncedSelection))
         if (syncedSelection.length === 0) {
           setAppState('selecting')
           saveChecklistViewState('selecting')
@@ -225,20 +192,13 @@ function App() {
 
   function toggleSituation(id: SituationId) {
     setPendingRemovalEffect(null)
-    setSelected((prev) => {
-      const nextSelected = prev.includes(id)
-        ? prev.filter((s) => s !== id)
-        : [...prev, id]
-      if (appState === 'selecting') {
-        setActiveItemIds(getActiveItemIdsFromSelectedSituations(nextSelected))
-      }
-      return nextSelected
-    })
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+    )
   }
 
   function handleGenerate() {
     if (selected.length > 0) {
-      setActiveItemIds(getActiveItemIdsFromSelectedSituations(selected))
       setScrollToItemId(null)
       setAppState('results')
       saveChecklistViewState('results')
@@ -248,7 +208,6 @@ function App() {
 
   function resetChecklistState() {
     setSelected([])
-    setActiveItemIds(new Set())
     setAppState('selecting')
     setCardInputMap({})
     setPendingRemovalEffect(null)
@@ -273,13 +232,10 @@ function App() {
     if (ids.length === 0) return
 
     const nextSelected = Array.from(new Set([...selected, ...ids]))
-    const nextActiveItemIds = getActiveItemIdsFromSelectedSituations(nextSelected)
-    const hasAddedItems = Array.from(nextActiveItemIds).some((itemId) => !activeItemIds.has(itemId))
-    if (!hasAddedItems) return
+    if (nextSelected.length === selected.length) return
 
-    setScrollToItemId(getScrollTargetItemIdAfterAdd(activeItemIds, nextActiveItemIds))
+    setScrollToItemId(getScrollTargetItemIdAfterAdd(selected, nextSelected))
     setSelected(nextSelected)
-    setActiveItemIds(nextActiveItemIds)
   }
 
   function createRemovalEffect(itemId: string): RemovalEffect | null {
@@ -300,17 +256,18 @@ function App() {
   }
 
   function applyRemovalEffect(effect: RemovalEffect) {
-    setActiveItemIds((prev) => {
-      const next = new Set(prev)
-      next.delete(effect.itemId)
-      setSelected((currentSelected) =>
-        currentSelected.filter((situationId) =>
-          CHECKLIST_ITEMS.some((item) => next.has(item.id) && item.situations.includes(situationId)),
-        ),
-      )
-      return next
-    })
+    const targetItem = ITEM_BY_ID.get(effect.itemId)
+    if (!targetItem) return
+    const removedSituationIds = new Set(targetItem.situations)
+    const nextSelected = selected.filter((situationId) => !removedSituationIds.has(situationId))
+    setSelected(nextSelected)
     setCardInputMap((prev) => omitIdsFromCardInputMap(prev, [effect.itemId]))
+    if (nextSelected.length === 0) {
+      setScrollToItemId(null)
+      setAppState('selecting')
+      saveChecklistViewState('selecting')
+      window.scrollTo(0, 0)
+    }
   }
 
   function handleRemoveItem(itemId: string) {
@@ -343,13 +300,12 @@ function App() {
   }, [])
 
   const content = (() => {
-    const effectiveItems = getActiveItems(activeItemIds)
+    const effectiveItems = filterBySituations(CHECKLIST_ITEMS, selected)
     const groups = groupByCategory(effectiveItems)
     const addableSituationGroups = getAddableSituationGroups(
       SITUATION_GROUPS,
       SITUATIONS,
       selected,
-      activeItemIds,
     )
     const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
 
