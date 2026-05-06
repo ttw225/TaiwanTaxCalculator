@@ -16,13 +16,15 @@
 | [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` |
 | [`tests/decision-tools.test.tsx`](../tests/decision-tools.test.tsx) | `DecisionToolsPanel` visibility vs selected situations |
 | [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, App clear integration |
-| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, remove dialog, multi-source labels, legacy key removal |
+| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, independent card removal, non-removable cards, remove dialog, legacy key removal |
 | [`tests/back-to-top-button.test.tsx`](../tests/back-to-top-button.test.tsx) | `BackToTopButton` threshold, scroll animation vs reduced motion |
 | [`tests/schema-fixture.ts`](../tests/schema-fixture.ts) | **Compile-only** `ChecklistItem` fixture for `pnpm typecheck`; **not** picked up by Vitest `include` |
 
 ## Representative invariants
 
 - **Married + salary**: `standard-deduction-single` excluded when `married` selected.
+- **Card removal**: remove action hides only the target card and does not mutate selected situations.
+- **Non-removable cards**: exemption + standard deduction cards never render remove buttons.
 - **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.
 - **Situations**: count **14**; every `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals all ids, no duplicates, fixed subgroup ordering tests.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.

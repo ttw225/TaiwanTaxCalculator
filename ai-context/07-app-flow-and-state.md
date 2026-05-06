@@ -28,6 +28,7 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 | `selected` | `SituationId[]` — initialized from `loadSavedSituationSelection(SITUATION_IDS)` |
 | `cardInputMap` | `CardInputMap` — per-card field strings (updated synchronously on input) |
 | `pendingRemovalEffect` | removal confirm dialog payload or `null` |
+| `dismissedItemIds` | `Set<string>` — user-hidden cards in current checklist session |
 | `scrollToItemId` | checklist item id to scroll into view after add; cleared via `onScrollHandled` |
 
 ## Derived data (constants / maps)
@@ -46,12 +47,14 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 - **`handleClearSelections`**: empty selection, reset `cardInputMap`, clear storage, remove legacy key (see [`11-storage-and-persistence.md`](./11-storage-and-persistence.md)).
 - **`handleAddSituations(ids)`**: append unique ids; set `scrollToItemId` from `getScrollTargetItemIdAfterAdd(currentSelected, nextSelected)` (first newly visible card in render order).
 
-## Remove checklist item (and linked situations)
+## Remove checklist item (independent per card)
 
-- **`createRemovalEffect(itemId)`**: computes `nextSelected` by removing all situations attached to that item; lists co-removed items and input-loss flag.
-- **`requiresConfirm`**: `true` if more than one item removed **or** any removed item had card input.
+- Non-removable guard ids: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`.
+- **`createRemovalEffect(itemId)`**: builds a single-card preview and checks only that card for input-loss.
+- **`requiresConfirm`**: `true` only when the target card already has input data.
 - **`handleRemoveItem`**: apply immediately or set `pendingRemovalEffect`.
-- **`applyRemovalEffect`**: update selection, strip removed item ids from `cardInputMap`; if selection empty → return to `selecting`, scroll top.
+- **`applyRemovalEffect`**: add the target id into `dismissedItemIds` and clear that card's entry from `cardInputMap`.
+- Remove no longer rewrites `selected`; situation selection remains stable.
 
 ## Card input
 

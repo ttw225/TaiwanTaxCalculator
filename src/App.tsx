@@ -46,17 +46,24 @@ interface EffectiveState {
 }
 
 interface RemovalEffect {
-  nextSelected: SituationId[]
-  removedItemIds: string[]
+  itemId: string
   preview: RemovalImpactPreview
   requiresConfirm: boolean
 }
 
+const NON_REMOVABLE_ITEM_IDS = new Set([
+  'exemption-general',
+  'standard-deduction-single',
+  'standard-deduction-married',
+])
+
 function getEffectiveState(
   selected: SituationId[],
+  dismissedItemIds: Set<string> = new Set(),
 ): EffectiveState {
   const filteredBySituations = filterBySituations(CHECKLIST_ITEMS, selected)
-  const effectiveItemIds = new Set(filteredBySituations.map((item) => item.id))
+  const effectiveItems = filteredBySituations.filter((item) => !dismissedItemIds.has(item.id))
+  const effectiveItemIds = new Set(effectiveItems.map((item) => item.id))
 
   return {
     effectiveItemIds,
@@ -166,6 +173,7 @@ function App() {
     return savedViewState === 'results' && savedSelection.length > 0 ? 'results' : 'selecting'
   })
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
+  const [dismissedItemIds, setDismissedItemIds] = useState<Set<string>>(() => new Set())
 
   const [pendingRemovalEffect, setPendingRemovalEffect] = useState<RemovalEffect | null>(null)
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null)
@@ -224,6 +232,7 @@ function App() {
     setAppState('selecting')
     setCardInputMap({})
     setPendingRemovalEffect(null)
+    setDismissedItemIds(new Set())
     setScrollToItemId(null)
     clearSavedSituationSelection()
     clearSavedChecklistInputMap()
@@ -256,45 +265,26 @@ function App() {
     const targetItem = ITEM_BY_ID.get(itemId)
     if (!targetItem) return null
 
-    const current = getEffectiveState(selected)
-    const nextSelected = selected.filter((id) => !targetItem.situations.includes(id))
-    const next = getEffectiveState(nextSelected)
-
-    const removedItemIds = Array.from(current.effectiveItemIds).filter((id) => !next.effectiveItemIds.has(id))
-    const affectedSituationIds = selected.filter((id) => targetItem.situations.includes(id))
-    const affectedSituationLabels = affectedSituationIds
-      .map((id) => SITUATION_LABEL_BY_ID.get(id) ?? id)
-    const removedItemTitles = removedItemIds
-      .map((id) => ITEM_BY_ID.get(id)?.title ?? id)
-    const hasInputLoss = removedItemIds.some((id) => hasCardData(id, cardInputMap))
+    const hasInputLoss = hasCardData(itemId, cardInputMap)
 
     return {
-      nextSelected,
-      removedItemIds,
+      itemId,
       preview: {
         itemId,
         itemTitle: targetItem.title,
-        affectedSituationLabels,
-        removedItemTitles,
         hasInputLoss,
       },
-      requiresConfirm: removedItemIds.length > 1 || hasInputLoss,
+      requiresConfirm: hasInputLoss,
     }
   }
 
   function applyRemovalEffect(effect: RemovalEffect) {
-    setSelected(effect.nextSelected)
-    setCardInputMap((prev) => omitIdsFromCardInputMap(prev, effect.removedItemIds))
-    if (effect.nextSelected.length === 0) {
-      // Keep this behavior as the canonical UX: empty checklist returns to page one.
-      setScrollToItemId(null)
-      setAppState('selecting')
-      saveChecklistViewState('selecting')
-      window.scrollTo(0, 0)
-    }
+    setDismissedItemIds((prev) => new Set([...prev, effect.itemId]))
+    setCardInputMap((prev) => omitIdsFromCardInputMap(prev, [effect.itemId]))
   }
 
   function handleRemoveItem(itemId: string) {
+    if (NON_REMOVABLE_ITEM_IDS.has(itemId)) return
     const effect = createRemovalEffect(itemId)
     if (!effect) return
     if (!effect.requiresConfirm) {
@@ -323,7 +313,7 @@ function App() {
   }, [])
 
   const content = (() => {
-    const { effectiveItems } = getEffectiveState(selected)
+    const { effectiveItems } = getEffectiveState(selected, dismissedItemIds)
     const groups = groupByCategory(effectiveItems)
     const addableSituationGroups = getAddableSituationGroups(SITUATION_GROUPS, SITUATIONS, selected)
     const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)

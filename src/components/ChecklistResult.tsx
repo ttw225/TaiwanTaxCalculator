@@ -22,8 +22,6 @@ import { TaxSummaryPanel } from './TaxSummaryPanel'
 export interface RemovalImpactPreview {
   itemId: string
   itemTitle: string
-  affectedSituationLabels: string[]
-  removedItemTitles: string[]
   hasInputLoss: boolean
 }
 
@@ -87,6 +85,11 @@ const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFie
 }
 
 const FORMULA_SECTION_BOX_CLASS = 'rounded-lg border border-gray-200 px-4 py-3'
+const NON_REMOVABLE_ITEM_IDS = new Set([
+  'exemption-general',
+  'standard-deduction-single',
+  'standard-deduction-married',
+])
 
 function getSpecialDeductionItemAmount(
   itemId: string,
@@ -232,9 +235,6 @@ function RemoveImpactDialog({
   onCancel: () => void
   onConfirm: () => void
 }) {
-  const previewTitles = impact.removedItemTitles.slice(0, 3)
-  const hasMore = impact.removedItemTitles.length > previewTitles.length
-
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 p-4 no-print">
       <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white shadow-xl">
@@ -244,19 +244,16 @@ function RemoveImpactDialog({
         </div>
 
         <div className="space-y-3 px-4 py-3 text-base text-gray-600">
-          <div>
-            <p className="mb-1">會一併移除的項目（{impact.removedItemTitles.length}）：</p>
-            <ul className="list-disc space-y-0.5 pl-4 text-gray-700">
-              {previewTitles.map((title) => (
-                <li key={title}>{title}</li>
-              ))}
-              {hasMore && <li>...</li>}
-            </ul>
-          </div>
+          <p>移除後，這張卡片會從目前清單中隱藏。</p>
 
           {impact.hasInputLoss && (
             <p className="rounded border border-amber-200 bg-amber-50 px-2 py-1 text-amber-700">
               此次移除會清除已填寫的資料。
+            </p>
+          )}
+          {!impact.hasInputLoss && (
+            <p className="text-sm text-gray-500">
+              之後可透過重新計算或重新選擇情境產生新的清單。
             </p>
           )}
         </div>
@@ -607,7 +604,7 @@ export function ChecklistResult({
                           inputValues={cardInputMap[item.id] ?? {}}
                           isMarriedFiling={isMarriedFiling}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
-                          removable
+                          removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
                           onRemove={() => onRemoveItem?.(item.id)}
                         />
@@ -617,7 +614,7 @@ export function ChecklistResult({
                           inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
                           inputValues={cardInputMap[item.id] ?? {}}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
-                          removable
+                          removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
                           onRemove={() => onRemoveItem?.(item.id)}
                         />

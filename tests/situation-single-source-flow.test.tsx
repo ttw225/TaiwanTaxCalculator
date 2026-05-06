@@ -149,7 +149,7 @@ function changeInputByTestId(testId: string, value: string) {
 }
 
 describe('situation single-source flow', () => {
-  it('supports grouped situation add modal and synchronized removal', () => {
+  it('supports grouped situation add modal and removes only the target card', () => {
     renderApp()
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
@@ -178,14 +178,33 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('房屋租金支出')
     expect(container.textContent).toContain('捐贈扣除額')
 
-    clickByTestId('remove-item-standard-deduction-single')
-    expect(container.textContent).toContain('確認移除此項目')
-    expect(container.textContent).not.toContain('會取消第一頁情境')
-    clickByTestId('confirm-remove-item-btn')
-    expect(container.textContent).not.toContain('來源情境：')
+    clickByTestId('remove-item-rent-deduction')
+    expect(container.textContent).not.toContain('確認移除此項目')
+    expect(container.textContent).not.toContain('房屋租金支出')
+    expect(container.textContent).toContain('薪資收入')
+    expect(container.textContent).toContain('免稅額')
+    expect(container.textContent).toContain('標準扣除額（單身）')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
   })
+  it('does not show remove button for non-removable cards', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.querySelector('[data-testid="remove-item-exemption-general"]')).toBeNull()
+    expect(container.querySelector('[data-testid="remove-item-standard-deduction-single"]')).toBeNull()
+  })
+
+  it('keeps non-removable standard deduction hidden in married mode too', () => {
+    renderApp()
+    clickButtonByText('配偶合併申報')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.querySelector('[data-testid="remove-item-standard-deduction-married"]')).toBeNull()
+  })
+
 
   it('hides source situation labels even when items are triggered by income situations', () => {
     renderApp()
@@ -246,10 +265,14 @@ describe('situation single-source flow', () => {
 
     clickByTestId('remove-item-rent-deduction')
     expect(container.textContent).toContain('確認移除此項目')
+    expect(container.textContent).not.toContain('會一併移除的項目')
+    expect(container.textContent).toContain('此次移除會清除已填寫的資料。')
     clickByTestId('confirm-remove-item-btn')
-    expect(scrollToSpy).toHaveBeenCalledTimes(2)
-    expect(container.textContent).toContain('台灣所得稅節稅助理')
-    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(container.textContent).toContain('節稅清單')
+    expect(container.textContent).not.toContain('房屋租金支出')
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
+    const savedInputs = localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY) ?? ''
+    expect(savedInputs).not.toContain('rent-deduction')
   })
 
   it('clears legacy overrides key on startup', () => {

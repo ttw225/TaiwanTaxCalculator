@@ -60,6 +60,8 @@ interface Props {
 - Layout: `max-w-4xl` with `lg:grid lg:grid-cols-[1fr_260px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
 - Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
 - Card routing: `item.id === 'gross-income'` → renders `GrossIncomeCard`; all others → `DeductionCard`.
+- Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married` (no `×` button).
+- Remove dialog is single-card scoped; it no longer lists co-removed cards.
 - Computes `grossIncomeTotal` via `useMemo` from `cardInputMap['gross-income']` + `parseGrossIncomePersons` + `calcTotalGrossIncome` (**aggregate net salary income per person** after modeled 薪資所得特別扣除額, not sum of raw inputs).
 - `gross_income` section header shows `grossIncomeTotal` inline when > 0.
 - **`onReset`**: declared on props but **not used** in component body (reserved / dead API until wired).
