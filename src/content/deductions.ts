@@ -114,7 +114,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     why_it_matters: `可直接扣除 ${n('standard_deduction_single')} 元`,
     eligibility_cues: ['所有申報人均可適用，不需提供任何文件'],
     documents_to_prepare: [],
-    source_refs: [SRC_ITA],
+    source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
   },
   {
@@ -125,7 +125,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     why_it_matters: `配偶合併申報標準扣除額為 ${n('standard_deduction_married')} 元`,
     eligibility_cues: ['配偶合併申報者適用，不需提供任何文件'],
     documents_to_prepare: [],
-    source_refs: [SRC_ITA],
+    source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
   },
 
@@ -141,7 +141,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '捐贈給政府機關及指定機構（如國防、教育等）無上限限制',
     ],
     documents_to_prepare: ['正式捐贈收據'],
-    source_refs: [SRC_ITA, SRC_MANUAL],
+    source_refs: [SRC_ITA, SRC_MANUAL, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
   },
   {
@@ -155,7 +155,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '全民健保費認列無金額限制',
     ],
     documents_to_prepare: ['保險公司年度繳費證明或收據'],
-    source_refs: [SRC_ITA, SRC_MANUAL],
+    source_refs: [SRC_ITA, SRC_MANUAL, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
   },
   {
@@ -171,7 +171,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '已由保險公司或健保理賠的部分不可重複扣抵',
     ],
     documents_to_prepare: ['醫療收據正本（需含診療項目及金額）'],
-    source_refs: [SRC_ITA],
+    source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
   },
   {
@@ -218,7 +218,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     documents_to_prepare: [
       '身心障礙證明影本',
     ],
-    source_refs: [SRC_ITA],
+    source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: false,
   },
   {
@@ -268,7 +268,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
       '或使用長照服務的繳費收據影本任一張',
       '或長照機構服務繳費收據影本',
     ],
-    source_refs: [SRC_ITA, SRC_MOF],
+    source_refs: [SRC_ITA, SRC_MOF, SRC_TAX_SAVING_MANUAL],
     show_wealth_clause_notice: true,
   },
   {
