@@ -435,6 +435,7 @@ export function ChecklistResult({
       savingsInvestmentEnabled,
       savingsInvestmentDeductionAmount,
       onScrollToSection: handleScrollToSection,
+      onScrollToItem: handleScrollToItem,
     }),
     [grossIncomeAmount, savingsInvestmentEnabled, savingsInvestmentDeductionAmount],
   )
@@ -457,6 +458,12 @@ export function ChecklistResult({
 
   function handleScrollToSection(categoryId: string) {
     const el = sectionRefs.current[categoryId as CategoryId]
+    if (!el) return
+    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
+  }
+
+  function handleScrollToItem(itemId: string) {
+    const el = itemRefs.current[itemId]
     if (!el) return
     animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
   }

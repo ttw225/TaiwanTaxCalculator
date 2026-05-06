@@ -56,6 +56,16 @@ function InlineFeedback({
   feedbackContext?: Partial<CardInlineFeedbackContext>
 }) {
   const hasValue = value.trim() !== ''
+  const savingsTargetItemId = 'savings-investment-deduction'
+  const savingsLink = (
+    <button
+      type="button"
+      onClick={() => feedbackContext?.onScrollToItem?.(savingsTargetItemId)}
+      className="font-medium text-blue-700 hover:text-blue-800 hover:underline underline-offset-2 transition-colors"
+    >
+      儲蓄投資特別扣除額
+    </button>
+  )
 
   if (field.splitPerUnitKeys) {
     if (!hasValue) return null
@@ -154,25 +164,37 @@ function InlineFeedback({
       ? (feedbackContext.savingsInvestmentDeductionAmount ?? 0)
       : 0
     if (!hasValue) {
+      if (feedbackContext?.savingsInvestmentEnabled) {
+        return (
+          <p className="mt-1 text-base text-blue-700">
+            須先扣除「{savingsLink}」
+          </p>
+        )
+      }
       return (
-        <CapHint cap={cap}>
-          {feedbackContext?.savingsInvestmentEnabled ? (
-            <>；須先扣除儲蓄投資扣除額</>
-          ) : null}
-        </CapHint>
+        <CapHint cap={cap} />
       )
     }
     const numVal = parseAmount(value)
     if (numVal === null || numVal <= 0) return null
     const eligibleAmount = Math.max(0, numVal - savingsDeduction)
 
-    return (
-      <CapFeedback value={eligibleAmount} cap={cap}>
-        {savingsDeduction > 0 ? (
-          <>；扣除儲蓄投資扣除額後為 {formatAmount(eligibleAmount)} 元</>
-        ) : null}
-      </CapFeedback>
-    )
+    if (savingsDeduction > 0 && eligibleAmount <= cap) {
+      return (
+        <p className="mt-1 text-base text-green-700">
+          扣除「{savingsLink}」後為 {formatAmount(eligibleAmount)} 元
+        </p>
+      )
+    }
+    if (savingsDeduction > 0 && eligibleAmount > cap) {
+      return (
+        <p className="mt-1 text-base text-red-700">
+          扣除「{savingsLink}」後已達可申報上限 {formatAmount(cap)} 元
+        </p>
+      )
+    }
+
+    return <CapFeedback value={eligibleAmount} cap={cap} />
   }
 
   if (!field.capKey) return null
