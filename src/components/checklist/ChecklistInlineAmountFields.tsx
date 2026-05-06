@@ -31,7 +31,7 @@ function CapFeedback({
   }
   return (
     <p className="mt-1 text-base text-red-700">
-      可申報上限為 {formatted} 元，超過上限時以上限試算
+      已達可申報上限 {formatted} 元
       {children}
     </p>
   )
@@ -121,18 +121,21 @@ function InlineFeedback({
     const grossIncomeAmount = feedbackContext?.grossIncomeAmount ?? null
     if (grossIncomeAmount === null) {
       return (
-        <p className="mt-1 text-base text-orange-700">
-          需先填寫綜合所得總額，才能計算一般捐贈上限
+        <p className="mt-1 text-base text-gray-700">
+          請先填寫{' '}
+          <button
+            type="button"
+            onClick={() => feedbackContext?.onScrollToSection?.('gross_income')}
+            className="font-medium text-blue-700 hover:text-blue-800 hover:underline underline-offset-2 transition-colors"
+          >
+            綜合所得總額
+          </button>
         </p>
       )
     }
     const cap = grossIncomeAmount * 0.2
     if (!hasValue) {
-      return (
-        <CapHint cap={cap}>
-          （綜合所得總額 20%）
-        </CapHint>
-      )
+      return <CapHint cap={cap} />
     }
     const numVal = parseAmount(value)
     if (numVal === null || numVal <= 0) return null

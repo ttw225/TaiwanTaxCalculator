@@ -434,6 +434,7 @@ export function ChecklistResult({
       grossIncomeAmount,
       savingsInvestmentEnabled,
       savingsInvestmentDeductionAmount,
+      onScrollToSection: handleScrollToSection,
     }),
     [grossIncomeAmount, savingsInvestmentEnabled, savingsInvestmentDeductionAmount],
   )

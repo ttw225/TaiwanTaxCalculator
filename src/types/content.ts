@@ -73,6 +73,7 @@ export interface CardInlineFeedbackContext {
   grossIncomeAmount: number | null
   savingsInvestmentEnabled: boolean
   savingsInvestmentDeductionAmount: number | null
+  onScrollToSection?: (categoryId: string) => void
 }
 
 export type CardInputMap = Record<string, Record<string, string>>
