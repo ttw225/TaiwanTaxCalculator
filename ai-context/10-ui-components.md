@@ -68,7 +68,7 @@ interface Props {
 
 ## Checklist card shell (`ChecklistCardShell.tsx`)
 
-Shared layout for checklist result cards: title, `why_it_matters`, situation labels, eligibility, documents, **`children`** (form or custom body), then footer `border-t` with optional wealth-clause notice when `item.show_wealth_clause_notice`, and collapsible sources. Root: `print-card`, `data-testid="checklist-card-${item.id}"`.
+Shared layout for checklist result cards: title, `why_it_matters`, eligibility, documents, **`children`** (form or custom body), then footer `border-t` with optional wealth-clause notice when `item.show_wealth_clause_notice`, and collapsible sources. Root: `print-card`, `data-testid="checklist-card-${item.id}"`.
 
 ## `DeductionCard.tsx`
 
@@ -108,7 +108,6 @@ interface Props {
 - Per-person feedback: shows 薪資所得特別扣除額 and net 薪資所得.
 - Composes same [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx) (eligibility and shared footer).
 - **`children`**: multi-person income UI, add-person control, privacy line, then in-card `綜合所得總額` breakdown (`data-testid="gross-income-total"`) matching **`calcTotalGrossIncome`** (net-of-salary-deduction sum).
-- Source situation labels: `data-testid="card-source-situations-gross-income"` (from shell).
 - Calculation logic: [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts).
 
 ## `TaxSummaryPanel.tsx`

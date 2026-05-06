@@ -23,10 +23,10 @@ export function SituationSelector({ groups, situations, selected, onToggle, onCl
       <div className="mb-8">
         {groups.map((group) => (
           <div key={group.id} className="mb-6">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
+            <p className="text-base font-semibold text-gray-500 mb-0.5">
               {group.title}
             </p>
-            <p className="text-xs text-gray-400 mb-2">{group.description}</p>
+            <p className="text-sm text-gray-400 mb-2">{group.description}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {group.situationIds.map((id) => {
                 const s = situationMap.get(id)
@@ -45,8 +45,8 @@ export function SituationSelector({ groups, situations, selected, onToggle, onCl
                         : 'border-gray-200 bg-white text-gray-800 hover:border-gray-400',
                     ].join(' ')}
                   >
-                    <span className="font-medium text-sm block">{s.label}</span>
-                    <span className="text-xs text-gray-500 mt-0.5 block">{s.description}</span>
+                    <span className="font-medium text-base block">{s.label}</span>
+                    <span className="text-sm text-gray-500 mt-0.5 block">{s.description}</span>
                   </button>
                 )
               })}

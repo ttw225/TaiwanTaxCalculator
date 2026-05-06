@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@layer components {
+  .checklist-formula-card {
+    @apply shrink-0 overflow-hidden rounded-lg border-2 transition-all min-w-[120px];
+  }
+
+  .checklist-formula-label {
+    @apply whitespace-nowrap;
+  }
+}
+
 /*
   Prevent iOS Safari from auto-zooming when tapping inputs.
   font-size must be >= 16px to suppress the behavior.
@@ -13,6 +23,28 @@ input[type="tel"],
 select,
 textarea {
   font-size: 16px;
+}
+
+button:not(:disabled),
+a[href],
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+/* Hide spinner controls for amount inputs only. */
+input.no-spin[type="number"]::-webkit-outer-spin-button,
+input.no-spin[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input.no-spin[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.print-only {
+  display: none;
 }
 
 @media print {
@@ -31,13 +63,28 @@ textarea {
     display: none !important;
   }
 
+  .print-only {
+    display: block !important;
+  }
+
   .print-container {
     max-width: none !important;
     padding: 0 !important;
   }
 
+  .print-main-layout {
+    display: block !important;
+  }
+
+  .print-summary-card {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
   section,
-  .print-card {
+  .print-card,
+  .print-summary-card {
     break-inside: avoid;
     page-break-inside: avoid;
   }

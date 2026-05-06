@@ -45,7 +45,7 @@ export function DecisionToolsPanel({ selectedSituations }: Props) {
   if (visibleTools.length === 0) return null
 
   return (
-    <details className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+    <details className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-base">
       <summary className="cursor-pointer select-none font-medium text-gray-700">
         決策工具
         <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
@@ -63,7 +63,7 @@ export function DecisionToolsPanel({ selectedSituations }: Props) {
           const Component = tool.component
           return (
             <section key={tool.id} className="border-t border-amber-200 pt-4 first:border-t-0 first:pt-0">
-              <h3 className="text-sm font-semibold text-gray-800 mb-0.5">{tool.meta.title}</h3>
+              <h3 className="text-base font-semibold text-gray-800 mb-0.5">{tool.meta.title}</h3>
               <p className="text-xs text-gray-500 mb-3">{tool.meta.subtitle}</p>
               <Component />
             </section>

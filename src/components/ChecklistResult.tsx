@@ -6,13 +6,12 @@ import type {
   SituationId,
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
-import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
 import { resolveGeneralDeduction } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
-import { parseGrossIncomePersons, calcTotalGrossIncome, calcPersonNetIncome } from '../lib/grossIncome'
+import { parseGrossIncomePersons, calcPersonNetIncome } from '../lib/grossIncome'
 import { FormulaRow } from './checklist/FormulaRow'
 import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
@@ -87,6 +86,8 @@ const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFie
   },
 }
 
+const FORMULA_SECTION_BOX_CLASS = 'rounded-lg border border-gray-200 px-4 py-3'
+
 function getSpecialDeductionItemAmount(
   itemId: string,
   inputs: Record<string, string>,
@@ -116,8 +117,6 @@ function getSpecialDeductionItemAmount(
   return total
 }
 
-type CopyState = 'idle' | 'success' | 'error'
-
 type AddSituationModalProps = {
   groups: AddableSituationGroup[]
   isOpen: boolean
@@ -142,8 +141,8 @@ function AddSituationModal({
       <div className="w-full max-w-2xl rounded-lg border border-gray-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">新增項目</h2>
-            <p className="mt-0.5 text-xs text-gray-500">依第一頁邏輯選擇情境後，系統會自動帶入相關卡片</p>
+            <h2 className="text-base font-semibold text-gray-900">新增項目</h2>
+            <p className="mt-0.5 text-sm text-gray-500">依第一頁邏輯選擇情境後，系統會自動帶入相關卡片</p>
           </div>
           <button
             type="button"
@@ -157,12 +156,12 @@ function AddSituationModal({
 
         <div className="max-h-96 overflow-y-auto px-4 py-4">
           {groups.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-400">目前沒有可新增的情境</p>
+            <p className="py-8 text-center text-base text-gray-400">目前沒有可新增的情境</p>
           )}
           {groups.map((group) => (
             <section key={group.id} className="mb-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{group.title}</p>
-              <p className="mb-2 text-xs text-gray-400">{group.description}</p>
+              <p className="text-base font-semibold text-gray-500">{group.title}</p>
+              <p className="mb-2 text-sm text-gray-400">{group.description}</p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {group.situations.map((situation) => {
                   const isChecked = pendingSituationIds.includes(situation.id)
@@ -184,8 +183,8 @@ function AddSituationModal({
                         className="mt-0.5"
                       />
                       <span>
-                        <span className="block text-sm font-medium text-gray-900">{situation.label}</span>
-                        <span className="mt-0.5 block text-xs text-gray-500">{situation.description}</span>
+                        <span className="block text-base font-medium text-gray-900">{situation.label}</span>
+                        <span className="mt-0.5 block text-sm text-gray-500">{situation.description}</span>
                       </span>
                     </label>
                   )
@@ -199,7 +198,7 @@ function AddSituationModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             data-testid="cancel-add-situations-btn"
           >
             取消
@@ -210,7 +209,7 @@ function AddSituationModal({
             disabled={pendingSituationIds.length === 0}
             data-testid="confirm-add-situations-btn"
             className={[
-              'rounded px-3 py-1.5 text-xs font-medium transition-colors',
+              'rounded px-3 py-1.5 text-sm font-medium transition-colors',
               pendingSituationIds.length > 0
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'cursor-not-allowed bg-gray-100 text-gray-400',
@@ -240,11 +239,11 @@ function RemoveImpactDialog({
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 p-4 no-print">
       <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">確認移除此項目</h2>
+          <h2 className="text-base font-semibold text-gray-900">確認移除此項目</h2>
           <p className="mt-1 text-xs text-gray-500">{impact.itemTitle}</p>
         </div>
 
-        <div className="space-y-3 px-4 py-3 text-xs text-gray-600">
+        <div className="space-y-3 px-4 py-3 text-base text-gray-600">
           <div>
             <p className="mb-1">會一併移除的項目（{impact.removedItemTitles.length}）：</p>
             <ul className="list-disc space-y-0.5 pl-4 text-gray-700">
@@ -285,94 +284,6 @@ function RemoveImpactDialog({
   )
 }
 
-function ExportPanel({
-  groups,
-  totalSelected,
-}: {
-  groups: CategoryGroup[]
-  totalSelected: number
-}) {
-  const [copyState, setCopyState] = useState<CopyState>('idle')
-
-  function getMarkdown() {
-    return formatChecklistMarkdown(groups, {
-      totalSelected,
-      exportTime: new Date().toLocaleString('zh-TW'),
-    })
-  }
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(getMarkdown())
-      setCopyState('success')
-      setTimeout(() => setCopyState('idle'), 2000)
-    } catch {
-      setCopyState('error')
-      setTimeout(() => setCopyState('idle'), 3000)
-    }
-  }
-
-  function handleDownload() {
-    const md = getMarkdown()
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'tax-checklist-2026.md'
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }
-
-  function handlePrint() {
-    window.print()
-  }
-
-  const copyLabel =
-    copyState === 'success' ? '已複製！' : copyState === 'error' ? '複製失敗' : '複製清單'
-
-  const copyClass =
-    copyState === 'success'
-      ? 'bg-green-50 text-green-700 border-green-300'
-      : copyState === 'error'
-        ? 'bg-red-50 text-red-700 border-red-300'
-        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-
-  return (
-    <div className="mt-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
-      <p className="mb-1 text-xs font-medium text-blue-800">匯出清單</p>
-      <p className="mb-3 text-xs text-blue-700" data-testid="export-privacy-notice">
-        本清單在您的瀏覽器中產生，未上傳至伺服器。下載或複製後，檔案可能包含個人稅務情境，請自行保管。
-      </p>
-      <div className="no-print flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={handleCopy}
-          className={`rounded border px-3 py-1.5 text-xs font-medium transition-colors ${copyClass}`}
-          data-testid="copy-checklist-btn"
-        >
-          {copyLabel}
-        </button>
-        <button
-          type="button"
-          onClick={handleDownload}
-          className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-          data-testid="download-checklist-btn"
-        >
-          下載 Markdown
-        </button>
-        <button
-          type="button"
-          onClick={handlePrint}
-          className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-          data-testid="print-checklist-btn"
-        >
-          列印 / 另存 PDF
-        </button>
-      </div>
-    </div>
-  )
-}
-
 export function ChecklistResult({
   groups,
   totalSelected,
@@ -382,6 +293,7 @@ export function ChecklistResult({
   cardInputMap,
   pendingRemovalImpact,
   onCardInputChange,
+  onReset,
   onAddSituations,
   onRemoveItem,
   onCancelRemoveItem,
@@ -432,13 +344,13 @@ export function ChecklistResult({
     setIsAddModalOpen(false)
   }
 
-  const isMarriedFiling = selectedSituations.includes('married')
+  function handleResetClick() {
+    const shouldReset = window.confirm('重新計算會清除已選項目與所有試算資料，確定要繼續嗎？')
+    if (!shouldReset) return
+    onReset?.()
+  }
 
-  const grossIncomeTotal = useMemo(() => {
-    const inputs = cardInputMap['gross-income'] ?? {}
-    const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
-    return calcTotalGrossIncome(persons)
-  }, [cardInputMap, isMarriedFiling])
+  const isMarriedFiling = selectedSituations.includes('married')
 
   const exemptionAmount = useMemo(() => {
     const inputs = cardInputMap['exemption-general'] ?? {}
@@ -455,6 +367,14 @@ export function ChecklistResult({
 
   const generalDeductionAmount =
     generalDeductionResolved.status === 'pending_itemized' ? null : generalDeductionResolved.amount
+  const generalDeductionMethod =
+    generalDeductionResolved.status === 'pending_itemized'
+      ? null
+      : generalDeductionResolved.status === 'standard_only' || generalDeductionAmount === null
+        ? 'standard'
+        : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
+            ? 'itemized'
+            : 'standard')
 
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
@@ -486,12 +406,43 @@ export function ChecklistResult({
     if (!hasGrossIncomeCard) return null
     const inputs = cardInputMap['gross-income'] ?? {}
     const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
+    const hasSelfIncomeInput = (inputs['self_income'] ?? '').trim() !== ''
+    const filledPersonIds = new Set<string>()
+    const rawPersonsJson = inputs['persons_json']
+    if (rawPersonsJson) {
+      try {
+        const parsed = JSON.parse(rawPersonsJson)
+        if (Array.isArray(parsed)) {
+          for (const person of parsed) {
+            if (
+              person &&
+              typeof person === 'object' &&
+              typeof person.id === 'string' &&
+              typeof person.income === 'number'
+            ) {
+              filledPersonIds.add(person.id)
+            }
+          }
+        }
+      } catch {
+        // Ignore malformed input and keep the row as unfilled.
+      }
+    }
     return persons.map((p) => ({
       id: p.id,
       label: p.label,
-      amount: p.income > 0 ? calcPersonNetIncome(p.income) : null,
+      amount:
+        p.id === 'self'
+          ? (hasSelfIncomeInput ? calcPersonNetIncome(p.income) : null)
+          : (filledPersonIds.has(p.id) ? calcPersonNetIncome(p.income) : null),
     }))
   }, [groups, cardInputMap, isMarriedFiling])
+
+  const grossIncomeAmount = useMemo(() => {
+    if (!grossIncomeFormulaItems || grossIncomeFormulaItems.length === 0) return null
+    if (grossIncomeFormulaItems.some((item) => item.amount === null)) return null
+    return grossIncomeFormulaItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
+  }, [grossIncomeFormulaItems])
 
   function handleScrollToSection(categoryId: string) {
     const el = sectionRefs.current[categoryId as CategoryId]
@@ -502,7 +453,7 @@ export function ChecklistResult({
   function getSectionSubtotal(group: CategoryGroup): number | null {
     switch (group.category) {
       case 'gross_income':
-        return grossIncomeTotal > 0 ? grossIncomeTotal : null
+        return grossIncomeAmount
       case 'exemptions':
         return exemptionAmount
       case 'general_deductions':
@@ -540,28 +491,50 @@ export function ChecklistResult({
         />
       )}
 
-      <div className="lg:grid lg:grid-cols-[1fr_260px] lg:gap-6 lg:items-start">
+      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-6 lg:items-start print-main-layout">
         {/* ── Main column ── */}
         <div>
           <div className="mb-1 flex items-center justify-between gap-3">
             <h1 className="text-xl font-semibold text-gray-900">節稅清單</h1>
-            <button
-              type="button"
-              onClick={openAddModal}
-              disabled={!canAddMore}
-              data-testid="open-add-situation-modal-btn"
-              className={[
-                'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-xs font-medium transition-colors',
-                canAddMore
-                  ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
-                  : 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-300',
-              ].join(' ')}
-            >
-              <span aria-hidden="true">+</span>
-              <span>新增項目</span>
-            </button>
+            <div className="no-print flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetClick}
+                data-testid="reset-checklist-btn"
+                className="inline-flex items-center rounded border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+              >
+                重新計算
+              </button>
+              <span
+                className={[
+                  'group relative inline-flex',
+                  canAddMore ? '' : 'cursor-help',
+                ].join(' ')}
+              >
+                <button
+                  type="button"
+                  onClick={openAddModal}
+                  disabled={!canAddMore}
+                  data-testid="open-add-situation-modal-btn"
+                  className={[
+                    'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm font-medium transition-colors',
+                    canAddMore
+                      ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
+                      : 'border-gray-200 bg-gray-50 text-gray-300',
+                  ].join(' ')}
+                >
+                  <span aria-hidden="true">+</span>
+                  <span>新增項目</span>
+                </button>
+                {!canAddMore && (
+                  <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
+                    所有項目都已加入
+                  </span>
+                )}
+              </span>
+            </div>
           </div>
-          <p className="mb-4 text-sm text-gray-500">
+          <p className="mb-4 text-base text-gray-500">
             根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
           </p>
 
@@ -585,26 +558,12 @@ export function ChecklistResult({
                 }}
                 data-testid={`checklist-section-${group.category}`}
               >
-                <h2 className="mb-3 border-b border-gray-200 pb-1 text-base font-semibold text-gray-700 flex items-baseline gap-2">
+                <h2 className="mb-3 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-700 flex items-baseline gap-2">
                   <span>{group.label}</span>
                   {(() => {
-                    const fItems = getFormulaItems(group)
-                    if (fItems && fItems.length > 0) {
-                      return (
-                        <span className="text-xs font-normal text-gray-400">小計（依公式計算）</span>
-                      )
-                    }
-                    if (
-                      group.category === 'general_deductions' &&
-                      generalDeductionResolved.status === 'pending_itemized'
-                    ) {
-                      return (
-                        <span className="text-xs font-normal text-gray-400">待填入</span>
-                      )
-                    }
                     const sub = getSectionSubtotal(group)
                     return sub !== null ? (
-                      <span className="text-sm font-semibold text-green-700 tabular-nums">
+                      <span className="text-base font-semibold text-green-700 tabular-nums">
                         {sub.toLocaleString('zh-TW')} 元
                       </span>
                     ) : null
@@ -619,9 +578,17 @@ export function ChecklistResult({
                 )}
                 {(() => {
                   const fItems = getFormulaItems(group)
+                  const shouldWrapFormulaBox =
+                    group.category === 'gross_income' || group.category === 'special_deductions'
                   return fItems && fItems.length > 0 ? (
                     <div className="mb-4">
-                      <FormulaRow items={fItems} />
+                      {shouldWrapFormulaBox ? (
+                        <div className={FORMULA_SECTION_BOX_CLASS}>
+                          <FormulaRow items={fItems} />
+                        </div>
+                      ) : (
+                        <FormulaRow items={fItems} />
+                      )}
                     </div>
                   ) : null
                 })()}
@@ -671,23 +638,31 @@ export function ChecklistResult({
             </p>
           </div>
 
-          {hasResults && (
-            <ExportPanel
-              groups={groups}
-              totalSelected={totalSelected}
+          <div className="print-only mt-8">
+            <TaxSummaryPanel
+              grossIncome={grossIncomeAmount}
+              exemptionAmount={exemptionAmount}
+              generalDeductionAmount={generalDeductionAmount}
+              generalDeductionMethod={generalDeductionMethod}
+              specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
+              hasSpecialDeductions={hasSpecialDeductions}
+              printMode
             />
-          )}
+          </div>
         </div>
 
         {/* ── Sidebar ── */}
-        <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-6">
+        <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
           <TaxSummaryPanel
-            grossIncome={grossIncomeTotal > 0 ? grossIncomeTotal : null}
+            grossIncome={grossIncomeAmount}
             exemptionAmount={exemptionAmount}
             generalDeductionAmount={generalDeductionAmount}
+            generalDeductionMethod={generalDeductionMethod}
             specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
             hasSpecialDeductions={hasSpecialDeductions}
             onScrollToSection={handleScrollToSection}
+            exportGroups={hasResults ? groups : undefined}
+            exportTotalSelected={hasResults ? totalSelected : undefined}
           />
         </aside>
       </div>

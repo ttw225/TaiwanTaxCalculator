@@ -33,7 +33,7 @@ export function AmtTool() {
           placeholder="例：1500000"
           value={incomeStr}
           onChange={(e) => setIncomeStr(e.target.value)}
-          className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none sm:max-w-xs"
+          className="no-spin w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none sm:max-w-xs"
         />
       </div>
 

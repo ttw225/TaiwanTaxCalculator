@@ -13,7 +13,8 @@ export const ITEMIZED_ITEM_IDS = new Set<string>([
 export function parseNum(raw: string): number | null {
   if (raw.trim() === '') return null
   const n = Number(raw.replace(/,/g, ''))
-  return Number.isFinite(n) ? n : null
+  if (!Number.isFinite(n) || n < 0) return null
+  return n
 }
 
 export function getItemizedItemAmount(

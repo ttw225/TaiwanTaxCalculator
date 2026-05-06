@@ -19,8 +19,7 @@ export function ChecklistCardShell({
   onRemove,
   children,
 }: ChecklistCardShellProps) {
-  const visibleSourceLabels = sourceSituationLabels.slice(0, 2)
-  const hiddenSourceCount = sourceSituationLabels.length - visibleSourceLabels.length
+  void sourceSituationLabels
 
   return (
     <div
@@ -28,7 +27,7 @@ export function ChecklistCardShell({
       data-testid={`checklist-card-${item.id}`}
     >
       <div className="flex items-start gap-2 mb-2">
-        <h3 className="font-medium text-gray-900 flex-1 text-sm">{item.title}</h3>
+        <h3 className="font-medium text-gray-900 flex-1 text-base">{item.title}</h3>
         {removable && onRemove && (
           <button
             type="button"
@@ -42,24 +41,13 @@ export function ChecklistCardShell({
         )}
       </div>
 
-      <p className="text-sm text-gray-700 mb-3">{item.why_it_matters}</p>
-
-      {sourceSituationLabels.length > 0 && (
-        <p
-          className="mb-3 text-xs text-indigo-700"
-          data-testid={`card-source-situations-${item.id}`}
-          title={`情境：${sourceSituationLabels.join('、')}`}
-        >
-          情境：{visibleSourceLabels.join('、')}
-          {hiddenSourceCount > 0 ? ` +${hiddenSourceCount}` : ''}
-        </p>
-      )}
+      <p className="text-base text-gray-700 mb-3">{item.why_it_matters}</p>
 
       {item.eligibility_cues.length > 0 && (
         <ChecklistCardSection label="適用條件">
           <ul className="list-disc list-inside space-y-0.5">
             {item.eligibility_cues.map((cue) => (
-              <li key={cue} className="text-xs text-gray-600">{cue}</li>
+              <li key={cue} className="text-sm text-gray-600">{cue}</li>
             ))}
           </ul>
         </ChecklistCardSection>
@@ -69,7 +57,7 @@ export function ChecklistCardShell({
         <ChecklistCardSection label="需準備文件">
           <ul className="list-disc list-inside space-y-0.5">
             {item.documents_to_prepare.map((doc) => (
-              <li key={doc} className="text-xs text-gray-600">{doc}</li>
+              <li key={doc} className="text-sm text-gray-600">{doc}</li>
             ))}
           </ul>
         </ChecklistCardSection>

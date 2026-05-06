@@ -332,7 +332,8 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   it('shows the single standard deduction baseline for non-married users', () => {
     const html = renderResult(['salary_income'])
     expect(html).toContain('data-testid="standard-itemized-panel"')
-    expect(html).toContain('標準扣除 vs 列舉扣除')
+    expect(html).toContain('推薦：標準扣除')
+    expect(html).not.toContain('建議確認')
     expect(html).toContain('131,000')
   })
 
@@ -353,7 +354,17 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     const html = renderResult(['married', 'salary_income'])
     expect(html).toContain('data-testid="standard-itemized-panel"')
     expect(html).toContain('262,000')
-    expect(html).toContain('標準扣除 vs 列舉扣除')
+    expect(html).toContain('推薦：標準扣除')
+    expect(html).not.toContain('建議確認')
+    expect(html).not.toContain('標準扣除額（單身）')
+    expect(html).toContain('標準扣除額（配偶合併申報）')
+  })
+
+  it('shows married standard title when itemized cards are present', () => {
+    const html = renderResult(['married', 'donations'])
+    expect(html).toContain('data-testid="standard-itemized-panel"')
+    expect(html).toContain('262,000')
+    expect(html).toContain('標準扣除額（配偶合併申報）')
     expect(html).not.toContain('標準扣除額（單身）')
   })
 
@@ -381,7 +392,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     expect(html).not.toContain('最划算')
   })
 
-  it('shows 待填入 in the general deduction section when itemized amounts are incomplete', () => {
+  it('keeps the general deduction section header blank when itemized amounts are incomplete', () => {
     const published = CHECKLIST_ITEMS
     const groups = groupByCategory(filterBySituations(published, ['donations']))
     const html = renderToStaticMarkup(
@@ -397,7 +408,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     const generalIdx = html.indexOf('data-testid="checklist-section-general_deductions"')
     expect(generalIdx).toBeGreaterThanOrEqual(0)
     const afterGeneral = html.slice(generalIdx, generalIdx + 800)
-    expect(afterGeneral).toContain('待填入')
+    expect(afterGeneral).not.toContain('待填入')
     expect(html).toContain('前往填寫')
   })
 
@@ -419,6 +430,98 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     const afterGeneral = html.slice(generalIdx, generalIdx + 800)
     expect(afterGeneral).toContain('500,000')
     expect(afterGeneral).not.toContain('待填入')
+  })
+
+  it('shows standard method label in summary when standard deduction is used', () => {
+    const html = renderResult(['salary_income'])
+    expect(html).toContain('data-testid="general-deduction-method-label"')
+    expect(html).toContain('標準')
+  })
+
+  it('shows itemized method label in summary when itemized deduction is used', () => {
+    const groups = groupByCategory(filterBySituations(CHECKLIST_ITEMS, ['donations']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['donations'],
+        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    expect(html).toContain('data-testid="general-deduction-method-label"')
+    expect(html).toContain('列舉')
+  })
+
+  it('keeps summary method as standard when itemized total equals standard', () => {
+    const groups = groupByCategory(filterBySituations(CHECKLIST_ITEMS, ['donations']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['donations'],
+        cardInputMap: { 'donations-deduction': { donation_amount: '131000' } },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    expect(html).toContain('推薦：標準扣除（金額相同）')
+    expect(html).toContain('data-testid="general-deduction-method-label"')
+    expect(html).toContain('標準')
+    expect(html).not.toContain('兩者皆可（金額相同）')
+  })
+
+  it('highlights standard card when standard deduction is recommended', () => {
+    const groups = groupByCategory(filterBySituations(CHECKLIST_ITEMS, ['donations']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['donations'],
+        cardInputMap: { 'donations-deduction': { donation_amount: '100000' } },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    expect(html).toContain('data-testid="standard-deduction-container" class="rounded-lg border px-4 py-3 border-blue-400 bg-blue-50/30 shadow-sm"')
+    expect(html).toContain('data-testid="standard-deduction-card" class="checklist-formula-card mx-auto inline-block w-fit border-blue-200 bg-white"')
+    expect(html).toContain('data-testid="itemized-deduction-card" class="rounded-lg border px-4 py-3 border-gray-200"')
+    expect(html).toContain('checklist-formula-card border-gray-300 bg-gray-50')
+  })
+
+  it('highlights itemized card when itemized deduction is recommended', () => {
+    const groups = groupByCategory(filterBySituations(CHECKLIST_ITEMS, ['donations']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['donations'],
+        cardInputMap: { 'donations-deduction': { donation_amount: '500000' } },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    expect(html).toContain('data-testid="itemized-deduction-card" class="rounded-lg border px-4 py-3 border-blue-400 bg-blue-50/30 shadow-sm"')
+    expect(html).toContain('data-testid="standard-deduction-container" class="rounded-lg border px-4 py-3 border-gray-200"')
+    expect(html).toContain('data-testid="standard-deduction-card" class="checklist-formula-card mx-auto inline-block w-fit border-gray-300 bg-gray-50"')
+  })
+
+  it('keeps standard highlight when itemized total equals standard', () => {
+    const groups = groupByCategory(filterBySituations(CHECKLIST_ITEMS, ['donations']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['donations'],
+        cardInputMap: { 'donations-deduction': { donation_amount: '131000' } },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    expect(html).toContain('data-testid="standard-deduction-container" class="rounded-lg border px-4 py-3 border-blue-400 bg-blue-50/30 shadow-sm"')
+    expect(html).toContain('data-testid="standard-deduction-card" class="checklist-formula-card mx-auto inline-block w-fit border-blue-200 bg-white"')
+    expect(html).toContain('data-testid="itemized-deduction-card" class="rounded-lg border px-4 py-3 border-gray-200"')
   })
 })
 
@@ -583,23 +686,6 @@ describe('ChecklistResult export panel', () => {
     }),
   )
 
-  it('non-empty result shows copy checklist button', () => {
-    expect(htmlWithResults).toContain('data-testid="copy-checklist-btn"')
-  })
-
-  it('non-empty result shows download checklist button', () => {
-    expect(htmlWithResults).toContain('data-testid="download-checklist-btn"')
-  })
-
-  it('non-empty result shows print or save as PDF button', () => {
-    expect(htmlWithResults).toContain('data-testid="print-checklist-btn"')
-    expect(htmlWithResults).toContain('列印 / 另存 PDF')
-  })
-
-  it('non-empty result shows local-processing notice', () => {
-    expect(htmlWithResults).toContain('瀏覽器中產生')
-  })
-
   it('result page does not show the removed personalized worksheet entry point', () => {
     expect(htmlWithResults).not.toContain('data-testid="open-personalized-page-btn"')
     expect(htmlWithResults).not.toContain('個人化工作表')
@@ -609,10 +695,6 @@ describe('ChecklistResult export panel', () => {
   it('result page does not show the removed income type radio group', () => {
     expect(htmlWithResults).not.toContain('name="income_type"')
     expect(htmlWithResults).not.toContain('你的主要收入來源是？')
-  })
-
-  it('non-empty result shows user-managed storage notice', () => {
-    expect(htmlWithResults).toContain('請自行保管')
   })
 
   it('non-empty result still shows usage reminder', () => {

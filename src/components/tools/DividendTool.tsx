@@ -45,7 +45,7 @@ export function DividendTool() {
             placeholder="例：500,000"
             value={dividendStr}
             onChange={(e) => setDividendStr(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
+            className="no-spin w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-400 focus:outline-none"
           />
         </div>
         <div>

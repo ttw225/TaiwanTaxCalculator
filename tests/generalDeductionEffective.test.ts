@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveGeneralDeduction } from '../src/lib/generalDeductionEffective'
+import { getItemizedItemAmount, resolveGeneralDeduction } from '../src/lib/generalDeductionEffective'
 import type { CardInputMap } from '../src/types/content'
 import type { CategoryGroup } from '../src/lib/checklist'
 import type { ChecklistItem } from '../src/types/content'
@@ -115,5 +115,28 @@ describe('resolveGeneralDeduction', () => {
       'donations-deduction': { donation_amount: '400000' },
     }
     expect(resolveGeneralDeduction(groups, partial, false)).toEqual({ status: 'pending_itemized' })
+  })
+
+  it('adds personal insurance and NHI premium without applying per-person cap', () => {
+    expect(
+      getItemizedItemAmount('insurance-deduction', {
+        insurance_personal_amount: '50000',
+        insurance_nhi_amount: '10000',
+      }),
+    ).toBe(60_000)
+  })
+
+  it('treats negative inputs as invalid in itemized formula', () => {
+    expect(
+      getItemizedItemAmount('donations-deduction', {
+        donation_amount: '-1',
+      }),
+    ).toBeNull()
+    expect(
+      getItemizedItemAmount('insurance-deduction', {
+        insurance_personal_amount: '-1',
+        insurance_nhi_amount: '0',
+      }),
+    ).toBeNull()
   })
 })
