@@ -35,6 +35,15 @@
 - **Itemized dependencies**:
   - Donations: qualified donations are capped at 20% of `grossIncomeAmount`; if the qualified amount is filled but gross income is missing, itemized line is treated as unfilled (`null`).
   - Mortgage interest: when `savings-investment-deduction` is enabled, mortgage interest subtracts the capped savings-investment deduction first; if savings-investment is enabled but unfilled, subtraction is deferred (treated as 0) so the mortgage line remains responsive.
+- **Inline cap copy contracts** (rendered via `DeductionCard` static markup tests):
+  - Cap overflow copy is unified as `已達可申報上限 X 元` for all shared capped-field feedback paths.
+  - Qualified donation empty-state hint no longer appends `綜合所得總額 20%`.
+  - Qualified donation missing-gross prompt asserts the presence of both `請先填寫` and `綜合所得總額` (link text rendered as button content).
+  - Mortgage-interest with savings-investment dependency uses dedicated copy:
+    - `儲蓄投資特別扣除額` is rendered as link text (button) that scrolls to `savings-investment-deduction`.
+    - Empty input: shows only `須先扣除「儲蓄投資特別扣除額」` (no cap prefix).
+    - Filled input, post-deduction amount below cap: `扣除「儲蓄投資特別扣除額」後為 X 元`.
+    - Filled input, post-deduction amount above cap: `扣除「儲蓄投資特別扣除額」後已達可申報上限 X 元`.
 
 ## Integration patterns
 

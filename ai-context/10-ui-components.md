@@ -93,6 +93,15 @@ interface Props {
 ```
 
 - Composes [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx); **`children`** = [`ChecklistInlineAmountFields`](../src/components/checklist/ChecklistInlineAmountFields.tsx) when `inlineFields` non-empty (optional amounts + `capKey` feedback via `getNumber`).
+- `feedbackContext` is forwarded to `ChecklistInlineAmountFields` for contextual rule rendering. Current contextual hooks include:
+  - `qualified-donation` without gross income: inline prompt `請先填寫 綜合所得總額` with clickable jump to the same `gross_income` section target used by summary "Go fill".
+  - `qualified-donation` with gross income but empty value: hint is plain cap copy (`可申報上限為 X 元`) without trailing `20%` suffix text.
+  - Any capped amount above cap uses unified red copy: `已達可申報上限 X 元` (shared `CapFeedback` path, not card-specific overrides).
+  - `mortgage-interest` with savings-investment dependency uses a dedicated branch:
+    - The term `儲蓄投資特別扣除額` is rendered as a clickable inline link to the `savings-investment-deduction` card.
+    - Empty value + savings enabled: only `須先扣除「儲蓄投資特別扣除額」`.
+    - Filled value + eligible amount (`input - savings`) below cap: `扣除「儲蓄投資特別扣除額」後為 X 元`.
+    - Filled value + eligible amount above cap: `扣除「儲蓄投資特別扣除額」後已達可申報上限 X 元`.
 - Remove control `no-print` on remove button.
 
 ## `GrossIncomeCard.tsx`
