@@ -152,8 +152,7 @@ function App() {
     const savedViewState = loadSavedChecklistViewState()
     const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
     if (savedViewState === 'intro') return 'intro'
-    if (savedViewState === 'results' && savedSelection.length > 0) return 'results'
-    if (savedSelection.length > 0) return 'selecting'
+    if (savedSelection.length > 0) return 'results'
     return 'intro'
   })
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
@@ -208,6 +207,25 @@ function App() {
       saveChecklistViewState('results')
       window.scrollTo(0, 0)
     }
+  }
+
+  function navigateToChecklistFlow() {
+    setScrollToItemId(null)
+    if (selected.length > 0) {
+      setAppState('results')
+      saveChecklistViewState('results')
+    } else {
+      setAppState('selecting')
+      saveChecklistViewState('selecting')
+    }
+    window.scrollTo(0, 0)
+  }
+
+  function navigateToIntro() {
+    setScrollToItemId(null)
+    setAppState('intro')
+    saveChecklistViewState('intro')
+    window.scrollTo(0, 0)
   }
 
   function resetChecklistState() {
@@ -314,7 +332,7 @@ function App() {
     const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
 
     if (appState === 'intro') {
-      return <IntroPage onStart={() => setAppState('selecting')} />
+      return <IntroPage onStart={navigateToChecklistFlow} />
     }
 
     if (appState === 'results') {
@@ -354,8 +372,8 @@ function App() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <SiteHeader
         currentFeatureId="tax-checklist"
-        onHome={() => setAppState('intro')}
-        onNavClick={() => setAppState('selecting')}
+        onHome={navigateToIntro}
+        onNavClick={() => navigateToChecklistFlow()}
       />
       <main className="flex-1">
         {content}
