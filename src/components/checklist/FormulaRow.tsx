@@ -90,7 +90,7 @@ export function FormulaRow({
       <div className="mt-3 flex items-baseline gap-1.5">
         <span className="text-base font-bold text-gray-400">＝</span>
         {allFilled ? (
-          <span className="text-base font-bold tabular-nums text-green-700">
+          <span className="text-base font-bold tabular-nums text-gray-800">
             {partialTotal.toLocaleString('zh-TW')} 元
           </span>
         ) : anyFilled ? (

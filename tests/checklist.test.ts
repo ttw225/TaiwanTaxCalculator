@@ -883,6 +883,27 @@ describe('DeductionCard inline input fields', () => {
     feedbackRule: 'mortgage-interest',
   }
 
+  const perUnitCountField: CardInlineField = {
+    id: 'exemption_under70_count',
+    label: '一般免稅額人數（未滿 70 歲）',
+    type: 'number',
+    unit: '人',
+    capKey: null,
+    perUnitKey: 'exemption_general',
+  }
+
+  const splitPerUnitCountField: CardInlineField = {
+    id: 'childcare_count',
+    label: '幼兒人數',
+    type: 'number',
+    unit: '人',
+    capKey: null,
+    splitPerUnitKeys: {
+      firstKey: 'special_deduction_childcare_first',
+      additionalKey: 'special_deduction_childcare_additional',
+    },
+  }
+
   it('renders without input area when inlineFields is empty', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, { item: makeItem(), inlineFields: [] }),
@@ -936,6 +957,41 @@ describe('DeductionCard inline input fields', () => {
       }),
     )
     expect(html).toContain('可申報上限為 218,000 元')
+  })
+
+  it('does not show per-unit formula when count field is empty', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [perUnitCountField],
+        inputValues: { exemption_under70_count: '' },
+      }),
+    )
+    expect(html).not.toContain('× 97,000 元 ＝')
+  })
+
+  it('shows per-unit formula inline when count field has value', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [perUnitCountField],
+        inputValues: { exemption_under70_count: '1' },
+      }),
+    )
+    expect(html).not.toContain('1 人 ×')
+    expect(html).toContain('× 97,000 元 ＝ <strong>97,000 元</strong>')
+  })
+
+  it('keeps split per-unit formula behavior for childcare fields', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [splitPerUnitCountField],
+        inputValues: { childcare_count: '2' },
+      }),
+    )
+    expect(html).toContain('1 人 × 150,000 ＋ 1 人 × 225,000 ＝')
+    expect(html).toContain('375,000 元')
   })
 
   it('shows no feedback when capKey is null', () => {

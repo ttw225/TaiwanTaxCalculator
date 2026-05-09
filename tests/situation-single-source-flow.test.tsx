@@ -146,12 +146,12 @@ function renderApp({ autoStart = true }: { autoStart?: boolean } = {}) {
 }
 
 function clickButtonByText(text: string) {
-  const button = Array.from(container.querySelectorAll('button')).find((el) =>
+  const clickable = Array.from(container.querySelectorAll<HTMLElement>('button, a')).find((el) =>
     el.textContent?.includes(text),
   )
-  if (!button) throw new Error(`Missing button with text "${text}"`)
+  if (!clickable) throw new Error(`Missing clickable element with text "${text}"`)
   act(() => {
-    button.click()
+    clickable.click()
   })
 }
 
@@ -305,6 +305,34 @@ describe('situation single-source flow', () => {
     expect(savedSelectionAfterRemove).not.toContain('rent')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
   })
+
+  it('opens and closes tax formula dialog with shared modal overlay classes', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    clickButtonByText('了解更多')
+
+    const overlay = document.querySelector<HTMLElement>('[data-testid="tax-formula-dialog-overlay"]')
+    expect(overlay).not.toBeNull()
+    expect(overlay?.classList.contains('fixed')).toBe(true)
+    expect(overlay?.classList.contains('inset-0')).toBe(true)
+    expect(overlay?.classList.contains('bg-gray-900/40')).toBe(true)
+    expect(overlay?.classList.contains('no-print')).toBe(true)
+
+    const dialog = document.querySelector<HTMLElement>('[data-testid="tax-formula-dialog"]')
+    expect(dialog).not.toBeNull()
+
+    const closeButton = dialog?.querySelector<HTMLButtonElement>('button[aria-label="關閉"]')
+    expect(closeButton).not.toBeNull()
+    act(() => {
+      closeButton?.click()
+    })
+
+    expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
+    expect(document.querySelector('[data-testid="tax-formula-dialog"]')).toBeNull()
+  })
+
   it('does not show remove button for non-removable cards', () => {
     renderApp()
     clickButtonByText('薪資收入')

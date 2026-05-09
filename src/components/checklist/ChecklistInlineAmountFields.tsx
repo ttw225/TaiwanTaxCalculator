@@ -11,6 +11,26 @@ function formatAmount(value: number) {
   return Math.round(value).toLocaleString('zh-TW')
 }
 
+function getPerUnitInlineFormula(field: CardInlineField, value: string): { perUnit: number; total: number } | null {
+  if (!field.perUnitKey) return null
+
+  const hasValue = value.trim() !== ''
+  if (!hasValue) return null
+
+  const count = Number(value)
+  if (!Number.isFinite(count) || count <= 0) return null
+
+  let perUnit: number
+  try {
+    perUnit = getNumber(field.perUnitKey)
+  } catch {
+    return null
+  }
+
+  const total = count * perUnit
+  return { perUnit, total }
+}
+
 function CapFeedback({
   value,
   cap,
@@ -58,13 +78,17 @@ function InlineFeedback({
   const hasValue = value.trim() !== ''
   const savingsTargetItemId = 'savings-investment-deduction'
   const savingsLink = (
-    <button
-      type="button"
-      onClick={() => feedbackContext?.onScrollToItem?.(savingsTargetItemId)}
-      className="font-medium text-blue-700 hover:text-blue-800 hover:underline underline-offset-2 transition-colors"
+    <a
+      href={`#${savingsTargetItemId}`}
+      onClick={(event) => {
+        if (!feedbackContext?.onScrollToItem) return
+        event.preventDefault()
+        feedbackContext.onScrollToItem(savingsTargetItemId)
+      }}
+      className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 hover:text-gray-800 hover:underline underline-offset-2 transition-colors leading-none align-baseline"
     >
       儲蓄投資特別扣除額
-    </button>
+    </a>
   )
 
   if (field.splitPerUnitKeys) {
@@ -81,31 +105,12 @@ function InlineFeedback({
     const additionalCount = Math.max(count - 1, 0)
     const total = firstRate + additionalCount * additionalRate
     return (
-      <p className="mt-1 text-base text-blue-700">
+      <p className="mt-1 text-base text-gray-700">
         {count === 1 ? (
           <>1 {field.unit} × {firstRate.toLocaleString('zh-TW')} 元 ＝ <strong>{total.toLocaleString('zh-TW')} 元</strong></>
         ) : (
           <>1 {field.unit} × {firstRate.toLocaleString('zh-TW')} ＋ {additionalCount} {field.unit} × {additionalRate.toLocaleString('zh-TW')} ＝ <strong>{total.toLocaleString('zh-TW')} 元</strong></>
         )}
-      </p>
-    )
-  }
-
-  if (field.perUnitKey) {
-    if (!hasValue) return null
-    const count = Number(value)
-    if (!Number.isFinite(count) || count <= 0) return null
-    let perUnit: number
-    try {
-      perUnit = getNumber(field.perUnitKey)
-    } catch {
-      return null
-    }
-    const total = count * perUnit
-    return (
-      <p className="mt-1 text-base text-blue-700">
-        {count} {field.unit} × {perUnit.toLocaleString('zh-TW')} 元 ＝{' '}
-        <strong>{total.toLocaleString('zh-TW')} 元</strong>
       </p>
     )
   }
@@ -241,13 +246,13 @@ export function ChecklistInlineAmountFields({
   if (inlineFields.length === 0) return null
 
   return (
-    <div className="mt-3 space-y-3 rounded border border-blue-100 bg-blue-50/40 p-3">
+    <div className="mt-3 space-y-3 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
       {inlineFields.map((field) => (
         <div key={field.id}>
           <label className="block text-base font-medium text-gray-600 mb-1">
             {field.label}（選填）
           </label>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <input
               type="number"
               min="0"
@@ -263,6 +268,15 @@ export function ChecklistInlineAmountFields({
               placeholder={field.perUnitKey || field.splitPerUnitKeys ? '輸入人數' : '輸入金額'}
             />
             <span className="text-base text-gray-500">{field.unit}</span>
+            {(() => {
+              const formula = getPerUnitInlineFormula(field, inputValues[field.id] ?? '')
+              if (!formula) return null
+              return (
+                <span className="text-base text-gray-700">
+                  × {formula.perUnit.toLocaleString('zh-TW')} 元 ＝ <strong>{formula.total.toLocaleString('zh-TW')} 元</strong>
+                </span>
+              )
+            })()}
           </div>
           <InlineFeedback
             field={field}
@@ -271,7 +285,7 @@ export function ChecklistInlineAmountFields({
           />
         </div>
       ))}
-      <div className="border-t border-blue-100 pt-2">
+      <div className="border-t border-gray-300 pt-2">
         <p className="text-xs text-gray-400">
           資料僅在您的瀏覽器處理，不會傳送至任何伺服器
         </p>

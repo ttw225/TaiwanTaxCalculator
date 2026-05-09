@@ -74,7 +74,7 @@ function PersonRow({
   const hasSalaryFormula = config.kind === 'salary' && person.hasInput && income > 0
 
   return (
-    <div className="border-b border-blue-100 py-3 first:pt-0 last:border-0 last:pb-0">
+    <div className="border-b border-gray-300 py-3 first:pt-0 last:border-0 last:pb-0">
       <div className="mb-1.5 flex items-center gap-2">
         {isFixed ? (
           <span className="min-w-[3rem] text-base font-semibold text-gray-700">{person.label}</span>
@@ -211,7 +211,7 @@ export function IncomeCard({
         </p>
       )}
 
-      <div className="space-y-0 rounded border border-blue-100 bg-blue-50/40 p-3">
+      <div className="space-y-0 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
         {persons.map((person) => {
           const isFixed = person.id === 'self' || person.id === 'spouse'
           const extraOrder =
@@ -253,7 +253,7 @@ export function IncomeCard({
       <div className="mt-3 space-y-0.5 text-base text-gray-500">
         <p className="font-medium text-gray-700">{config.subtotalLabel}</p>
         {isComplete ? (
-          <div className="flex justify-between gap-4 border-t border-gray-100 pt-0.5 font-semibold text-green-700" data-testid={`income-total-${config.id}`}>
+          <div className="flex justify-between gap-4 border-t border-gray-100 pt-0.5 font-semibold text-blue-700" data-testid={`income-total-${config.id}`}>
             <span>＝</span>
             <span className="tabular-nums">{formatTwd(total)} 元</span>
           </div>
