@@ -83,9 +83,9 @@ export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
                 key={item.id}
                 type="button"
                 onClick={() => onNavClick?.(item.id)}
-                className={`text-base font-medium transition-colors ${
+                className={`text-base font-normal transition-colors ${
                   currentFeatureId === item.id
-                    ? 'text-blue-600'
+                    ? 'text-gray-700'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -122,9 +122,7 @@ export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
                 key={item.id}
                 type="button"
                 onClick={() => { onNavClick?.(item.id); setMenuOpen(false) }}
-                className={`text-base font-medium py-2 text-left ${
-                  currentFeatureId === item.id ? 'text-blue-600' : 'text-gray-700'
-                }`}
+                className="text-base font-normal py-2 text-left text-gray-700"
               >
                 {item.label}
               </button>
