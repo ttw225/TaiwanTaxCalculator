@@ -159,20 +159,17 @@ function changeInputByTestId(testId: string, value: string) {
 }
 
 describe('situation single-source flow', () => {
-  it('goes to results from intro start button when a saved selection exists', () => {
-    localStorage.setItem(
-      SITUATION_SELECTION_STORAGE_KEY,
-      JSON.stringify({ selected: ['rent'] }),
-    )
-    localStorage.setItem(
-      CHECKLIST_VIEW_STATE_STORAGE_KEY,
-      JSON.stringify({ page: 'intro' }),
-    )
-
+  it('goes to selecting from intro start button when a selection exists but checklist is not generated', () => {
     renderApp({ autoStart: false })
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: SITUATION_SELECTION_STORAGE_KEY,
+        newValue: JSON.stringify({ selected: ['rent'] }),
+      }))
+    })
     clickButtonByText('開始試算')
 
-    expect(container.textContent).toContain('節稅試算清單')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
   it('goes to selecting from intro start button when no selection exists', () => {
@@ -182,20 +179,16 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
-  it('goes to results from header nav when a saved selection exists', () => {
+  it('goes to selecting from header nav when a saved selection exists but checklist is not generated', () => {
     localStorage.setItem(
       SITUATION_SELECTION_STORAGE_KEY,
       JSON.stringify({ selected: ['rent'] }),
-    )
-    localStorage.setItem(
-      CHECKLIST_VIEW_STATE_STORAGE_KEY,
-      JSON.stringify({ page: 'intro' }),
     )
 
     renderApp({ autoStart: false })
     clickButtonByText('節稅試算')
 
-    expect(container.textContent).toContain('節稅試算清單')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
   it('goes to selecting from header nav when no selection exists', () => {
@@ -203,6 +196,28 @@ describe('situation single-source flow', () => {
     clickButtonByText('節稅試算')
 
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+  })
+
+  it('goes to results from intro start button after checklist has been generated', () => {
+    renderApp({ autoStart: false })
+    clickButtonByText('開始試算')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+    clickButtonByText('台灣節稅資訊平台')
+    clickButtonByText('開始試算')
+
+    expect(container.textContent).toContain('節稅試算清單')
+  })
+
+  it('goes to results from header nav after checklist has been generated and user returns to intro', () => {
+    renderApp({ autoStart: false })
+    clickButtonByText('開始試算')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+    clickButtonByText('台灣節稅資訊平台')
+    clickButtonByText('節稅試算')
+
+    expect(container.textContent).toContain('節稅試算清單')
   })
 
   it('scrolls to top when navigating via header nav button', () => {
@@ -491,7 +506,7 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('節稅試算清單')
   })
 
-  it('returns to results page after refresh when a selection already exists', () => {
+  it('returns to selecting page after refresh when a selection exists but checklist was not generated', () => {
     const root = renderApp()
     clickButtonByText('房屋租金支出')
     expect(container.textContent).toContain('產生節稅清單')
@@ -502,7 +517,7 @@ describe('situation single-source flow', () => {
     })
 
     renderApp()
-    expect(container.textContent).toContain('節稅試算清單')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
   it('allows spouse salary income to remain 0', () => {

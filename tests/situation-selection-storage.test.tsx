@@ -35,11 +35,13 @@ function renderApp() {
   return root
 }
 
-function clickByTestId(testId: string) {
-  const element = container.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
-  if (!element) throw new Error(`Missing element with data-testid "${testId}"`)
+function clickButtonByText(text: string) {
+  const button = Array.from(container.querySelectorAll('button')).find((el) =>
+    el.textContent?.includes(text),
+  )
+  if (!button) throw new Error(`Missing button with text "${text}"`)
   act(() => {
-    element.click()
+    button.click()
   })
 }
 
@@ -73,7 +75,7 @@ describe('situation selection storage', () => {
     expect(parseSavedSituationSelection('not-json', allowedIds)).toEqual([])
   })
 
-  it('clears page selection and browser storage from the results page reset flow', () => {
+  it('clears page selection and browser storage from selecting page', () => {
     localStorage.setItem(
       SITUATION_SELECTION_STORAGE_KEY,
       JSON.stringify({ selected: ['rent', 'salary_income'] }),
@@ -81,11 +83,10 @@ describe('situation selection storage', () => {
 
     renderApp()
 
-    expect(container.textContent).toContain('節稅試算清單')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).not.toBeNull()
 
-    clickByTestId('reset-checklist-btn')
-    clickByTestId('confirm-reset-btn')
+    clickButtonByText('清空')
 
     expect(container.textContent).toContain('請先選擇至少一項情況')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()

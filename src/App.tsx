@@ -148,11 +148,18 @@ function getItemSourceSituationLabelsById(
 
 function App() {
   const [selected, setSelected] = useState<SituationId[]>(() => loadSavedSituationSelection(SITUATION_IDS))
+  const [hasGeneratedChecklist, setHasGeneratedChecklist] = useState<boolean>(() => {
+    const savedViewState = loadSavedChecklistViewState()
+    const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
+    return savedViewState === 'results' && savedSelection.length > 0
+  })
   const [appState, setAppState] = useState<AppState>(() => {
     const savedViewState = loadSavedChecklistViewState()
     const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
+    const generated = savedViewState === 'results' && savedSelection.length > 0
+    if (generated) return 'results'
+    if (savedSelection.length > 0) return 'selecting'
     if (savedViewState === 'intro') return 'intro'
-    if (savedSelection.length > 0) return 'results'
     return 'intro'
   })
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
@@ -169,8 +176,8 @@ function App() {
   }, [cardInputMap])
 
   useEffect(() => {
-    saveChecklistViewState(appState)
-  }, [appState])
+    saveChecklistViewState(hasGeneratedChecklist ? 'results' : 'selecting')
+  }, [hasGeneratedChecklist])
 
   useEffect(() => {
     // Clean up deprecated pre-v2 checklist overrides data to keep refresh behavior deterministic.
@@ -183,8 +190,8 @@ function App() {
         const syncedSelection = parseSavedSituationSelection(event.newValue, SITUATION_IDS)
         setSelected(syncedSelection)
         if (syncedSelection.length === 0) {
+          setHasGeneratedChecklist(false)
           setAppState('selecting')
-          saveChecklistViewState('selecting')
         }
       }
     }
@@ -203,20 +210,18 @@ function App() {
   function handleGenerate() {
     if (selected.length > 0) {
       setScrollToItemId(null)
+      setHasGeneratedChecklist(true)
       setAppState('results')
-      saveChecklistViewState('results')
       window.scrollTo(0, 0)
     }
   }
 
   function navigateToChecklistFlow() {
     setScrollToItemId(null)
-    if (selected.length > 0) {
+    if (hasGeneratedChecklist && selected.length > 0) {
       setAppState('results')
-      saveChecklistViewState('results')
     } else {
       setAppState('selecting')
-      saveChecklistViewState('selecting')
     }
     window.scrollTo(0, 0)
   }
@@ -224,12 +229,12 @@ function App() {
   function navigateToIntro() {
     setScrollToItemId(null)
     setAppState('intro')
-    saveChecklistViewState('intro')
     window.scrollTo(0, 0)
   }
 
   function resetChecklistState() {
     setSelected([])
+    setHasGeneratedChecklist(false)
     setAppState('selecting')
     setCardInputMap({})
     setPendingRemovalEffect(null)
@@ -286,8 +291,8 @@ function App() {
     setCardInputMap((prev) => omitIdsFromCardInputMap(prev, [effect.itemId]))
     if (nextSelected.length === 0) {
       setScrollToItemId(null)
+      setHasGeneratedChecklist(false)
       setAppState('selecting')
-      saveChecklistViewState('selecting')
       window.scrollTo(0, 0)
     }
   }
