@@ -11,11 +11,12 @@ Source: [`src/App.tsx`](../src/App.tsx).
 ## State machine
 
 ```ts
-type AppState = 'selecting' | 'results'
+type AppState = 'intro' | 'selecting' | 'results'
 ```
 
 | State | UI |
 |-------|-----|
+| `intro` | [`IntroPage`](../src/components/IntroPage.tsx) |
 | `selecting` | [`SituationSelector`](../src/components/SituationSelector.tsx) |
 | `results` | [`ChecklistResult`](../src/components/ChecklistResult.tsx) |
 
@@ -38,27 +39,30 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 
 ## Situation toggle
 
-- `toggleSituation(id)`: updates `selected`.
+- `toggleSituation(id)`: updates `selected`, then normalizes linked situations.
+- `savings_investment` is a hidden derived situation, not shown in the selector. Selecting `interest_income` also selects `savings_investment`; removing `interest_income` also removes `savings_investment`.
 
 ## Generate / clear / add situations
 
 - **`handleGenerate`**: if selection non-empty → `results`, clear scroll token, `window.scrollTo(0, 0)`.
 - **`handleClearSelections`**: empty selection, reset `cardInputMap`, clear storage, remove legacy key (see [`11-storage-and-persistence.md`](./11-storage-and-persistence.md)).
-- **`handleAddSituations(ids)`**: merge ids into `selected`; sets `scrollToItemId` from the before/after `filterBySituations` diff (first newly visible card in render order).
-- Add modal lists situations not currently present in `selected`.
+- **`handleAddSituations(ids)`**: merge ids into `selected`, normalize the interest/savings link, then set `scrollToItemId` from the before/after `filterBySituations` diff (first newly visible card in render order).
+- Add modal lists public situations not currently present in `selected`; `savings_investment` is intentionally absent and appears only as a derived result card when interest income is active.
 
 ## Remove checklist item (independent per card)
 
-- Non-removable guard ids: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`.
-- **`createRemovalEffect(itemId)`**: builds a single-card preview and checks only that card for input-loss.
+- Non-removable guard ids: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`, `savings-investment-deduction`.
+- **`createRemovalEffect(itemId)`**: builds a preview and checks that card for input-loss; `interest-income` also checks its linked savings-investment card.
 - **`requiresConfirm`**: `true` only when the target card already has input data.
 - **`handleRemoveItem`**: apply immediately or set `pendingRemovalEffect`.
 - **`applyRemovalEffect`**: removes the target card's `situations` from `selected` and clears that card's entry from `cardInputMap`.
+- Removing `interest-income` also removes `savings_investment` and clears both linked entries.
 - If removal empties `selected`, the app returns to the selecting page.
 
 ## Card input
 
 - **`handleCardInputChange`**: merges one `(itemId, fieldId, value)` into `cardInputMap` (no debounce at App level).
+- Shared income participants are stored under the synthetic `income-participants` key; income cards update it through `ChecklistResult`.
 
 ## Effects
 

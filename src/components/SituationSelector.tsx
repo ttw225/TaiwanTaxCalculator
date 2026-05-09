@@ -11,8 +11,9 @@ interface Props {
 }
 
 export function SituationSelector({ groups, situations, selected, onToggle, onClear, onGenerate }: Props) {
-  const hasSelection = selected.length > 0
   const situationMap = new Map(situations.map((s) => [s.id, s]))
+  const visibleSelectedCount = selected.filter((id) => situationMap.has(id)).length
+  const hasSelection = visibleSelectedCount > 0
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -86,7 +87,7 @@ export function SituationSelector({ groups, situations, selected, onToggle, onCl
           清空
         </button>
         {hasSelection && (
-          <span className="text-sm text-gray-500">已選 {selected.length} 項</span>
+          <span className="text-sm text-gray-500">已選 {visibleSelectedCount} 項</span>
         )}
         {!hasSelection && (
           <span className="text-sm text-gray-400">請先選擇至少一項情況</span>

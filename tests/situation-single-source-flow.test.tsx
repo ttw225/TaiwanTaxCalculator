@@ -16,6 +16,8 @@ let requestAnimationFrameSpy: ReturnType<typeof vi.fn>
 
 const DONATION_TARGET_TOP = 900
 const DONATION_TARGET_HEIGHT = 120
+const GROSS_SECTION_TARGET_TOP = 540
+const GROSS_SECTION_TARGET_HEIGHT = 360
 const VIEWPORT_HEIGHT = 800
 
 function runNextAnimationFrame(timestamp: number) {
@@ -86,6 +88,19 @@ beforeEach(() => {
           right: 640,
           width: 640,
           height: DONATION_TARGET_HEIGHT,
+          toJSON: () => '',
+        }
+      }
+      if (testId === 'checklist-section-gross_income') {
+        return {
+          x: 0,
+          y: GROSS_SECTION_TARGET_TOP,
+          top: GROSS_SECTION_TARGET_TOP,
+          left: 0,
+          bottom: GROSS_SECTION_TARGET_TOP + GROSS_SECTION_TARGET_HEIGHT,
+          right: 640,
+          width: 640,
+          height: GROSS_SECTION_TARGET_HEIGHT,
           toJSON: () => '',
         }
       }
@@ -244,10 +259,16 @@ describe('situation single-source flow', () => {
     clickByTestId('open-add-situation-modal-btn')
     clickByTestId('add-situation-checkbox-married')
     clickByTestId('confirm-add-situations-btn')
+    act(() => {
+      runNextAnimationFrame(0)
+      runNextAnimationFrame(500)
+      runNextAnimationFrame(1000)
+    })
 
     expect(container.textContent).toContain('標準扣除額（配偶合併申報）')
     expect(container.textContent).toContain('262,000')
     expect(container.textContent).not.toContain('標準扣除額（單身）')
+    expect(scrollToSpy).toHaveBeenLastCalledWith(0, GROSS_SECTION_TARGET_TOP - 80)
   })
 
   it('cancel add in modal does not apply selection', () => {
@@ -436,11 +457,40 @@ describe('situation single-source flow', () => {
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
-    changeInputByTestId('gross-income-input-self', '300000')
-    changeInputByTestId('gross-income-input-spouse', '0')
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-gross-income-spouse', '0')
 
-    const spouseInput = container.querySelector<HTMLInputElement>('[data-testid="gross-income-input-spouse"]')
+    const spouseInput = container.querySelector<HTMLInputElement>('[data-testid="income-input-gross-income-spouse"]')
     expect(spouseInput?.value).toBe('0')
     expect(container.textContent).not.toContain('（1 項未填）')
+
+    changeInputByTestId('income-input-gross-income-spouse', '')
+    expect(spouseInput?.value).toBe('')
+    expect(container.querySelector('[data-testid="income-total-gross-income"]')?.textContent).toContain('未填寫')
+  })
+
+  it('hides savings investment from selectors and derives it from interest income on the result page', () => {
+    renderApp()
+
+    expect(container.textContent).not.toContain('儲蓄投資')
+
+    clickButtonByText('利息收入')
+    expect(container.textContent).not.toContain('儲蓄投資')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.textContent).toContain('利息收入')
+    expect(container.textContent).toContain('儲蓄投資特別扣除額')
+    expect(container.querySelector('[data-testid="remove-item-savings-investment-deduction"]')).toBeNull()
+    clickByTestId('open-add-situation-modal-btn')
+    expect(container.querySelector('[data-testid="add-situation-checkbox-savings_investment"]')).toBeNull()
+    clickByTestId('cancel-add-situations-btn')
+
+    changeInputByTestId('income-input-interest-income-self', '300000')
+    expect(container.textContent).toContain('270,000 元')
+
+    clickByTestId('remove-item-interest-income')
+    clickByTestId('confirm-remove-item-btn')
+    expect(container.textContent).not.toContain('利息收入小計')
+    expect(container.textContent).not.toContain('儲蓄投資特別扣除額')
   })
 })

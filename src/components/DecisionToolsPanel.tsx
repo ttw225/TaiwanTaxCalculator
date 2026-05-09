@@ -1,11 +1,9 @@
 import type { DecisionToolId, SituationId } from '../types/content'
-import { DividendTool } from './tools/DividendTool'
 import { CoupleFilingTool } from './tools/CoupleFilingTool'
 import { AmtTool } from './tools/AmtTool'
 import {
   AMT_TOOL_META,
   COUPLE_FILING_TOOL_META,
-  DIVIDEND_TOOL_META,
 } from '../content/decision-tools'
 
 interface DecisionTool {
@@ -16,12 +14,6 @@ interface DecisionTool {
 }
 
 const TOOLS: DecisionTool[] = [
-  {
-    id: 'dividend',
-    meta: DIVIDEND_TOOL_META,
-    trigger: 'dividends',
-    component: DividendTool,
-  },
   {
     id: 'couple_filing',
     meta: COUPLE_FILING_TOOL_META,

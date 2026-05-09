@@ -12,6 +12,8 @@ export type SituationId =
   | 'education_tuition'
   | 'savings_investment'
   | 'dividends'
+  | 'interest_income'
+  | 'other_income'
   | 'overseas_income'
 
 export interface Situation {
@@ -71,6 +73,8 @@ export interface CardInlineField {
 
 export interface CardInlineFeedbackContext {
   grossIncomeAmount: number | null
+  dividendMergedGrossIncomeAmount: number | null
+  dividendSeparateGrossIncomeAmount: number | null
   savingsInvestmentEnabled: boolean
   savingsInvestmentDeductionAmount: number | null
   onScrollToSection?: (categoryId: string) => void

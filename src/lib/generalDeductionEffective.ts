@@ -13,6 +13,10 @@ export const ITEMIZED_ITEM_IDS = new Set<string>([
 export interface ItemizedCalcContext {
   /** Gross income total (used for the 20% donation cap). */
   grossIncomeAmount: number | null
+  /** Optional alternate gross total when dividends are merged into regular income. */
+  dividendMergedGrossIncomeAmount?: number | null
+  /** Optional alternate gross total when dividends use separate taxation. */
+  dividendSeparateGrossIncomeAmount?: number | null
   /** Whether the savings-investment deduction card is enabled (present in checklist). */
   savingsInvestmentEnabled: boolean
   /** Capped savings-investment deduction amount; null means enabled but still unfilled. */

@@ -129,6 +129,8 @@ function InlineFeedback({
 
   if (field.feedbackRule === 'qualified-donation') {
     const grossIncomeAmount = feedbackContext?.grossIncomeAmount ?? null
+    const dividendMergedGrossIncomeAmount = feedbackContext?.dividendMergedGrossIncomeAmount ?? null
+    const dividendSeparateGrossIncomeAmount = feedbackContext?.dividendSeparateGrossIncomeAmount ?? null
     if (grossIncomeAmount === null) {
       return (
         <p className="mt-1 text-base text-gray-700">
@@ -141,6 +143,14 @@ function InlineFeedback({
             綜合所得總額
           </button>
         </p>
+      )
+    }
+    if (dividendMergedGrossIncomeAmount !== null && dividendSeparateGrossIncomeAmount !== null) {
+      return (
+        <div className="mt-1 space-y-0.5 text-base text-blue-700">
+          <p>若股利合併計稅，捐贈金額上限為 {formatAmount(dividendMergedGrossIncomeAmount * 0.2)} 元</p>
+          <p>若股利分開計稅，捐款金額上限為 {formatAmount(dividendSeparateGrossIncomeAmount * 0.2)} 元</p>
+        </div>
       )
     }
     const cap = grossIncomeAmount * 0.2

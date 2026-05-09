@@ -57,20 +57,20 @@ interface Props {
 ```
 
 - Root uses `print-container` for print layout.
-- Layout: `max-w-4xl` with `lg:grid lg:grid-cols-[1fr_260px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
+- Layout: `max-w-5xl` with `lg:grid lg:grid-cols-[1fr_360px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
 - Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
-- Add-situation modal lists situations not currently present in `selected`.
-- Card routing: `item.id === 'gross-income'` → renders `GrossIncomeCard`; all others → `DeductionCard`.
-- Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married` (no `×` button).
+- Add-situation modal lists situations not currently present in `selected`; savings-investment is disabled and linked to interest income.
+- Card routing: regular income card ids (`gross-income`, `dividend-income`, `interest-income`, `other-income`) → `IncomeCard`; `savings-investment-deduction` → derived read-only card; all others → `DeductionCard`.
+- Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`, `savings-investment-deduction` (no `×` button).
 - Result cards are derived from `filterBySituations(CHECKLIST_ITEMS, selected)`.
 - Remove dialog is single-card scoped. Copy contract:
   - Title: `確認移除此項目：{itemTitle}`
   - Body:
     - `將清除「{itemTitle}」已填寫的資料。`
     - `您可以隨時加回此項目`
-- Computes `grossIncomeTotal` via `useMemo` from `cardInputMap['gross-income']` + `parseGrossIncomePersons` + `calcTotalGrossIncome` (**aggregate net salary income per person** after modeled 薪資所得特別扣除額, not sum of raw inputs).
-- `gross_income` section header shows `grossIncomeTotal` inline when > 0.
-- **`onReset`**: declared on props but **not used** in component body (reserved / dead API until wired).
+- Computes income totals from shared income participants and active regular income cards. Salary uses net salary after modeled 薪資所得特別扣除額; dividend/interest/other use raw amounts.
+- When dividends are active, the gross section renders both merged-tax and 28% separate-tax totals and passes `null` to `TaxSummaryPanel` for gross income.
+- **`onReset`**: wired to the "重新計算" confirmation dialog.
 - Scroll-to-item: `useEffect` on `scrollToItemId` → [`animateScrollToY`](../src/lib/scrollAnimation.ts) to center card in viewport → `onScrollHandled`.
 - Overlays / tool panel: `no-print` where appropriate.
 
@@ -104,27 +104,28 @@ interface Props {
     - Filled value + eligible amount above cap: `扣除「儲蓄投資特別扣除額」後已達可申報上限 X 元`.
 - Remove control `no-print` on remove button.
 
-## `GrossIncomeCard.tsx`
+## `IncomeCard.tsx`
 
 ```ts
 interface Props {
   item: ChecklistItem
+  config: IncomeCardConfig
   inputValues: Record<string, string>
-  isMarriedFiling: boolean
+  participants: IncomeParticipant[]
   sourceSituationLabels?: string[]
   removable?: boolean
   onInputChange: (fieldId: string, value: string) => void
+  onParticipantsChange: (participants: IncomeParticipant[], removedId?: string) => void
   onRemove?: () => void
 }
 ```
 
-- Specialized card for item `id: 'gross-income'` (category `gross_income`).
-- Multi-person income inputs: self (固定), spouse (when `isMarriedFiling`), extra persons (add/remove).
-- State encoded in two `CardInputMap` fields: `self_income` (string number) and `persons_json` (JSON array of `GrossIncomePerson` excluding self).
-- Add/remove/update person: serializes full array to `persons_json` in a single `onInputChange` call (avoids partial concurrent updates).
-- Per-person feedback: shows 薪資所得特別扣除額 and net 薪資所得.
+- Shared regular-income card for salary, dividend, interest, and other income.
+- Multi-person income inputs: self (fixed), spouse (from married filing), extra persons (add/remove/rename).
+- Participant names are shared through `income-participants`; per-card amounts use `self_income` and per-card `persons_json`.
+- Add/remove/rename participant from any income card updates all regular income cards. Removing a participant also prunes that person's amount rows from every regular income card.
+- Salary rows show 薪資所得特別扣除額 and net 薪資所得; salary requires explicit input for every participant. Dividend/interest/other default blank to 0.
 - Composes same [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx) (eligibility and shared footer).
-- **`children`**: multi-person income UI, add-person control, privacy line, then in-card `綜合所得總額` breakdown (`data-testid="gross-income-total"`) matching **`calcTotalGrossIncome`** (net-of-salary-deduction sum).
 - Calculation logic: [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts).
 
 ## `TaxSummaryPanel.tsx`
@@ -143,7 +144,7 @@ interface Props {
 - Sticky right-sidebar panel in `ChecklistResult` (desktop, `lg:sticky lg:top-6`, `no-print`).
 - Rows: 綜合所得總額、免稅額、一般扣除額、（選）特別扣除額；所得淨額與應納稅額試算。
 - `generalDeductionAmount === null` → that row shows「前往填寫」捲動至 `general_deductions`，且所得淨額／應納稅額為「待計算」（與其他必填列一致）。
-- Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`) using an itemized calc context derived in [`ChecklistResult.tsx`](../src/components/ChecklistResult.tsx) (e.g. `grossIncomeAmount`, `savingsInvestmentDeductionAmount`).
+- Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`) using an itemized calc context derived in [`ChecklistResult.tsx`](../src/components/ChecklistResult.tsx) (e.g. `grossIncomeAmount`, dividend merged/separate gross totals for qualified-donation feedback, `savingsInvestmentDeductionAmount`).
 
 ## `DecisionToolsPanel.tsx`
 
@@ -153,6 +154,7 @@ interface Props { selectedSituations: SituationId[] }
 
 - Returns `null` if no tool matches.
 - Collapsible amber panel; privacy copy.
+- Currently triggered by married filing and overseas income. Dividend guidance moved into `IncomeCard`; `DividendTool.tsx` remains as legacy decision math UI until fully removed.
 
 ## `BackToTopButton.tsx`
 
