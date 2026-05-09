@@ -24,6 +24,7 @@ lerna-debug.log*
 # Local machine files / maintainer overlays (paths, secrets — do not commit)
 *.local
 *.local.md
+.claude/worktrees/
 
 # Editor directories and files
 .vscode/*

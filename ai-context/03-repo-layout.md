@@ -6,7 +6,7 @@ Paths are relative to repo root unless noted.
 
 | Path | Role |
 |------|------|
-| [`package.json`](../package.json) | Dependencies, scripts, engines |
+| [`package.json`](../package.json) | Dependencies, scripts, Node/pnpm version policy (`engines`, `packageManager`) |
 | [`pnpm-lock.yaml`](../pnpm-lock.yaml) | Lockfile |
 | [`vite.config.ts`](../vite.config.ts) | Vite + Vitest + Tailwind plugin |
 | [`tsconfig.json`](../tsconfig.json) | Project references |
