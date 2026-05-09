@@ -406,7 +406,7 @@ function SavingsInvestmentDeductionCard({
             <span>利息收入合計</span>
             <span className="tabular-nums">{formatTwd(interestIncomeAmount)} 元</span>
           </div>
-          <div className="flex justify-between gap-4 font-semibold text-green-700">
+          <div className="flex justify-between gap-4 font-semibold text-blue-700">
             <span>可扣除金額</span>
             <span className="tabular-nums">{formatTwd(deduction)} 元</span>
           </div>
@@ -946,6 +946,7 @@ export function ChecklistResult({
             {groups.map((group) => (
               <section
                 key={group.category}
+                id={group.category}
                 ref={(element) => {
                   sectionRefs.current[group.category] = element
                 }}
@@ -956,7 +957,7 @@ export function ChecklistResult({
                   {(() => {
                     const sub = getSectionSubtotal(group)
                     return sub !== null ? (
-                      <span className="text-base font-semibold text-green-700 tabular-nums">
+                      <span className="text-[20px] font-semibold text-blue-700 tabular-nums">
                         {sub.toLocaleString('zh-TW')} 元
                       </span>
                     ) : null
@@ -999,6 +1000,7 @@ export function ChecklistResult({
                   {group.items.map((item) => (
                     <div
                       key={item.id}
+                      id={item.id}
                       ref={(element) => {
                         itemRefs.current[item.id] = element
                       }}

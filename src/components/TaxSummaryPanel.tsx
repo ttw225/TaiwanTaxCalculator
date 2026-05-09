@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { calcTax, getBrackets } from '../lib/numbers'
 import { Card, CardBody, CardHeader } from './ui/Card'
 
@@ -30,6 +31,30 @@ function GoFill({ sectionId, onScroll }: { sectionId: string; onScroll?: (id: st
     >
       前往填寫
     </button>
+  )
+}
+
+function SummarySectionLink({
+  sectionId,
+  onScroll,
+  children,
+}: {
+  sectionId: string
+  onScroll?: (id: string) => void
+  children: ReactNode
+}) {
+  return (
+    <a
+      href={`#${sectionId}`}
+      onClick={(event) => {
+        if (!onScroll) return
+        event.preventDefault()
+        onScroll(sectionId)
+      }}
+      className="text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
+    >
+      {children}
+    </a>
   )
 }
 
@@ -82,21 +107,27 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
     return () => { document.body.style.overflow = '' }
   }, [])
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4">
-      <div className="w-full max-w-2xl flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
+  const dialog = (
+    <div
+      data-testid="tax-formula-dialog-overlay"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print"
+    >
+      <div
+        data-testid="tax-formula-dialog"
+        className="w-full max-w-2xl flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl"
+      >
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">「所得稅應納稅額」公式</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="關閉"
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-base text-gray-500 hover:border-gray-300 hover:bg-gray-100 transition-colors"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-100"
           >
             ×
           </button>
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
           <p className="text-base text-gray-700 mb-4">
             公式：<span className="font-semibold text-gray-900">「綜合所得淨額」× 稅率 − 累進差額</span>
           </p>
@@ -135,11 +166,11 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
             </tbody>
           </table>
         </div>
-        <div className="flex justify-end border-t border-gray-100 px-5 py-3">
+        <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             關閉
           </button>
@@ -147,6 +178,8 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
       </div>
     </div>
   )
+
+  return createPortal(dialog, document.body)
 }
 
 interface SummaryBodyProps {
@@ -188,7 +221,11 @@ function TaxSummaryBody({
       {/* Calculation rows */}
       <CardBody variant="summary" className="space-y-2.5">
         <SummaryRow
-          label="綜合所得總額"
+          label={(
+            <SummarySectionLink sectionId="gross_income" onScroll={onScrollToSection}>
+              綜合所得總額
+            </SummarySectionLink>
+          )}
           value={grossIncome}
           missing={grossMissing}
           pendingCalculation={grossIncomePendingCalculation}
@@ -196,7 +233,11 @@ function TaxSummaryBody({
           onScroll={onScrollToSection}
         />
         <SummaryRow
-          label="免稅額"
+          label={(
+            <SummarySectionLink sectionId="exemptions" onScroll={onScrollToSection}>
+              免稅額
+            </SummarySectionLink>
+          )}
           value={exemptionAmount}
           isDeduction
           missing={exemptMissing}
@@ -206,11 +247,13 @@ function TaxSummaryBody({
         <SummaryRow
           label={(
             <span className="inline-flex items-center gap-2">
-              <span>一般扣除額</span>
+              <SummarySectionLink sectionId="general_deductions" onScroll={onScrollToSection}>
+                一般扣除額
+              </SummarySectionLink>
               {generalDeductionMethod && (
                 <span
                   data-testid="general-deduction-method-label"
-                  className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-sm font-semibold text-green-800"
+                  className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-sm font-semibold text-blue-800"
                 >
                   {generalDeductionMethod === 'itemized' ? '列舉' : '標準'}
                 </span>
@@ -225,7 +268,11 @@ function TaxSummaryBody({
         />
         {hasSpecialDeductions && (
           <SummaryRow
-            label="特別扣除額"
+            label={(
+              <SummarySectionLink sectionId="special_deductions" onScroll={onScrollToSection}>
+                特別扣除額
+              </SummarySectionLink>
+            )}
             value={specialDeductionAmount}
             isDeduction
             missing={specialMissing}
@@ -253,13 +300,16 @@ function TaxSummaryBody({
             {onOpenDialog && (
               <span className="shrink-0 text-sm text-muted">
                 <span aria-hidden>(</span>
-                <button
-                  type="button"
-                  onClick={onOpenDialog}
-                  className="inline p-0 border-0 bg-transparent font-inherit text-sm text-muted hover:text-blue-600 hover:underline underline-offset-2 transition-colors cursor-pointer"
+                <a
+                  href="#tax-formula-detail"
+                  onClick={(event) => {
+                    event.preventDefault()
+                    onOpenDialog()
+                  }}
+                  className="inline p-0 m-0 border-0 bg-transparent font-inherit text-sm text-gray-600 hover:text-gray-800 hover:underline underline-offset-2 transition-colors leading-none align-baseline"
                 >
-                  瞭解更多
-                </button>
+                  了解更多
+                </a>
                 <span aria-hidden>)</span>
               </span>
             )}

@@ -33,7 +33,7 @@ function Verdict({
   if (allFilled) {
     if (itemizedTotal > standardAmount) {
       return (
-        <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-semibold text-green-800">
+        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-800">
           推薦：列舉扣除（列舉扣除 {'>'} 標準扣除）
         </span>
       )
@@ -46,7 +46,7 @@ function Verdict({
       )
     }
     return (
-      <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-semibold text-green-800">
+      <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-800">
         推薦：標準扣除（標準扣除 {'>'} 列舉扣除）
       </span>
     )
@@ -113,7 +113,7 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
     return (
       <section className={PANEL_SHELL_CLASS} data-testid="standard-itemized-panel">
         <div className="mb-3">
-          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-base font-semibold text-green-800">
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-800">
             推薦：標準扣除
           </span>
         </div>
