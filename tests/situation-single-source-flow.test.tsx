@@ -422,7 +422,6 @@ describe('situation single-source flow', () => {
 
     expect(scrollToSpy).toHaveBeenLastCalledWith(0, DONATION_TARGET_TOP - SECTION_SCROLL_OFFSET)
   })
-
   it('opens and closes tax formula dialog with shared modal overlay classes', () => {
     renderApp()
     clickButtonByText('薪資收入')

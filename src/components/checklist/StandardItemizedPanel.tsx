@@ -34,7 +34,7 @@ function Verdict({
     if (itemizedTotal > standardAmount) {
       return (
         <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-800">
-          推薦：列舉扣除
+          推薦：列舉扣除（列舉扣除 {'>'} 標準扣除）
         </span>
       )
     }
@@ -47,7 +47,7 @@ function Verdict({
     }
     return (
       <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-800">
-        推薦：標準扣除
+        推薦：標準扣除（標準扣除 {'>'} 列舉扣除）
       </span>
     )
   }
