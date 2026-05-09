@@ -181,7 +181,6 @@ function App() {
     if (savedViewState === 'intro') return 'intro'
     if (savedViewState === 'results' && savedSelection.length > 0) return 'results'
     if (savedSelection.length > 0) return 'selecting'
-    if (savedViewState === 'intro') return 'intro'
     return 'intro'
   })
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
