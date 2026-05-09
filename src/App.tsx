@@ -124,18 +124,28 @@ function getScrollTargetAfterAdd(
   currentSelected: SituationId[],
   nextSelected: SituationId[],
 ): string | null {
-  if (!currentSelected.includes('married') && nextSelected.includes('married')) {
-    return 'section:gross_income'
-  }
-
   const currentGroups = getGroupedItemsBySelection(currentSelected)
   const nextGroups = getGroupedItemsBySelection(nextSelected)
 
   const currentItemIdSet = new Set(currentGroups.flatMap((group) => group.items.map((item) => item.id)))
   const nextItemsInRenderOrder = nextGroups.flatMap((group) => group.items)
   const firstAddedItem = nextItemsInRenderOrder.find((item) => !currentItemIdSet.has(item.id))
+  const addedSituationSet = new Set(nextSelected.filter((id) => !currentSelected.includes(id)))
+  const hasGrossIncomeSituations = nextSelected.some((id) => (
+    id === 'salary_income' ||
+    id === 'dividends' ||
+    id === 'interest_income' ||
+    id === 'other_income' ||
+    id === 'overseas_income'
+  ))
 
-  return firstAddedItem?.id ?? null
+  if (firstAddedItem) return firstAddedItem.id
+
+  if (addedSituationSet.has('married')) {
+    return hasGrossIncomeSituations ? 'section:gross_income' : 'section:general_deductions'
+  }
+
+  return null
 }
 
 function getItemSourceSituationLabelsById(
