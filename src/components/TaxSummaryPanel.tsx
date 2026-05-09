@@ -5,6 +5,7 @@ import { Card, CardBody, CardHeader } from './ui/Card'
 
 interface Props {
   grossIncome: number | null
+  grossIncomePendingCalculation?: boolean
   exemptionAmount: number | null
   /** null when itemized cards exist but amounts are not all filled */
   generalDeductionAmount: number | null
@@ -37,6 +38,7 @@ function SummaryRow({
   value,
   isDeduction = false,
   missing = false,
+  pendingCalculation = false,
   sectionId,
   onScroll,
 }: {
@@ -44,17 +46,23 @@ function SummaryRow({
   value: number | null
   isDeduction?: boolean
   missing?: boolean
+  pendingCalculation?: boolean
   sectionId: string
   onScroll?: (id: string) => void
 }) {
   const hasVal = value !== null && !missing
   return (
-    <div className="flex min-h-6 items-baseline justify-between gap-2">
+    <div
+      className="flex min-h-6 items-baseline justify-between gap-2"
+      data-testid={`summary-row-${sectionId}`}
+    >
       <span className={`text-base shrink-0 ${hasVal ? 'text-gray-700' : 'text-muted'}`}>
         {label}
       </span>
       <span className="inline-flex min-h-6 shrink-0 items-baseline leading-6">
-        {missing ? (
+        {pendingCalculation ? (
+          <span className="text-sm text-muted shrink-0">待計算</span>
+        ) : missing ? (
           <GoFill sectionId={sectionId} onScroll={onScroll} />
         ) : hasVal ? (
           <span className="text-base font-semibold leading-6 tabular-nums text-gray-800">
@@ -148,6 +156,7 @@ interface SummaryBodyProps {
   generalDeductionMethod?: 'standard' | 'itemized' | null
   specialDeductionAmount: number | null
   hasSpecialDeductions: boolean
+  grossIncomePendingCalculation?: boolean
   netIncome: number | null
   taxAmount: number | null
   bracket: ReturnType<typeof getBrackets>[number] | null
@@ -162,13 +171,14 @@ function TaxSummaryBody({
   generalDeductionMethod,
   specialDeductionAmount,
   hasSpecialDeductions,
+  grossIncomePendingCalculation = false,
   netIncome,
   taxAmount,
   bracket,
   onScrollToSection,
   onOpenDialog,
 }: SummaryBodyProps) {
-  const grossMissing = grossIncome === null
+  const grossMissing = grossIncome === null && !grossIncomePendingCalculation
   const exemptMissing = exemptionAmount === null
   const generalMissing = generalDeductionAmount === null
   const specialMissing = hasSpecialDeductions && specialDeductionAmount === null
@@ -181,6 +191,7 @@ function TaxSummaryBody({
           label="綜合所得總額"
           value={grossIncome}
           missing={grossMissing}
+          pendingCalculation={grossIncomePendingCalculation}
           sectionId="gross_income"
           onScroll={onScrollToSection}
         />
@@ -297,6 +308,7 @@ function TaxSummaryBody({
 
 export function TaxSummaryPanel({
   grossIncome,
+  grossIncomePendingCalculation = false,
   exemptionAmount,
   generalDeductionAmount,
   generalDeductionMethod,
@@ -341,6 +353,7 @@ export function TaxSummaryPanel({
 
         <TaxSummaryBody
           grossIncome={grossIncome}
+          grossIncomePendingCalculation={grossIncomePendingCalculation}
           exemptionAmount={exemptionAmount}
           generalDeductionAmount={generalDeductionAmount}
           generalDeductionMethod={generalDeductionMethod}

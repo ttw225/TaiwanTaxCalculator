@@ -173,6 +173,12 @@ function changeInputByTestId(testId: string, value: string) {
   })
 }
 
+function getGrossIncomeHeadingText() {
+  const section = container.querySelector<HTMLElement>('[data-testid="checklist-section-gross_income"]')
+  const heading = section?.querySelector('h2')
+  return heading?.textContent ?? ''
+}
+
 describe('situation single-source flow', () => {
   it('goes to selecting from intro start button when a selection exists but checklist is not generated', () => {
     renderApp({ autoStart: false })
@@ -557,6 +563,36 @@ describe('situation single-source flow', () => {
     changeInputByTestId('income-input-gross-income-spouse', '')
     expect(spouseInput?.value).toBe('')
     expect(container.querySelector('[data-testid="income-total-gross-income"]')?.textContent).toContain('未填寫')
+  })
+
+  it('shows a single gross income total when the dividend card total is 0', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '0')
+
+    expect(getGrossIncomeHeadingText()).toContain('82,000 元')
+    expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('82,000 元')
+    expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).toBeNull()
+  })
+
+  it('defers summary gross income calculation when completed income cards include positive dividends', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '100000')
+
+    expect(getGrossIncomeHeadingText()).not.toContain('182,000 元')
+    expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('待計算')
+    expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).not.toBeNull()
+    expect(container.textContent).toContain('合併計稅')
+    expect(container.textContent).toContain('28% 分開計稅')
   })
 
   it('hides savings investment from selectors and derives it from interest income on the result page', () => {

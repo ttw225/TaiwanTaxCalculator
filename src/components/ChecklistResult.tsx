@@ -423,21 +423,21 @@ function SavingsInvestmentDeductionCard({
 
 function GrossIncomeFormulaPanel({
   items,
-  hasDividendIncomeCard,
+  showDividendScenarios,
   mergedAmount,
   separateDividendAmount,
 }: {
   items: { id: string; label: string; amount: number | null }[]
-  hasDividendIncomeCard: boolean
+  showDividendScenarios: boolean
   mergedAmount: number | null
   separateDividendAmount: number | null
 }) {
-  if (!hasDividendIncomeCard) return <FormulaRow items={items} />
+  if (!showDividendScenarios) return <FormulaRow items={items} />
 
   return (
     <div>
       <FormulaRow items={items} />
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="gross-income-dividend-scenarios">
         <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2">
           <p className="text-sm font-semibold text-green-900">合併計稅</p>
           <p className="mt-1 text-xs leading-relaxed text-green-800">
@@ -660,7 +660,6 @@ export function ChecklistResult({
     [cardInputMap, incomeParticipants, presentIncomeCardIds],
   )
 
-  const hasDividendIncomeCard = presentIncomeCardIds.has('dividend-income')
   const allIncomeCardsComplete = incomeSummaries.every((item) => item.complete)
   const grossIncomeMergedAmount = allIncomeCardsComplete
     ? incomeSummaries.reduce((sum, item) => sum + item.amount, 0)
@@ -671,7 +670,12 @@ export function ChecklistResult({
         .reduce((sum, item) => sum + item.amount, 0)
     : null
   const dividendIncomeAmount = incomeSummaries.find((item) => item.id === 'dividend-income')?.amount ?? 0
-  const grossIncomeAmount = hasDividendIncomeCard ? null : grossIncomeMergedAmount
+  const hasPositiveDividendIncome = dividendIncomeAmount > 0
+  const shouldDeferGrossIncomeSummary =
+    hasPositiveDividendIncome &&
+    grossIncomeMergedAmount !== null &&
+    grossIncomeSeparateDividendAmount !== null
+  const grossIncomeAmount = shouldDeferGrossIncomeSummary ? null : grossIncomeMergedAmount
   const grossIncomeAmountForDeductionCaps = grossIncomeMergedAmount
   const shouldShowDividendDonationCaps =
     dividendIncomeAmount > 0 &&
@@ -977,7 +981,7 @@ export function ChecklistResult({
                           {group.category === 'gross_income' ? (
                             <GrossIncomeFormulaPanel
                               items={fItems}
-                              hasDividendIncomeCard={hasDividendIncomeCard}
+                              showDividendScenarios={hasPositiveDividendIncome}
                               mergedAmount={grossIncomeMergedAmount}
                               separateDividendAmount={grossIncomeSeparateDividendAmount}
                             />
@@ -1051,6 +1055,7 @@ export function ChecklistResult({
           <div className="print-only mt-8">
             <TaxSummaryPanel
               grossIncome={grossIncomeAmount}
+              grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
               exemptionAmount={exemptionAmount}
               generalDeductionAmount={generalDeductionAmount}
               generalDeductionMethod={generalDeductionMethod}
@@ -1068,6 +1073,7 @@ export function ChecklistResult({
         >
           <TaxSummaryPanel
             grossIncome={grossIncomeAmount}
+            grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
             exemptionAmount={exemptionAmount}
             generalDeductionAmount={generalDeductionAmount}
             generalDeductionMethod={generalDeductionMethod}
