@@ -241,6 +241,24 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('節稅試算清單')
   })
 
+  it('goes to results from header nav after refresh on intro when checklist has been generated', () => {
+    const root = renderApp({ autoStart: false })
+    clickButtonByText('開始試算')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+    clickButtonByText('台灣節稅資訊平台')
+    expect(container.textContent).toContain('開始試算')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp({ autoStart: false })
+    clickButtonByText('節稅試算')
+
+    expect(container.textContent).toContain('節稅試算清單')
+  })
+
   it('scrolls to top when navigating via header nav button', () => {
     renderApp({ autoStart: false })
     act(() => {
@@ -537,13 +555,39 @@ describe('situation single-source flow', () => {
     const root = renderApp()
     clickButtonByText('房屋租金支出')
     expect(container.textContent).toContain('產生節稅清單')
-    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('selecting')
 
     act(() => {
       root.unmount()
     })
 
     renderApp()
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+  })
+
+  it('keeps intro page after refresh when no selection exists', () => {
+    const root = renderApp({ autoStart: false })
+    expect(container.textContent).toContain('開始試算')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp({ autoStart: false })
+    expect(container.textContent).toContain('開始試算')
+  })
+
+  it('keeps selecting page after refresh when selecting page has no selection', () => {
+    const root = renderApp({ autoStart: false })
+    clickButtonByText('節稅試算')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('selecting')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp({ autoStart: false })
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 

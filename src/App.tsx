@@ -15,6 +15,7 @@ import {
   saveChecklistInputMap,
 } from './lib/checklistInputStorage'
 import {
+  CHECKLIST_VIEW_STATE_STORAGE_KEY,
   clearSavedChecklistViewState,
   loadSavedChecklistViewState,
   saveChecklistViewState,
@@ -39,6 +40,7 @@ const VISIBLE_SITUATION_ID_SET = new Set<SituationId>(SITUATION_IDS)
 const ITEM_BY_ID = new Map(CHECKLIST_ITEMS.map((item) => [item.id, item]))
 const SITUATION_LABEL_BY_ID = new Map(SITUATIONS.map((s) => [s.id, s.label]))
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
+const CHECKLIST_GENERATED_STORAGE_KEY = 'tax.checklist.generated.v1'
 
 type AppState = 'intro' | 'selecting' | 'results'
 
@@ -166,20 +168,51 @@ function getItemSourceSituationLabelsById(
   return itemSourceSituationLabelsById
 }
 
+function loadSavedChecklistGeneratedFlag(): boolean {
+  try {
+    const raw = localStorage.getItem(CHECKLIST_GENERATED_STORAGE_KEY)
+    if (raw === null) return false
+    const parsed: unknown = JSON.parse(raw)
+    if (typeof parsed === 'boolean') return parsed
+    if (typeof parsed === 'object' && parsed !== null && 'generated' in parsed) {
+      return Boolean((parsed as { generated?: unknown }).generated)
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
+function saveChecklistGeneratedFlag(generated: boolean): void {
+  try {
+    if (generated) {
+      localStorage.setItem(CHECKLIST_GENERATED_STORAGE_KEY, JSON.stringify(true))
+      return
+    }
+    localStorage.removeItem(CHECKLIST_GENERATED_STORAGE_KEY)
+  } catch {
+    // localStorage unavailable (private browsing, iframe restrictions)
+  }
+}
+
 function App() {
   const [selected, setSelected] = useState<SituationId[]>(() =>
     normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS)),
   )
   const [hasGeneratedChecklist, setHasGeneratedChecklist] = useState<boolean>(() => {
-    const savedViewState = loadSavedChecklistViewState()
     const savedSelection = normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS))
-    return savedViewState === 'results' && savedSelection.length > 0
+    if (savedSelection.length === 0) return false
+    return loadSavedChecklistGeneratedFlag()
   })
   const [appState, setAppState] = useState<AppState>(() => {
     const savedViewState = loadSavedChecklistViewState()
     const savedSelection = normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS))
-    if (savedViewState === 'intro') return 'intro'
-    if (savedViewState === 'results' && savedSelection.length > 0) return 'results'
+    const hasSavedViewState = localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY) !== null
+    if (hasSavedViewState) {
+      if (savedViewState === 'intro') return 'intro'
+      if (savedViewState === 'selecting') return 'selecting'
+      if (savedViewState === 'results' && savedSelection.length > 0) return 'results'
+    }
     if (savedSelection.length > 0) return 'selecting'
     return 'intro'
   })
@@ -197,7 +230,11 @@ function App() {
   }, [cardInputMap])
 
   useEffect(() => {
-    saveChecklistViewState(hasGeneratedChecklist ? 'results' : 'selecting')
+    saveChecklistViewState(appState)
+  }, [appState])
+
+  useEffect(() => {
+    saveChecklistGeneratedFlag(hasGeneratedChecklist)
   }, [hasGeneratedChecklist])
 
   useEffect(() => {
@@ -265,6 +302,7 @@ function App() {
     clearSavedSituationSelection()
     clearSavedChecklistInputMap()
     clearSavedChecklistViewState()
+    saveChecklistGeneratedFlag(false)
     localStorage.removeItem(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
     window.scrollTo(0, 0)
   }
