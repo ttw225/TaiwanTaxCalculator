@@ -711,6 +711,25 @@ describe('ChecklistResult export panel', () => {
     expect(htmlWithResults).toContain('請以財政部電子申報系統與官方資料確認')
   })
 
+  it('non-empty result shows a single export entry in heading actions', () => {
+    expect(htmlWithResults).toContain('>匯出<')
+    expect(htmlWithResults.match(/>匯出</g)?.length).toBe(1)
+  })
+
+  it('checklist heading action order is reset, export, then add', () => {
+    const resetIndex = htmlWithResults.indexOf('>重新計算<')
+    const exportIndex = htmlWithResults.indexOf('>匯出<')
+    const addIndex = htmlWithResults.indexOf('>新增項目<')
+
+    expect(resetIndex).toBeGreaterThan(-1)
+    expect(exportIndex).toBeGreaterThan(resetIndex)
+    expect(addIndex).toBeGreaterThan(exportIndex)
+  })
+
+  it('checklist heading action spacing aligns with selector action gap', () => {
+    expect(htmlWithResults).toContain('flex items-center gap-3')
+  })
+
   it('empty result does not show copy button', () => {
     expect(htmlEmpty).not.toContain('data-testid="copy-checklist-btn"')
   })
