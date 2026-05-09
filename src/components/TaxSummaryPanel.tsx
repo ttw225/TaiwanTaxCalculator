@@ -78,7 +78,7 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4">
-      <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
+      <div className="w-full max-w-2xl flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
           <h2 className="text-base font-semibold text-gray-900">「所得稅應納稅額」公式</h2>
           <button
@@ -90,7 +90,7 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
             ×
           </button>
         </div>
-        <div className="px-5 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
           <p className="text-base text-gray-700 mb-4">
             公式：<span className="font-semibold text-gray-900">「綜合所得淨額」× 稅率 − 累進差額</span>
           </p>
