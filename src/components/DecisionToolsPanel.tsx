@@ -45,7 +45,7 @@ export function DecisionToolsPanel({ selectedSituations }: Props) {
   if (visibleTools.length === 0) return null
 
   return (
-    <details className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-base">
+    <details className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base">
       <summary className="cursor-pointer select-none font-medium text-gray-700">
         決策工具
         <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800">

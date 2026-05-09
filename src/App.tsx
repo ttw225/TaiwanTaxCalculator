@@ -29,6 +29,7 @@ import {
 import { SituationSelector } from './components/SituationSelector'
 import { ChecklistResult } from './components/ChecklistResult'
 import type { RemovalImpactPreview } from './components/ChecklistResult'
+import { IntroPage } from './components/IntroPage'
 import { SiteHeader } from './components/SiteHeader'
 import { SiteFooter } from './components/SiteFooter'
 import { BackToTopButton } from './components/BackToTopButton'
@@ -38,7 +39,7 @@ const ITEM_BY_ID = new Map(CHECKLIST_ITEMS.map((item) => [item.id, item]))
 const SITUATION_LABEL_BY_ID = new Map(SITUATIONS.map((s) => [s.id, s.label]))
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
 
-type AppState = 'selecting' | 'results'
+type AppState = 'intro' | 'selecting' | 'results'
 
 interface RemovalEffect {
   itemId: string
@@ -150,7 +151,10 @@ function App() {
   const [appState, setAppState] = useState<AppState>(() => {
     const savedViewState = loadSavedChecklistViewState()
     const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
-    return savedViewState === 'results' && savedSelection.length > 0 ? 'results' : 'selecting'
+    if (savedViewState === 'intro') return 'intro'
+    if (savedViewState === 'results' && savedSelection.length > 0) return 'results'
+    if (savedSelection.length > 0) return 'selecting'
+    return 'intro'
   })
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
 
@@ -309,6 +313,10 @@ function App() {
     )
     const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
 
+    if (appState === 'intro') {
+      return <IntroPage onStart={() => setAppState('selecting')} />
+    }
+
     if (appState === 'results') {
       return (
         <ChecklistResult
@@ -344,7 +352,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <SiteHeader currentFeatureId="tax-checklist" />
+      <SiteHeader
+        currentFeatureId="tax-checklist"
+        onHome={() => setAppState('intro')}
+        onNavClick={() => setAppState('selecting')}
+      />
       <main className="flex-1">
         {content}
       </main>

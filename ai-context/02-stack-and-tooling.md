@@ -2,8 +2,8 @@
 
 ## Runtime / package manager
 
-- **Node**: `>=24` ([`package.json`](../package.json) `engines`).
-- **pnpm**: `>=11`; `packageManager`: `pnpm@11.0.3`.
+- **Node**: `^24.0.0` ([`package.json`](../package.json) `engines`).
+- **pnpm**: `^11.0.0`; pinned via `packageManager` in [`package.json`](../package.json).
 
 ## Application stack
 

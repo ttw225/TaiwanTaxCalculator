@@ -33,7 +33,7 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { id: 'tax-checklist', label: '基本節稅參考', status: 'active' },
+  { id: 'tax-checklist', label: '節稅試算', status: 'active' },
   { id: 'payment-rewards', label: '繳稅回饋', status: 'coming-soon' },
 ]
 

@@ -23,6 +23,7 @@ Vite、React 19、TypeScript、Tailwind CSS、Vitest、ESLint（flat config）�
 
 推薦使用 nvm 管理本機 node 版本；
 如不使用 nvm，可改由 [Node.js 官網](https://nodejs.org/) 安裝程式取得符合版本的 Node，並跳至 **步驟 3** 。
+Node 版本來源以 [`package.json`](./package.json) `engines.node` 為準（目前為 24+）。
 
 **1. 安裝 nvm**
 
@@ -50,8 +51,22 @@ node -v
 
 ```bash
 corepack enable
-corepack prepare pnpm@11.0.3 --activate
 pnpm -v
+```
+
+### 升級既有環境到目前版本
+
+```bash
+# 進入專案後，使用 Node 24
+nvm install 24
+nvm use 24
+
+# 啟用並切到 package.json 指定的 pnpm 版本
+corepack enable
+pnpm -v
+
+# 同步依賴套件
+pnpm install
 ```
 
 ## Command

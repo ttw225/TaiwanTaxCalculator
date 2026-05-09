@@ -2,7 +2,7 @@
 
 @layer components {
   .checklist-formula-card {
-    @apply shrink-0 overflow-hidden rounded-lg border-2 transition-all min-w-[120px];
+    @apply shrink-0 overflow-hidden rounded-xl border-2 transition-all min-w-[120px];
   }
 
   .checklist-formula-label {
@@ -29,6 +29,11 @@ button:not(:disabled),
 a[href],
 [role="button"]:not([aria-disabled="true"]) {
   cursor: pointer;
+}
+
+button:not([data-padding="custom"]) {
+  padding-inline: 0.75rem;
+  padding-block: 0.625rem;
 }
 
 /* Hide spinner controls for amount inputs only. */
