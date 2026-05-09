@@ -18,6 +18,7 @@ import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
 import { GrossIncomeCard } from './GrossIncomeCard'
 import { TaxSummaryPanel } from './TaxSummaryPanel'
+import { PageHeading } from './ui/PageHeading'
 import { Card, CardBody } from './ui/Card'
 
 export interface RemovalImpactPreview {
@@ -167,7 +168,7 @@ function AddSituationModal({
           )}
           {groups.map((group) => (
             <section key={group.id} className="mb-5">
-              <p className="mb-0.5 text-xl font-semibold text-gray-900">{group.title}</p>
+              <p className="mb-3 border-b border-gray-200 pb-1 text-xl font-semibold text-gray-900">{group.title}</p>
               <p className="mb-4 text-base text-gray-500">{group.description}</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {group.situations.map((situation) => {
@@ -578,49 +579,49 @@ export function ChecklistResult({
       <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start print-main-layout">
         {/* ── Main column ── */}
         <div>
-          <div className="mb-1 flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-semibold text-gray-900">節稅試算清單</h1>
-            <div className="no-print flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleResetClick}
-                data-testid="reset-checklist-btn"
-                className="inline-flex items-center rounded-xl border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
-              >
-                重新計算
-              </button>
-              <span
-                className={[
-                  'group relative inline-flex',
-                  canAddMore ? '' : 'cursor-help',
-                ].join(' ')}
-              >
+          <PageHeading
+            title="節稅試算清單"
+            description={`根據您選擇的 ${totalSelected} 項情況，找到 ${totalItems} 個值得確認的項目。`}
+            actions={(
+              <>
                 <button
                   type="button"
-                  onClick={openAddModal}
-                  disabled={!canAddMore}
-                  data-testid="open-add-situation-modal-btn"
+                  onClick={handleResetClick}
+                  data-testid="reset-checklist-btn"
+                  className="inline-flex items-center rounded-xl border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+                >
+                  重新計算
+                </button>
+                <span
                   className={[
-                    'inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
-                    canAddMore
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'cursor-not-allowed bg-gray-100 text-gray-400',
+                    'group relative inline-flex',
+                    canAddMore ? '' : 'cursor-help',
                   ].join(' ')}
                 >
-                  <span aria-hidden="true">+</span>
-                  <span>新增項目</span>
-                </button>
-                {!canAddMore && (
-                  <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
-                    所有項目都已加入
-                  </span>
-                )}
-              </span>
-            </div>
-          </div>
-          <p className="mb-4 text-base text-gray-500">
-            根據您選擇的 {totalSelected} 項情況，找到 {totalItems} 個值得確認的項目。
-          </p>
+                  <button
+                    type="button"
+                    onClick={openAddModal}
+                    disabled={!canAddMore}
+                    data-testid="open-add-situation-modal-btn"
+                    className={[
+                      'inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
+                      canAddMore
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'cursor-not-allowed bg-gray-100 text-gray-400',
+                    ].join(' ')}
+                  >
+                    <span aria-hidden="true">+</span>
+                    <span>新增項目</span>
+                  </button>
+                  {!canAddMore && (
+                    <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
+                      所有項目都已加入
+                    </span>
+                  )}
+                </span>
+              </>
+            )}
+          />
 
           <div className="mb-6 no-print">
             <DecisionToolsPanel selectedSituations={selectedSituations} />
@@ -642,7 +643,7 @@ export function ChecklistResult({
                 }}
                 data-testid={`checklist-section-${group.category}`}
               >
-                <h2 className="mb-3 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-900 flex items-baseline gap-2">
+                <h2 className="mb-3 border-b border-gray-200 pb-1 text-xl font-semibold text-gray-900 flex items-baseline gap-2">
                   <span>{group.label}</span>
                   {(() => {
                     const sub = getSectionSubtotal(group)
