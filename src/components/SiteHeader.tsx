@@ -7,9 +7,11 @@ import { DeployBadge } from './DeployBadge'
 
 interface Props {
   currentFeatureId: string
+  onHome?: () => void
+  onNavClick?: (id: string) => void
 }
 
-export function SiteHeader({ currentFeatureId }: Props) {
+export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const deployInfo = getDeployInfo()
   const taxYearBadgeLabel = `${SITE_CONFIG.taxYear} 年度`
@@ -32,39 +34,63 @@ export function SiteHeader({ currentFeatureId }: Props) {
 
   return (
     // position: sticky — no layout offset, unlike fixed
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
 
         {/* Logo — left-aligned on all viewports (Task 1.2) */}
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate font-semibold text-gray-900 text-lg tracking-tight">
-              {SITE_CONFIG.name}
+        {onHome ? (
+          <button
+            type="button"
+            onClick={onHome}
+            data-padding="custom"
+            className="inline-flex min-w-0 items-center gap-2 rounded p-0 text-left sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <div className="flex min-w-0 flex-col items-start leading-tight">
+              <span className="truncate font-semibold text-gray-900 text-lg tracking-tight">
+                {SITE_CONFIG.name}
+              </span>
+              <span className="hidden text-sm text-gray-400 sm:block">
+                {SITE_CONFIG.nameEn}
+              </span>
+            </div>
+            <span className="shrink-0 whitespace-nowrap rounded-full border border-current bg-transparent px-2 py-0.5 text-sm font-medium text-gray-600">
+              {taxYearBadgeLabel}
             </span>
-            <span className="hidden text-sm text-gray-400 sm:block">
-              {SITE_CONFIG.nameEn}
+            {deployInfo && <DeployBadge deployInfo={deployInfo} />}
+          </button>
+        ) : (
+          <div className="inline-flex min-w-0 items-center gap-2 sm:gap-3">
+            <div className="flex min-w-0 flex-col items-start leading-tight">
+              <span className="truncate font-semibold text-gray-900 text-lg tracking-tight">
+                {SITE_CONFIG.name}
+              </span>
+              <span className="hidden text-sm text-gray-400 sm:block">
+                {SITE_CONFIG.nameEn}
+              </span>
+            </div>
+            <span className="shrink-0 whitespace-nowrap rounded-full border border-current bg-transparent px-2 py-0.5 text-sm font-medium text-gray-600">
+              {taxYearBadgeLabel}
             </span>
+            {deployInfo && <DeployBadge deployInfo={deployInfo} />}
           </div>
-          <span className="shrink-0 whitespace-nowrap rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-sm font-medium text-teal-700">
-            {taxYearBadgeLabel}
-          </span>
-          {deployInfo && <DeployBadge deployInfo={deployInfo} />}
-        </div>
+        )}
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6" aria-label="主導覽">
           {NAV_ITEMS.map((item) =>
             item.status === 'active' ? (
-              <span
+              <button
                 key={item.id}
-                className={`text-base font-medium pb-0.5 transition-colors ${
+                type="button"
+                onClick={() => onNavClick?.(item.id)}
+                className={`text-base font-medium transition-colors ${
                   currentFeatureId === item.id
-                    ? 'text-teal-700 border-b-2 border-teal-700'
+                    ? 'text-blue-600'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {item.label}
-              </span>
+              </button>
             ) : (
               <ComingSoonNavItem key={item.id} item={item} />
             )
@@ -88,18 +114,20 @@ export function SiteHeader({ currentFeatureId }: Props) {
       {menuOpen && (
         <div
           id="mobile-menu"
-          className="md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-1"
+          className="md:hidden border-t border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-1"
         >
           {NAV_ITEMS.map((item) =>
             item.status === 'active' ? (
-              <span
+              <button
                 key={item.id}
-                className={`text-base font-medium py-2 ${
-                  currentFeatureId === item.id ? 'text-teal-700' : 'text-gray-700'
+                type="button"
+                onClick={() => { onNavClick?.(item.id); setMenuOpen(false) }}
+                className={`text-base font-medium py-2 text-left ${
+                  currentFeatureId === item.id ? 'text-blue-600' : 'text-gray-700'
                 }`}
               >
                 {item.label}
-              </span>
+              </button>
             ) : (
               <span key={item.id} className="py-2">
                 <ComingSoonNavItem item={item} block />

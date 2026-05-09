@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { calcTax, getBrackets } from '../lib/numbers'
 import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import type { CategoryGroup } from '../lib/checklist'
+import { Card, CardBody, CardHeader } from './ui/Card'
 
 interface Props {
   grossIncome: number | null
@@ -53,7 +54,7 @@ function SummaryRow({
   const hasVal = value !== null && !missing
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <span className={`text-base shrink-0 ${hasVal ? 'text-gray-500' : missing ? 'text-gray-400' : 'text-gray-300'}`}>
+      <span className={`text-base shrink-0 ${hasVal ? 'text-gray-700' : missing ? 'text-gray-400' : 'text-gray-300'}`}>
         {label}
       </span>
       {missing ? (
@@ -70,9 +71,14 @@ function SummaryRow({
 }
 
 function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4">
-      <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4">
+      <div className="w-full max-w-2xl rounded-xl border border-gray-200 bg-white shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
           <h2 className="text-base font-semibold text-gray-900">「所得稅應納稅額」公式</h2>
           <button
@@ -90,10 +96,10 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
           </p>
           <table className="w-full text-base border-collapse">
             <thead>
-              <tr className="bg-gray-700 text-white">
-                <th className="px-3 py-2 text-center font-semibold rounded-tl-md">綜合所得淨額區間</th>
-                <th className="px-3 py-2 text-center font-semibold">稅率</th>
-                <th className="px-3 py-2 text-center font-semibold rounded-tr-md">累進差額</th>
+              <tr className="bg-blue-600 text-white">
+                <th className="px-3 py-2 text-left font-semibold rounded-tl-md">綜合所得淨額區間</th>
+                <th className="px-3 py-2 text-left font-semibold">稅率</th>
+                <th className="px-3 py-2 text-left font-semibold rounded-tr-md">累進差額</th>
               </tr>
             </thead>
             <tbody>
@@ -111,10 +117,10 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
                         <span className={b.up_to ? 'text-right' : 'text-left'}>{toLabel}</span>
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-center font-semibold text-gray-900">
+                    <td className="px-3 py-2 text-left font-semibold text-gray-900">
                       {(b.rate * 100).toFixed(0)}%
                     </td>
-                    <td className="px-3 py-2 text-right font-semibold text-red-700 tabular-nums">
+                    <td className="px-3 py-2 text-left font-semibold text-red-700 tabular-nums">
                       {fmt(b.quick_deduction)} 元
                     </td>
                   </tr>
@@ -127,7 +133,7 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="rounded-xl border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
           >
             關閉
           </button>
@@ -172,7 +178,7 @@ function TaxSummaryBody({
   return (
     <>
       {/* Calculation rows */}
-      <div className="px-4 py-3 space-y-2.5">
+      <CardBody variant="summary" className="space-y-2.5">
         <SummaryRow
           label="綜合所得總額"
           value={grossIncome}
@@ -195,7 +201,7 @@ function TaxSummaryBody({
               {generalDeductionMethod && (
                 <span
                   data-testid="general-deduction-method-label"
-                  className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-sm font-medium text-indigo-700"
+                  className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-sm font-semibold text-green-800"
                 >
                   {generalDeductionMethod === 'itemized' ? '列舉' : '標準'}
                 </span>
@@ -222,7 +228,7 @@ function TaxSummaryBody({
         {/* Divider + net income */}
         <div className="border-t border-dashed border-gray-200 pt-2.5 space-y-1.5">
           <div className="flex items-baseline justify-between gap-2">
-            <span className={`text-base font-medium shrink-0 ${netIncome !== null ? 'text-gray-600' : 'text-gray-300'}`}>
+            <span className={`text-base font-medium shrink-0 ${netIncome !== null ? 'text-gray-700' : 'text-gray-300'}`}>
               所得淨額
             </span>
             {netIncome !== null ? (
@@ -268,11 +274,11 @@ function TaxSummaryBody({
             </div>
           )}
         </div>
-      </div>
+      </CardBody>
 
       {/* Tax amount card */}
       <div
-        className={`mx-3 mb-3 rounded-lg border px-3 py-2.5 transition-all ${
+        className={`mx-3 mb-3 rounded-xl border px-3 py-2.5 transition-all ${
           taxAmount !== null
             ? 'border-blue-200 bg-blue-50'
             : 'border-dashed border-gray-200 bg-gray-50'
@@ -378,18 +384,18 @@ export function TaxSummaryPanel({
     <>
       {!printMode && dialogOpen && <TaxFormulaDialog onClose={() => setDialogOpen(false)} />}
 
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden print-summary-card">
+      <Card variant="summary" className="print-summary-card">
         {/* Header */}
-        <div className="border-b border-gray-100 px-4 py-3">
+        <CardHeader variant="summary">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-500">
+            <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-700">
               節稅試算摘要
             </h3>
             {!printMode && showExport && (
               <div ref={exportMenuRef} className="relative no-print">
                 <button
                   type="button"
-                  className="rounded border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  className="rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                   onClick={() => setExportMenuOpen((v) => !v)}
                   aria-haspopup="menu"
                   aria-expanded={exportMenuOpen}
@@ -404,18 +410,19 @@ export function TaxSummaryPanel({
                         handleDownload()
                         setExportMenuOpen(false)
                       }}
-                      className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      className="block w-full px-3 py-2 text-left text-base font-medium text-gray-700 transition-colors hover:bg-gray-50"
                       data-testid="download-checklist-btn"
                     >
                       下載 Markdown
                     </button>
+                    <div className="mx-3 border-t border-gray-200" />
                     <button
                       type="button"
                       onClick={() => {
                         handlePrint()
                         setExportMenuOpen(false)
                       }}
-                      className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      className="block w-full px-3 py-2 text-left text-base font-medium text-gray-700 transition-colors hover:bg-gray-50"
                       data-testid="print-checklist-btn"
                     >
                       列印 / 另存 PDF
@@ -425,7 +432,7 @@ export function TaxSummaryPanel({
               </div>
             )}
           </div>
-        </div>
+        </CardHeader>
 
         <TaxSummaryBody
           grossIncome={grossIncome}
@@ -440,7 +447,7 @@ export function TaxSummaryPanel({
           onScrollToSection={onScrollToSection}
           onOpenDialog={printMode ? undefined : () => setDialogOpen(true)}
         />
-      </div>
+      </Card>
     </>
   )
 }

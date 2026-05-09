@@ -117,6 +117,14 @@ function renderApp() {
   act(() => {
     root.render(createElement(App))
   })
+  const introButton = Array.from(container.querySelectorAll('button')).find(
+    (el) => el.textContent?.trim() === '開始試算',
+  )
+  if (introButton) {
+    act(() => {
+      introButton.click()
+    })
+  }
   return root
 }
 
@@ -154,7 +162,7 @@ describe('situation single-source flow', () => {
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
-    expect(container.textContent).toContain('節稅清單')
+    expect(container.textContent).toContain('節稅試算清單')
     expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
     expect(container.textContent).not.toContain('帶入說明')
     expect(container.textContent).not.toContain('一個情境可能對應多個檢核項目')
@@ -295,7 +303,7 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('將清除「房屋租金支出」已填寫的資料。')
     expect(container.textContent).toContain('您可以隨時加回此項目')
     clickByTestId('confirm-remove-item-btn')
-    expect(container.textContent).toContain('台灣所得稅節稅助理')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
     expect(container.querySelector('[data-testid="checklist-item-rent-deduction"]')).toBeNull()
     const savedSelectionAfterConfirmRemove = localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY) ?? ''
     expect(savedSelectionAfterConfirmRemove).not.toContain('rent')
@@ -365,37 +373,31 @@ describe('situation single-source flow', () => {
   })
 
   it('resets checklist data after confirming recalculate', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderApp()
     clickButtonByText('房屋租金支出')
     clickButtonByText('產生節稅清單')
     changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 
     clickByTestId('reset-checklist-btn')
+    clickByTestId('confirm-reset-btn')
 
-    expect(confirmSpy).toHaveBeenCalled()
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
     expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
-    expect(container.textContent).toContain('台灣所得稅節稅助理')
-
-    confirmSpy.mockRestore()
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
   it('does not reset checklist data when recalculate confirm is cancelled', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     renderApp()
     clickButtonByText('房屋租金支出')
     clickButtonByText('產生節稅清單')
     changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 
     clickByTestId('reset-checklist-btn')
+    clickButtonByText('取消')
 
-    expect(confirmSpy).toHaveBeenCalled()
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
     expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toContain('120000')
-    expect(container.textContent).toContain('節稅清單')
-
-    confirmSpy.mockRestore()
+    expect(container.textContent).toContain('節稅試算清單')
   })
 
   it('keeps results page after refresh when user already generated checklist', () => {
@@ -403,7 +405,7 @@ describe('situation single-source flow', () => {
     clickButtonByText('房屋租金支出')
     clickButtonByText('產生節稅清單')
 
-    expect(container.textContent).toContain('節稅清單')
+    expect(container.textContent).toContain('節稅試算清單')
     expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('results')
 
     act(() => {
@@ -411,7 +413,7 @@ describe('situation single-source flow', () => {
     })
 
     renderApp()
-    expect(container.textContent).toContain('節稅清單')
+    expect(container.textContent).toContain('節稅試算清單')
   })
 
   it('stays on selecting page after refresh when checklist was not generated', () => {

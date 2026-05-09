@@ -21,8 +21,8 @@ export function SiteFooter() {
 
             {/* About — Task 4.2 + 4.8 */}
             <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">關於本站</h3>
-              <p className="text-base text-gray-600 leading-relaxed">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">關於本站</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
                 {name} 是自發整理的節稅參考工具，開源、完全免費、無商業贊助。
                 每筆資料均標示來源與更新月份。
                 本站不需帳號，所有資料均在您的裝置本機處理，不上傳伺服器。
@@ -31,8 +31,8 @@ export function SiteFooter() {
 
             {/* Disclaimer — Task 4.3 */}
             <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">申報提醒</h3>
-              <p className="text-base text-gray-500 leading-relaxed">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">申報提醒</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
                 本站內容協助整理申報前可先檢查的項目。
                 實際申報結果以財政部、稽徵機關及官方申報系統核定為準。
               </p>
@@ -44,8 +44,8 @@ export function SiteFooter() {
 
             {/* Support / Buy me a coffee — Task 4.5 */}
             <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">支持我們</h3>
-              <p className="text-base text-gray-600 mb-2">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">支持我們</h3>
+              <p className="text-sm text-gray-600 mb-2">
                 如果這個工具對你有幫助，歡迎請我們喝杯咖啡 ☕
               </p>
               {buyMeCoffeeUrl ? (
@@ -53,14 +53,14 @@ export function SiteFooter() {
                   href={buyMeCoffeeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-base font-medium text-teal-700 hover:text-teal-800"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800"
                 >
                   Buy me a coffee <ExternalLink size={13} />
                 </a>
               ) : (
                 <span
                   aria-disabled="true"
-                  className="inline-flex items-center gap-1.5 text-base text-gray-300 cursor-not-allowed select-none"
+                  className="inline-flex items-center gap-1.5 text-sm text-gray-300 cursor-not-allowed select-none"
                 >
                   Buy me a coffee <ExternalLink size={13} />
                 </span>
@@ -69,21 +69,21 @@ export function SiteFooter() {
 
             {/* Feedback — Task 4.4 */}
             <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">意見回報</h3>
-              <p className="text-base text-gray-600 mb-2">資料有誤或有建議嗎？</p>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">意見回報</h3>
+              <p className="text-sm text-gray-600 mb-2">資料有誤或有建議嗎？</p>
               {githubNewIssueUrl ? (
                 <a
                   href={githubNewIssueUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-base font-medium text-teal-700 hover:text-teal-800"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800"
                 >
                   填寫回報表單 <ExternalLink size={13} />
                 </a>
               ) : (
                 <span
                   aria-disabled="true"
-                  className="inline-flex items-center gap-1.5 text-base text-gray-300 cursor-not-allowed select-none"
+                  className="inline-flex items-center gap-1.5 text-sm text-gray-300 cursor-not-allowed select-none"
                 >
                   填寫回報表單 <ExternalLink size={13} />
                 </span>
@@ -103,7 +103,7 @@ export function SiteFooter() {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-base text-gray-500 hover:text-gray-700"
+                  className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
                 >
                   {link.label} <ExternalLink size={12} />
                 </a>

@@ -18,6 +18,7 @@ import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
 import { GrossIncomeCard } from './GrossIncomeCard'
 import { TaxSummaryPanel } from './TaxSummaryPanel'
+import { Card, CardBody } from './ui/Card'
 
 export interface RemovalImpactPreview {
   itemId: string
@@ -84,7 +85,7 @@ const SPECIAL_DEDUCTION_META: Record<string, { label: string; fields: SpecialFie
   },
 }
 
-const FORMULA_SECTION_BOX_CLASS = 'rounded-lg border border-gray-200 px-4 py-3'
+const FORMULA_SECTION_BOX_CLASS = 'rounded-xl border border-gray-200 px-4 py-3'
 const NON_REMOVABLE_ITEM_IDS = new Set([
   'exemption-general',
   'standard-deduction-single',
@@ -137,16 +138,19 @@ function AddSituationModal({
   onCancel,
   onConfirm,
 }: AddSituationModalProps) {
+  useEffect(() => {
+    if (!isOpen) return
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-gray-900/40 p-4 no-print">
-      <div className="w-full max-w-2xl rounded-lg border border-gray-200 bg-white shadow-xl">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
+      <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">新增項目</h2>
-            <p className="mt-0.5 text-sm text-gray-500">依第一頁邏輯選擇情境後，系統會自動帶入相關卡片</p>
-          </div>
+          <h2 className="text-base font-semibold text-gray-900">新增項目</h2>
           <button
             type="button"
             onClick={onCancel}
@@ -157,34 +161,43 @@ function AddSituationModal({
           </button>
         </div>
 
-        <div className="max-h-96 overflow-y-auto px-4 py-4">
+        <div className="max-h-[36rem] overflow-y-auto px-4 py-4">
           {groups.length === 0 && (
             <p className="py-8 text-center text-base text-gray-400">目前沒有可新增的情境</p>
           )}
           {groups.map((group) => (
             <section key={group.id} className="mb-5">
-              <p className="text-base font-semibold text-gray-500">{group.title}</p>
-              <p className="mb-2 text-sm text-gray-400">{group.description}</p>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <p className="mb-0.5 text-xl font-semibold text-gray-900">{group.title}</p>
+              <p className="mb-4 text-base text-gray-500">{group.description}</p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {group.situations.map((situation) => {
                   const isChecked = pendingSituationIds.includes(situation.id)
                   return (
                     <label
                       key={situation.id}
+                      onClick={() => onToggleSituation(situation.id)}
                       className={[
-                        'flex cursor-pointer items-start gap-2 rounded-lg border px-3 py-2 transition-colors',
+                        'flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2 transition-colors',
                         isChecked
                           ? 'border-blue-400 bg-blue-50'
                           : 'border-gray-200 bg-white hover:border-gray-300',
                       ].join(' ')}
                     >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => onToggleSituation(situation.id)}
+                      <div
+                        role="checkbox"
+                        aria-checked={isChecked}
                         data-testid={`add-situation-checkbox-${situation.id}`}
-                        className="mt-0.5"
-                      />
+                        className={[
+                          'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors',
+                          isChecked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
+                        ].join(' ')}
+                      >
+                        {isChecked && (
+                          <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                            <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </div>
                       <span>
                         <span className="block text-base font-medium text-gray-900">{situation.label}</span>
                         <span className="mt-0.5 block text-sm text-gray-500">{situation.description}</span>
@@ -201,7 +214,7 @@ function AddSituationModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             data-testid="cancel-add-situations-btn"
           >
             取消
@@ -212,7 +225,7 @@ function AddSituationModal({
             disabled={pendingSituationIds.length === 0}
             data-testid="confirm-add-situations-btn"
             className={[
-              'rounded px-3 py-1.5 text-sm font-medium transition-colors',
+              'rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
               pendingSituationIds.length > 0
                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                 : 'cursor-not-allowed bg-gray-100 text-gray-400',
@@ -235,9 +248,14 @@ function RemoveImpactDialog({
   onCancel: () => void
   onConfirm: () => void
 }) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900/40 p-4 no-print">
-      <div className="w-full max-w-lg rounded-lg border border-gray-200 bg-white shadow-xl">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
+      <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">
             確認移除此項目：{impact.itemTitle}
@@ -253,7 +271,7 @@ function RemoveImpactDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
             data-testid="cancel-remove-item-btn"
           >
             取消
@@ -261,10 +279,53 @@ function RemoveImpactDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+            className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
             data-testid="confirm-remove-item-btn"
           >
             確認移除
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ResetConfirmDialog({
+  onCancel,
+  onConfirm,
+}: {
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
+      <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-xl">
+        <div className="border-b border-gray-100 px-4 py-3">
+          <h2 className="text-base font-semibold text-gray-900">重新計算</h2>
+        </div>
+        <div className="px-4 py-3 text-base text-gray-600">
+          <p>將清除項目與所有輸入的試算資料</p>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            data-testid="confirm-reset-btn"
+            className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+          >
+            重新計算
           </button>
         </div>
       </div>
@@ -290,6 +351,7 @@ export function ChecklistResult({
   onScrollHandled,
 }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [pendingSituationIds, setPendingSituationIds] = useState<SituationId[]>([])
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
   const itemRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -333,9 +395,7 @@ export function ChecklistResult({
   }
 
   function handleResetClick() {
-    const shouldReset = window.confirm('重新計算會清除已選項目與所有試算資料，確定要繼續嗎？')
-    if (!shouldReset) return
-    onReset?.()
+    setIsResetDialogOpen(true)
   }
 
   const isMarriedFiling = selectedSituations.includes('married')
@@ -492,7 +552,7 @@ export function ChecklistResult({
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 print-container">
+    <div className="mx-auto max-w-5xl px-4 py-8 print-container">
       <AddSituationModal
         groups={addableSituationGroups}
         isOpen={isAddModalOpen}
@@ -508,18 +568,24 @@ export function ChecklistResult({
           onConfirm={() => onConfirmRemoveItem?.()}
         />
       )}
+      {isResetDialogOpen && (
+        <ResetConfirmDialog
+          onCancel={() => setIsResetDialogOpen(false)}
+          onConfirm={() => { setIsResetDialogOpen(false); onReset?.() }}
+        />
+      )}
 
-      <div className="lg:grid lg:grid-cols-[1fr_300px] lg:gap-6 lg:items-start print-main-layout">
+      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start print-main-layout">
         {/* ── Main column ── */}
         <div>
           <div className="mb-1 flex items-center justify-between gap-3">
-            <h1 className="text-xl font-semibold text-gray-900">節稅清單</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">節稅試算清單</h1>
             <div className="no-print flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleResetClick}
                 data-testid="reset-checklist-btn"
-                className="inline-flex items-center rounded border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
+                className="inline-flex items-center rounded-xl border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
               >
                 重新計算
               </button>
@@ -535,10 +601,10 @@ export function ChecklistResult({
                   disabled={!canAddMore}
                   data-testid="open-add-situation-modal-btn"
                   className={[
-                    'inline-flex items-center gap-1 rounded border px-3 py-1.5 text-sm font-medium transition-colors',
+                    'inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
                     canAddMore
-                      ? 'border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100'
-                      : 'border-gray-200 bg-gray-50 text-gray-300',
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'cursor-not-allowed bg-gray-100 text-gray-400',
                   ].join(' ')}
                 >
                   <span aria-hidden="true">+</span>
@@ -576,7 +642,7 @@ export function ChecklistResult({
                 }}
                 data-testid={`checklist-section-${group.category}`}
               >
-                <h2 className="mb-3 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-700 flex items-baseline gap-2">
+                <h2 className="mb-3 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-900 flex items-baseline gap-2">
                   <span>{group.label}</span>
                   {(() => {
                     const sub = getSectionSubtotal(group)
@@ -649,14 +715,16 @@ export function ChecklistResult({
             ))}
           </div>
 
-          <div className="mt-8 rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <p className="text-xs leading-relaxed text-gray-500">
-              <strong className="text-gray-700">使用提醒：</strong>
-              本清單協助整理可能適用的申報項目，根據114年度相關法規與官方資料整理。
-              正式申報結果及稅負計算請以財政部電子申報系統為準，並視個人情況向稅務機關或記帳士確認。
-              {CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS}
-            </p>
-          </div>
+          <Card className="mt-8 bg-gray-50">
+            <CardBody className="p-4">
+              <p className="text-sm leading-relaxed text-gray-500">
+                <strong className="text-gray-700">使用提醒：</strong>
+                本清單協助整理可能適用的申報項目，根據114年度相關法規與官方資料整理。
+                正式申報結果及稅負計算請以財政部電子申報系統為準，並視個人情況向稅務機關或記帳士確認。
+                {CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS}
+              </p>
+            </CardBody>
+          </Card>
 
           <div className="print-only mt-8">
             <TaxSummaryPanel

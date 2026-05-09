@@ -13,7 +13,7 @@ const SOURCE = {
 }
 
 const PANEL_SHELL_CLASS =
-  'mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4'
+  'mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4'
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -165,7 +165,7 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
           </p>
           <div
             data-testid="standard-deduction-container"
-            className={`rounded-lg border px-4 py-3 ${
+            className={`rounded-xl border px-4 py-3 ${
               recommendedSide === 'standard'
                 ? 'border-blue-400 bg-blue-50/30 shadow-sm'
                 : 'border-gray-200'
@@ -211,7 +211,7 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
           </p>
           <div
             data-testid="itemized-deduction-card"
-            className={`rounded-lg border px-4 py-3 ${
+            className={`rounded-xl border px-4 py-3 ${
               recommendedSide === 'itemized'
                 ? 'border-blue-400 bg-blue-50/30 shadow-sm'
                 : 'border-gray-200'
