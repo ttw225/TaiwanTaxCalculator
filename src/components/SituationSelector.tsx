@@ -1,4 +1,5 @@
 import type { Situation, SituationGroup, SituationId } from '../types/content'
+import { PageHeading } from './ui/PageHeading'
 
 interface Props {
   groups: SituationGroup[]
@@ -15,15 +16,15 @@ export function SituationSelector({ groups, situations, selected, onToggle, onCl
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-1">選擇符合 114 年度的報稅項目</h1>
-      <p className="text-gray-500 mb-6 text-base">
-        選擇符合您今年度情況的項目，系統將列出值得確認的扣除清單。不需要登入或填寫任何個人資料。
-      </p>
+      <PageHeading
+        title="選擇符合 114 年度的報稅項目"
+        description="選擇符合您今年度情況的項目，系統將列出值得確認的扣除清單。不需要登入或填寫任何個人資料。"
+      />
 
       <div className="mb-8">
         {groups.map((group) => (
           <div key={group.id} className="mb-6">
-            <p className="text-xl font-semibold text-gray-900 mb-0.5">
+            <p className="mb-3 border-b border-gray-200 pb-1 text-xl font-semibold text-gray-900">
               {group.title}
             </p>
             <p className="text-base text-gray-500 mb-4">{group.description}</p>
