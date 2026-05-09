@@ -38,7 +38,7 @@ export function ChecklistCardShell({
                 onClick={onRemove}
                 aria-label={`移除項目：${item.title}`}
                 data-testid={`remove-item-${item.id}`}
-                className="no-print inline-flex h-7 w-7 items-center justify-center text-[20px] text-gray-400 transition-colors hover:text-gray-700"
+                className="no-print inline-flex h-7 w-7 items-center justify-center text-[24px] text-gray-400 transition-colors hover:text-gray-700"
               >
                 ×
               </button>
