@@ -139,14 +139,18 @@ function InlineFeedback({
     if (grossIncomeAmount === null) {
       return (
         <p className="mt-1 text-base text-gray-700">
-          請先填寫{' '}
-          <button
-            type="button"
-            onClick={() => feedbackContext?.onScrollToSection?.('gross_income')}
-            className="font-medium text-blue-700 hover:text-blue-800 hover:underline underline-offset-2 transition-colors"
+          請先填寫
+          <a
+            href="#gross_income"
+            onClick={(event) => {
+              if (!feedbackContext?.onScrollToSection) return
+              event.preventDefault()
+              feedbackContext.onScrollToSection('gross_income')
+            }}
+            className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 hover:text-gray-800 hover:underline underline-offset-2 transition-colors leading-none align-baseline"
           >
             綜合所得總額
-          </button>
+          </a>
         </p>
       )
     }

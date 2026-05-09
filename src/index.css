@@ -6,7 +6,7 @@
 
 @layer components {
   .checklist-formula-card {
-    @apply shrink-0 overflow-hidden rounded-xl border-2 transition-all min-w-[120px];
+    @apply shrink-0 overflow-hidden rounded-xl border transition-all min-w-[120px];
   }
 
   .checklist-formula-label {

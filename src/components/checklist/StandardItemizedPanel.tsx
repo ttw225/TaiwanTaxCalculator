@@ -34,7 +34,7 @@ function Verdict({
     if (itemizedTotal > standardAmount) {
       return (
         <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-800">
-          推薦：列舉扣除（列舉扣除 {'>'} 標準扣除）
+          推薦：列舉扣除
         </span>
       )
     }
@@ -47,7 +47,7 @@ function Verdict({
     }
     return (
       <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-base font-semibold text-blue-800">
-        推薦：標準扣除（標準扣除 {'>'} 列舉扣除）
+        推薦：標準扣除
       </span>
     )
   }
@@ -61,7 +61,7 @@ function Verdict({
   }
 
   return (
-    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-base font-medium text-gray-500">
+    <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-base font-medium text-amber-800">
       填入列舉金額後可比較
     </span>
   )
@@ -70,10 +70,10 @@ function Verdict({
 function SourceFooter() {
   return (
     <div className="mt-3 border-t border-gray-100 pt-3">
-      <p className="text-xs text-yellow-800">
+      <p className="text-sm text-yellow-800">
         申報提醒：列舉是否適用、可扣除金額與最終申報結果，請以財政部電子申報系統及官方資料確認。
       </p>
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-1 text-sm text-gray-500">
         來源：
         <a
           href={SOURCE.url}
@@ -160,7 +160,7 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
 
       <div className="space-y-4">
         <div>
-          <p className="mb-2 text-base font-semibold text-gray-400">
+          <p className={`mb-2 text-base font-semibold ${recommendedSide === 'standard' ? 'text-blue-700' : 'text-gray-400'}`}>
             標準扣除額
           </p>
           <div
@@ -206,7 +206,7 @@ export function StandardItemizedPanel({ groups, selectedSituations, cardInputMap
         </div>
 
         <div>
-          <p className="mb-2 text-base font-semibold text-gray-400">
+          <p className={`mb-2 text-base font-semibold ${recommendedSide === 'itemized' ? 'text-blue-700' : 'text-gray-400'}`}>
             列舉扣除額
           </p>
           <div

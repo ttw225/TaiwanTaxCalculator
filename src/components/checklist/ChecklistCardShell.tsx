@@ -77,7 +77,7 @@ export function ChecklistCardShell({
         {/* Section D: note + source refs */}
         <div className="mt-4 pt-3 border-t border-gray-100">
           {item.show_wealth_clause_notice && (
-            <p className="mb-2 text-sm text-orange-700">{WEALTH_CLAUSE_NOTICE}</p>
+            <p className="mb-2 text-sm text-amber-800">{WEALTH_CLAUSE_NOTICE}</p>
           )}
           <CardSourceRefsDetails sourceRefs={item.source_refs} />
         </div>

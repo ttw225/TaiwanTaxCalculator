@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   CardInputMap,
   CategoryId,
@@ -111,6 +111,7 @@ const NON_REMOVABLE_ITEM_IDS = new Set([
 ])
 const SITE_HEADER_HEIGHT = 56
 const CONTENT_TOP_GAP = 12
+const SECTION_HEADER_BUFFER_PX = 10
 
 function getSpecialDeductionItemAmount(
   itemId: string,
@@ -495,13 +496,21 @@ export function ChecklistResult({
     (id) => id === 'dividends' || id === 'married' || id === 'overseas_income',
   )
 
+  const getSectionScrollOffset = useCallback(() => {
+    const measuredStickyHeadingHeight = stickyHeadingRef.current?.getBoundingClientRect().height ?? 0
+    const effectiveStickyHeadingHeight = stickyHeadingHeight > 0
+      ? stickyHeadingHeight
+      : Math.ceil(measuredStickyHeadingHeight)
+    return SITE_HEADER_HEIGHT + effectiveStickyHeadingHeight + CONTENT_TOP_GAP + SECTION_HEADER_BUFFER_PX
+  }, [stickyHeadingHeight])
+
   useEffect(() => {
     if (!scrollToItemId) return
     if (scrollToItemId.startsWith('section:')) {
       const categoryId = scrollToItemId.slice('section:'.length)
       const target = sectionRefs.current[categoryId as CategoryId]
       if (target) {
-        animateScrollToY(target.getBoundingClientRect().top + window.scrollY - 80)
+        animateScrollToY(target.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
       }
       onScrollHandled?.()
       return
@@ -509,14 +518,14 @@ export function ChecklistResult({
 
     const target = itemRefs.current[scrollToItemId]
     if (target) {
-      const targetRect = target.getBoundingClientRect()
-      const targetCenterY = targetRect.top + window.scrollY + targetRect.height / 2
-      const viewportCenterY = window.innerHeight / 2
-      const targetY = Math.max(0, Math.round(targetCenterY - viewportCenterY))
+      const targetY = Math.max(
+        0,
+        Math.round(target.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset()),
+      )
       animateScrollToY(targetY)
     }
     onScrollHandled?.()
-  }, [onScrollHandled, scrollToItemId])
+  }, [getSectionScrollOffset, onScrollHandled, scrollToItemId])
 
   useEffect(() => {
     function updateStickyHeadingHeight() {
@@ -723,15 +732,25 @@ export function ChecklistResult({
     return Math.min(interestIncomeAmount, getNumber('special_deduction_savings_investment'))
   }, [interestIncomeAmount, savingsInvestmentEnabled])
 
-  const itemizedContext: Partial<ItemizedCalcContext> = useMemo(
+  const handleScrollToSection = useCallback((categoryId: string) => {
+    const el = sectionRefs.current[categoryId as CategoryId]
+    if (!el) return
+    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
+  }, [getSectionScrollOffset])
+
+  const handleScrollToItem = useCallback((itemId: string) => {
+    const el = itemRefs.current[itemId]
+    if (!el) return
+    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
+  }, [])
+
+  const itemizedCalculationContext: Partial<ItemizedCalcContext> = useMemo(
     () => ({
       grossIncomeAmount: grossIncomeAmountForDeductionCaps,
       dividendMergedGrossIncomeAmount: shouldShowDividendDonationCaps ? grossIncomeMergedAmount : null,
       dividendSeparateGrossIncomeAmount: shouldShowDividendDonationCaps ? grossIncomeSeparateDividendAmount : null,
       savingsInvestmentEnabled,
       savingsInvestmentDeductionAmount,
-      onScrollToSection: handleScrollToSection,
-      onScrollToItem: handleScrollToItem,
     }),
     [
       grossIncomeAmountForDeductionCaps,
@@ -743,9 +762,18 @@ export function ChecklistResult({
     ],
   )
 
+  const itemizedFeedbackContext: Partial<ItemizedCalcContext> = useMemo(
+    () => ({
+      ...itemizedCalculationContext,
+      onScrollToSection: handleScrollToSection,
+      onScrollToItem: handleScrollToItem,
+    }),
+    [handleScrollToItem, handleScrollToSection, itemizedCalculationContext],
+  )
+
   const generalDeductionResolved = useMemo(
-    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling, itemizedContext),
-    [groups, cardInputMap, isMarriedFiling, itemizedContext],
+    () => resolveGeneralDeduction(groups, cardInputMap, isMarriedFiling, itemizedCalculationContext),
+    [groups, cardInputMap, isMarriedFiling, itemizedCalculationContext],
   )
 
   const generalDeductionAmount =
@@ -755,21 +783,9 @@ export function ChecklistResult({
       ? null
       : generalDeductionResolved.status === 'standard_only' || generalDeductionAmount === null
         ? 'standard'
-        : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
+      : (generalDeductionAmount > getNumber(isMarriedFiling ? 'standard_deduction_married' : 'standard_deduction_single')
             ? 'itemized'
             : 'standard')
-
-  function handleScrollToSection(categoryId: string) {
-    const el = sectionRefs.current[categoryId as CategoryId]
-    if (!el) return
-    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
-  }
-
-  function handleScrollToItem(itemId: string) {
-    const el = itemRefs.current[itemId]
-    if (!el) return
-    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
-  }
 
   function handleIncomeParticipantsChange(nextParticipants: IncomeParticipant[], removedId?: string) {
     onCardInputChange(
@@ -968,7 +984,7 @@ export function ChecklistResult({
                     groups={groups}
                     selectedSituations={selectedSituations}
                     cardInputMap={cardInputMap}
-                    itemizedContext={itemizedContext}
+                    itemizedContext={itemizedFeedbackContext}
                   />
                 )}
                 {(() => {
@@ -1029,7 +1045,7 @@ export function ChecklistResult({
                           item={item}
                           inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
                           inputValues={cardInputMap[item.id] ?? {}}
-                          feedbackContext={itemizedContext}
+                          feedbackContext={itemizedFeedbackContext}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
                           removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
