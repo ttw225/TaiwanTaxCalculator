@@ -29,14 +29,14 @@ export function ChecklistCardShell({
     >
       <CardBody>
         <div className="flex items-start gap-2 mb-2">
-          <h3 className="font-medium text-gray-900 flex-1 text-base">{item.title}</h3>
+          <h3 className="font-medium text-gray-900 flex-1 text-lg">{item.title}</h3>
           {removable && onRemove && (
             <button
               type="button"
               onClick={onRemove}
               aria-label={`移除項目：${item.title}`}
               data-testid={`remove-item-${item.id}`}
-              className="no-print inline-flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:text-gray-700"
+              className="no-print inline-flex h-7 w-7 items-center justify-center text-[20px] text-gray-400 transition-colors hover:text-gray-700"
             >
               ×
             </button>

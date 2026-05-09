@@ -149,7 +149,7 @@ function AddSituationModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
-      <div className="w-full max-w-3xl rounded-xl border border-gray-200 bg-white shadow-xl">
+      <div className="w-full max-w-3xl flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">新增項目</h2>
           <button
@@ -162,7 +162,7 @@ function AddSituationModal({
           </button>
         </div>
 
-        <div className="max-h-[36rem] overflow-y-auto px-4 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
           {groups.length === 0 && (
             <p className="py-8 text-center text-base text-gray-400">目前沒有可新增的情境</p>
           )}
@@ -256,14 +256,14 @@ function RemoveImpactDialog({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
-      <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-xl">
+      <div className="w-full max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">
             確認移除此項目：{impact.itemTitle}
           </h2>
         </div>
 
-        <div className="px-4 py-3 text-base text-gray-600">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 text-base text-gray-600">
           <p>將清除「{impact.itemTitle}」已填寫的資料。</p>
           <p className="mt-1 text-sm text-gray-500">您可以隨時加回此項目</p>
         </div>
@@ -305,11 +305,11 @@ function ResetConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
-      <div className="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-xl">
+      <div className="w-full max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">重新計算</h2>
         </div>
-        <div className="px-4 py-3 text-base text-gray-600">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 text-base text-gray-600">
           <p>將清除項目與所有輸入的試算資料</p>
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
