@@ -101,7 +101,7 @@ export function CoupleFilingTool() {
         </div>
       )}
 
-      <p className="text-xs text-orange-700 leading-relaxed">{COUPLE_FILING_TOOL_META.disclaimer}</p>
+      <p className="text-xs text-amber-800 leading-relaxed">{COUPLE_FILING_TOOL_META.disclaimer}</p>
       <ToolSourceRefs refs={COUPLE_FILING_TOOL_META.sourceRefs} />
     </div>
   )

@@ -395,11 +395,12 @@ export function TaxSummaryPanel({
 
       <Card variant="summary" className="print-summary-card">
         {/* Header */}
-        <CardHeader variant="summary">
+        <CardHeader variant="summary" className="border-b-0">
           <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-700">
             節稅試算摘要
           </h3>
         </CardHeader>
+        <div className="mx-4 border-b border-gray-100" />
 
         <TaxSummaryBody
           grossIncome={grossIncome}

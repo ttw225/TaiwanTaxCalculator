@@ -118,7 +118,7 @@ export function DividendTool() {
         </div>
       )}
 
-      <p className="text-xs text-orange-700 leading-relaxed">{DIVIDEND_TOOL_META.disclaimer}</p>
+      <p className="text-xs text-amber-800 leading-relaxed">{DIVIDEND_TOOL_META.disclaimer}</p>
       <ToolSourceRefs refs={DIVIDEND_TOOL_META.sourceRefs} />
     </div>
   )

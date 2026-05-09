@@ -16,9 +16,19 @@ let requestAnimationFrameSpy: ReturnType<typeof vi.fn>
 
 const DONATION_TARGET_TOP = 900
 const DONATION_TARGET_HEIGHT = 120
+const STANDARD_DEDUCTION_MARRIED_TARGET_TOP = 1220
+const STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT = 420
 const GROSS_SECTION_TARGET_TOP = 540
 const GROSS_SECTION_TARGET_HEIGHT = 360
+const EXEMPTIONS_SECTION_TARGET_TOP = 980
+const EXEMPTIONS_SECTION_TARGET_HEIGHT = 320
 const VIEWPORT_HEIGHT = 800
+const SITE_HEADER_HEIGHT = 56
+const CONTENT_TOP_GAP = 12
+const SECTION_HEADER_BUFFER_PX = 10
+const STICKY_HEADING_HEIGHT = 48
+const SECTION_SCROLL_OFFSET =
+  SITE_HEADER_HEIGHT + STICKY_HEADING_HEIGHT + CONTENT_TOP_GAP + SECTION_HEADER_BUFFER_PX
 
 function runNextAnimationFrame(timestamp: number) {
   const callback = rafCallbacks.find((cb) => cb !== undefined)
@@ -104,6 +114,46 @@ beforeEach(() => {
           toJSON: () => '',
         }
       }
+      if (testId === 'checklist-item-standard-deduction-married') {
+        return {
+          x: 0,
+          y: STANDARD_DEDUCTION_MARRIED_TARGET_TOP,
+          top: STANDARD_DEDUCTION_MARRIED_TARGET_TOP,
+          left: 0,
+          bottom: STANDARD_DEDUCTION_MARRIED_TARGET_TOP + STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
+          right: 640,
+          width: 640,
+          height: STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
+          toJSON: () => '',
+        }
+      }
+      if (testId === 'checklist-section-exemptions') {
+        return {
+          x: 0,
+          y: EXEMPTIONS_SECTION_TARGET_TOP,
+          top: EXEMPTIONS_SECTION_TARGET_TOP,
+          left: 0,
+          bottom: EXEMPTIONS_SECTION_TARGET_TOP + EXEMPTIONS_SECTION_TARGET_HEIGHT,
+          right: 640,
+          width: 640,
+          height: EXEMPTIONS_SECTION_TARGET_HEIGHT,
+          toJSON: () => '',
+        }
+      }
+      const className = typeof this.className === 'string' ? this.className : ''
+      if (className.includes('sticky top-14')) {
+        return {
+          x: 0,
+          y: 0,
+          top: 0,
+          left: 0,
+          bottom: STICKY_HEADING_HEIGHT,
+          right: 640,
+          width: 640,
+          height: STICKY_HEADING_HEIGHT,
+          toJSON: () => '',
+        }
+      }
       return {
         x: 0,
         y: 0,
@@ -160,6 +210,26 @@ function clickByTestId(testId: string) {
   if (!element) throw new Error(`Missing element with data-testid "${testId}"`)
   act(() => {
     element.click()
+  })
+}
+
+function clickSummarySectionLink(sectionId: string) {
+  const sidebar = container.querySelector<HTMLElement>('aside.no-print')
+  const row = sidebar?.querySelector<HTMLElement>(`[data-testid="summary-row-${sectionId}"]`)
+  const link = row?.querySelector<HTMLAnchorElement>('a')
+  if (!link) throw new Error(`Missing summary section link for "${sectionId}"`)
+  act(() => {
+    link.click()
+  })
+}
+
+function clickSummaryGoFill(sectionId: string) {
+  const sidebar = container.querySelector<HTMLElement>('aside.no-print')
+  const row = sidebar?.querySelector<HTMLElement>(`[data-testid="summary-row-${sectionId}"]`)
+  const button = row?.querySelector<HTMLButtonElement>('button')
+  if (!button) throw new Error(`Missing 前往填寫 button for "${sectionId}"`)
+  act(() => {
+    button.click()
   })
 }
 
@@ -269,6 +339,36 @@ describe('situation single-source flow', () => {
     expect(scrollToSpy).toHaveBeenLastCalledWith(0, 0)
   })
 
+  it('scrolls to gross income section with dynamic offset when clicking summary section link', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    clickSummarySectionLink('gross_income')
+    act(() => {
+      runNextAnimationFrame(0)
+      runNextAnimationFrame(500)
+      runNextAnimationFrame(1000)
+    })
+
+    expect(scrollToSpy).toHaveBeenLastCalledWith(0, GROSS_SECTION_TARGET_TOP - SECTION_SCROLL_OFFSET)
+  })
+
+  it('scrolls to section header with same dynamic offset when clicking 前往填寫', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    clickSummaryGoFill('exemptions')
+    act(() => {
+      runNextAnimationFrame(0)
+      runNextAnimationFrame(500)
+      runNextAnimationFrame(1000)
+    })
+
+    expect(scrollToSpy).toHaveBeenLastCalledWith(0, EXEMPTIONS_SECTION_TARGET_TOP - SECTION_SCROLL_OFFSET)
+  })
+
   it('supports grouped situation add modal and removes only the target card', () => {
     renderApp()
     clickButtonByText('薪資收入')
@@ -306,6 +406,22 @@ describe('situation single-source flow', () => {
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('donations')
   })
 
+  it('scrolls newly added card to top with dynamic safe offset', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    clickByTestId('open-add-situation-modal-btn')
+    clickByTestId('add-situation-checkbox-donations')
+    clickByTestId('confirm-add-situations-btn')
+    act(() => {
+      runNextAnimationFrame(0)
+      runNextAnimationFrame(500)
+      runNextAnimationFrame(1000)
+    })
+
+    expect(scrollToSpy).toHaveBeenLastCalledWith(0, DONATION_TARGET_TOP - SECTION_SCROLL_OFFSET)
+  })
   it('opens and closes tax formula dialog with shared modal overlay classes', () => {
     renderApp()
     clickButtonByText('薪資收入')
@@ -393,7 +509,10 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('標準扣除額（配偶合併申報）')
     expect(container.textContent).toContain('262,000')
     expect(container.textContent).not.toContain('標準扣除額（單身）')
-    expect(scrollToSpy).toHaveBeenLastCalledWith(0, GROSS_SECTION_TARGET_TOP - 80)
+    expect(scrollToSpy).toHaveBeenLastCalledWith(
+      0,
+      STANDARD_DEDUCTION_MARRIED_TARGET_TOP - SECTION_SCROLL_OFFSET,
+    )
   })
 
   it('cancel add in modal does not apply selection', () => {

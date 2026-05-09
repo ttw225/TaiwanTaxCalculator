@@ -49,8 +49,8 @@ export function AmtTool() {
           ) : (
             <div className="space-y-3">
               <div className="rounded bg-orange-50 border border-orange-200 px-3 py-2 text-sm">
-                <span className="text-orange-800 font-medium">! 已達門檻，建議確認以下五項</span>
-                <p className="mt-0.5 text-orange-700 text-xs">
+                <span className="text-amber-800 font-medium">! 已達門檻，建議確認以下五項</span>
+                <p className="mt-0.5 text-amber-800 text-xs">
                   全年海外所得達 NT${fmt(result.threshold)} 以上，需進一步確認是否須申報最低稅負制。
                 </p>
               </div>
@@ -72,7 +72,7 @@ export function AmtTool() {
         </div>
       )}
 
-      <p className="text-xs text-orange-700 leading-relaxed">{AMT_TOOL_META.disclaimer}</p>
+      <p className="text-xs text-amber-800 leading-relaxed">{AMT_TOOL_META.disclaimer}</p>
       <ToolSourceRefs refs={AMT_TOOL_META.sourceRefs} />
     </div>
   )

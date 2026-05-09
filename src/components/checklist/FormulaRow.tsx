@@ -95,10 +95,10 @@ export function FormulaRow({
           </span>
         ) : anyFilled ? (
           <>
-            <span className="text-base font-bold tabular-nums text-orange-500">
+            <span className="text-base font-bold tabular-nums text-amber-800">
               {partialTotal.toLocaleString('zh-TW')} 元
             </span>
-            <span className="text-sm text-orange-400">（{emptyItems.length} 項未填）</span>
+            <span className="text-sm text-amber-800">（{emptyItems.length} 項未填）</span>
           </>
         ) : (
           <span className="text-sm text-gray-300">待填入</span>
