@@ -15,6 +15,7 @@ import {
   saveChecklistInputMap,
 } from './lib/checklistInputStorage'
 import {
+  CHECKLIST_VIEW_STATE_STORAGE_KEY,
   clearSavedChecklistViewState,
   loadSavedChecklistViewState,
   saveChecklistViewState,
@@ -35,9 +36,11 @@ import { SiteFooter } from './components/SiteFooter'
 import { BackToTopButton } from './components/BackToTopButton'
 
 const SITUATION_IDS = SITUATIONS.map((s) => s.id)
+const VISIBLE_SITUATION_ID_SET = new Set<SituationId>(SITUATION_IDS)
 const ITEM_BY_ID = new Map(CHECKLIST_ITEMS.map((item) => [item.id, item]))
 const SITUATION_LABEL_BY_ID = new Map(SITUATIONS.map((s) => [s.id, s.label]))
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
+const CHECKLIST_GENERATED_STORAGE_KEY = 'tax.checklist.generated.v1'
 
 type AppState = 'intro' | 'selecting' | 'results'
 
@@ -51,6 +54,7 @@ const NON_REMOVABLE_ITEM_IDS = new Set([
   'exemption-general',
   'standard-deduction-single',
   'standard-deduction-married',
+  'savings-investment-deduction',
 ])
 
 interface AddableSituationGroup {
@@ -98,14 +102,32 @@ function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInpu
   return next
 }
 
+function normalizeLinkedSituations(selected: SituationId[]): SituationId[] {
+  const next = new Set(selected)
+  if (next.has('interest_income')) {
+    next.add('savings_investment')
+  } else {
+    next.delete('savings_investment')
+  }
+  return Array.from(next)
+}
+
+function countVisibleSelectedSituations(selected: SituationId[]): number {
+  return selected.filter((id) => VISIBLE_SITUATION_ID_SET.has(id)).length
+}
+
 function getGroupedItemsBySelection(selected: SituationId[]): CategoryGroup[] {
   return groupByCategory(filterBySituations(CHECKLIST_ITEMS, selected))
 }
 
-function getScrollTargetItemIdAfterAdd(
+function getScrollTargetAfterAdd(
   currentSelected: SituationId[],
   nextSelected: SituationId[],
 ): string | null {
+  if (!currentSelected.includes('married') && nextSelected.includes('married')) {
+    return 'section:gross_income'
+  }
+
   const currentGroups = getGroupedItemsBySelection(currentSelected)
   const nextGroups = getGroupedItemsBySelection(nextSelected)
 
@@ -146,20 +168,52 @@ function getItemSourceSituationLabelsById(
   return itemSourceSituationLabelsById
 }
 
+function loadSavedChecklistGeneratedFlag(): boolean {
+  try {
+    const raw = localStorage.getItem(CHECKLIST_GENERATED_STORAGE_KEY)
+    if (raw === null) return false
+    const parsed: unknown = JSON.parse(raw)
+    if (typeof parsed === 'boolean') return parsed
+    if (typeof parsed === 'object' && parsed !== null && 'generated' in parsed) {
+      return Boolean((parsed as { generated?: unknown }).generated)
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
+function saveChecklistGeneratedFlag(generated: boolean): void {
+  try {
+    if (generated) {
+      localStorage.setItem(CHECKLIST_GENERATED_STORAGE_KEY, JSON.stringify(true))
+      return
+    }
+    localStorage.removeItem(CHECKLIST_GENERATED_STORAGE_KEY)
+  } catch {
+    // localStorage unavailable (private browsing, iframe restrictions)
+  }
+}
+
 function App() {
-  const [selected, setSelected] = useState<SituationId[]>(() => loadSavedSituationSelection(SITUATION_IDS))
+  const [selected, setSelected] = useState<SituationId[]>(() =>
+    normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS)),
+  )
   const [hasGeneratedChecklist, setHasGeneratedChecklist] = useState<boolean>(() => {
-    const savedViewState = loadSavedChecklistViewState()
-    const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
-    return savedViewState === 'results' && savedSelection.length > 0
+    const savedSelection = normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS))
+    if (savedSelection.length === 0) return false
+    return loadSavedChecklistGeneratedFlag()
   })
   const [appState, setAppState] = useState<AppState>(() => {
     const savedViewState = loadSavedChecklistViewState()
-    const savedSelection = loadSavedSituationSelection(SITUATION_IDS)
-    const generated = savedViewState === 'results' && savedSelection.length > 0
-    if (generated) return 'results'
+    const savedSelection = normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS))
+    const hasSavedViewState = localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY) !== null
+    if (hasSavedViewState) {
+      if (savedViewState === 'intro') return 'intro'
+      if (savedViewState === 'selecting') return 'selecting'
+      if (savedViewState === 'results' && savedSelection.length > 0) return 'results'
+    }
     if (savedSelection.length > 0) return 'selecting'
-    if (savedViewState === 'intro') return 'intro'
     return 'intro'
   })
   const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
@@ -176,7 +230,11 @@ function App() {
   }, [cardInputMap])
 
   useEffect(() => {
-    saveChecklistViewState(hasGeneratedChecklist ? 'results' : 'selecting')
+    saveChecklistViewState(appState)
+  }, [appState])
+
+  useEffect(() => {
+    saveChecklistGeneratedFlag(hasGeneratedChecklist)
   }, [hasGeneratedChecklist])
 
   useEffect(() => {
@@ -187,7 +245,7 @@ function App() {
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
       if (event.key === SITUATION_SELECTION_STORAGE_KEY) {
-        const syncedSelection = parseSavedSituationSelection(event.newValue, SITUATION_IDS)
+        const syncedSelection = normalizeLinkedSituations(parseSavedSituationSelection(event.newValue, SITUATION_IDS))
         setSelected(syncedSelection)
         if (syncedSelection.length === 0) {
           setHasGeneratedChecklist(false)
@@ -202,9 +260,11 @@ function App() {
 
   function toggleSituation(id: SituationId) {
     setPendingRemovalEffect(null)
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
-    )
+    if (id === 'savings_investment') return
+    setSelected((prev) => {
+      const toggled = prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+      return normalizeLinkedSituations(toggled)
+    })
   }
 
   function handleGenerate() {
@@ -242,6 +302,7 @@ function App() {
     clearSavedSituationSelection()
     clearSavedChecklistInputMap()
     clearSavedChecklistViewState()
+    saveChecklistGeneratedFlag(false)
     localStorage.removeItem(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
     window.scrollTo(0, 0)
   }
@@ -258,10 +319,10 @@ function App() {
     setPendingRemovalEffect(null)
     if (ids.length === 0) return
 
-    const nextSelected = Array.from(new Set([...selected, ...ids]))
+    const nextSelected = normalizeLinkedSituations(Array.from(new Set([...selected, ...ids])))
     if (nextSelected.length === selected.length) return
 
-    setScrollToItemId(getScrollTargetItemIdAfterAdd(selected, nextSelected))
+    setScrollToItemId(getScrollTargetAfterAdd(selected, nextSelected))
     setSelected(nextSelected)
   }
 
@@ -269,13 +330,18 @@ function App() {
     const targetItem = ITEM_BY_ID.get(itemId)
     if (!targetItem) return null
 
-    const hasInputLoss = hasCardData(itemId, cardInputMap)
+    const linkedItemIds = itemId === 'interest-income'
+      ? [itemId, 'savings-investment-deduction']
+      : [itemId]
+    const hasInputLoss = linkedItemIds.some((id) => hasCardData(id, cardInputMap))
 
     return {
       itemId,
       preview: {
         itemId,
-        itemTitle: targetItem.title,
+        itemTitle: itemId === 'interest-income'
+          ? `${targetItem.title}（也會移除儲蓄投資特別扣除額）`
+          : targetItem.title,
         hasInputLoss,
       },
       requiresConfirm: hasInputLoss,
@@ -286,9 +352,19 @@ function App() {
     const targetItem = ITEM_BY_ID.get(effect.itemId)
     if (!targetItem) return
     const removedSituationIds = new Set(targetItem.situations)
-    const nextSelected = selected.filter((situationId) => !removedSituationIds.has(situationId))
+    if (effect.itemId === 'interest-income') {
+      removedSituationIds.add('savings_investment')
+    }
+    const nextSelected = normalizeLinkedSituations(
+      selected.filter((situationId) => !removedSituationIds.has(situationId)),
+    )
     setSelected(nextSelected)
-    setCardInputMap((prev) => omitIdsFromCardInputMap(prev, [effect.itemId]))
+    setCardInputMap((prev) => omitIdsFromCardInputMap(
+      prev,
+      effect.itemId === 'interest-income'
+        ? [effect.itemId, 'savings-investment-deduction']
+        : [effect.itemId],
+    ))
     if (nextSelected.length === 0) {
       setScrollToItemId(null)
       setHasGeneratedChecklist(false)
@@ -344,7 +420,7 @@ function App() {
       return (
         <ChecklistResult
           groups={groups}
-          totalSelected={selected.length}
+          totalSelected={countVisibleSelectedSituations(selected)}
           selectedSituations={selected}
           itemSourceSituationLabelsById={itemSourceSituationLabelsById}
           addableSituationGroups={addableSituationGroups}

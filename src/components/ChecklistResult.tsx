@@ -12,15 +12,30 @@ import { resolveGeneralDeduction, type ItemizedCalcContext } from '../lib/genera
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
 import { ITEM_INLINE_FIELDS } from '../content/inlineFields'
-import { parseGrossIncomePersons, calcPersonNetIncome } from '../lib/grossIncome'
+import {
+  INCOME_CARD_CONFIGS,
+  INCOME_CARD_IDS,
+  INCOME_PARTICIPANTS_ITEM_ID,
+  calcPersonNetIncome,
+  calcRawIncomeTotal,
+  incomeCardIsComplete,
+  parseIncomeCardPersons,
+  parseIncomeParticipantsFromMap,
+  serializeIncomeAmounts,
+  serializeIncomeParticipants,
+  type GrossIncomePerson,
+  type IncomeCardId,
+  type IncomeParticipant,
+} from '../lib/grossIncome'
 import { FormulaRow } from './checklist/FormulaRow'
 import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
-import { GrossIncomeCard } from './GrossIncomeCard'
+import { IncomeCard } from './IncomeCard'
 import { TaxSummaryPanel } from './TaxSummaryPanel'
 import { PageHeading } from './ui/PageHeading'
 import { Card, CardBody } from './ui/Card'
+import { ChecklistCardShell } from './checklist/ChecklistCardShell'
 
 export interface RemovalImpactPreview {
   itemId: string
@@ -92,6 +107,7 @@ const NON_REMOVABLE_ITEM_IDS = new Set([
   'exemption-general',
   'standard-deduction-single',
   'standard-deduction-married',
+  'savings-investment-deduction',
 ])
 const SITE_HEADER_HEIGHT = 56
 const CONTENT_TOP_GAP = 12
@@ -128,6 +144,7 @@ function getSpecialDeductionItemAmount(
 type AddSituationModalProps = {
   groups: AddableSituationGroup[]
   isOpen: boolean
+  selectedSituations: SituationId[]
   pendingSituationIds: SituationId[]
   onToggleSituation: (id: SituationId) => void
   onCancel: () => void
@@ -137,6 +154,7 @@ type AddSituationModalProps = {
 function AddSituationModal({
   groups,
   isOpen,
+  selectedSituations,
   pendingSituationIds,
   onToggleSituation,
   onCancel,
@@ -176,27 +194,39 @@ function AddSituationModal({
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {group.situations.map((situation) => {
                   const isChecked = pendingSituationIds.includes(situation.id)
+                  const hasInterestIncome =
+                    selectedSituations.includes('interest_income') ||
+                    pendingSituationIds.includes('interest_income')
+                  const isSavingsInvestment = situation.id === 'savings_investment'
+                  const isDisabled = isSavingsInvestment
+                  const checked = isSavingsInvestment && hasInterestIncome ? true : isChecked
                   return (
                     <label
                       key={situation.id}
-                      onClick={() => onToggleSituation(situation.id)}
+                      onClick={() => {
+                        if (isDisabled) return
+                        onToggleSituation(situation.id)
+                      }}
                       className={[
-                        'flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2 transition-colors',
-                        isChecked
+                        'flex items-start gap-2 rounded-xl border px-3 py-2 transition-colors',
+                        isDisabled ? 'cursor-not-allowed' : 'cursor-pointer',
+                        checked
                           ? 'border-blue-400 bg-blue-50'
-                          : 'border-gray-200 bg-white hover:border-gray-300',
+                          : isDisabled
+                            ? 'border-gray-200 bg-gray-100'
+                            : 'border-gray-200 bg-white hover:border-gray-300',
                       ].join(' ')}
                     >
                       <div
                         role="checkbox"
-                        aria-checked={isChecked}
+                        aria-checked={checked}
                         data-testid={`add-situation-checkbox-${situation.id}`}
                         className={[
                           'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors',
-                          isChecked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
+                          checked ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
                         ].join(' ')}
                       >
-                        {isChecked && (
+                        {checked && (
                           <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
                             <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
@@ -205,6 +235,13 @@ function AddSituationModal({
                       <span>
                         <span className="block text-base font-medium text-gray-900">{situation.label}</span>
                         <span className="mt-0.5 block text-sm text-gray-500">{situation.description}</span>
+                        {isSavingsInvestment && (
+                          <span className="mt-1 block text-xs text-gray-500">
+                            {hasInterestIncome
+                              ? '已與利息收入連動，會自動套用且不可單獨取消'
+                              : '請先新增「利息收入」，系統會自動加入此扣除額'}
+                          </span>
+                        )}
                       </span>
                     </label>
                   )
@@ -337,6 +374,93 @@ function ResetConfirmDialog({
   )
 }
 
+function formatTwd(n: number) {
+  return n.toLocaleString('zh-TW')
+}
+
+function SavingsInvestmentDeductionCard({
+  item,
+  interestIncomeAmount,
+  sourceSituationLabels = [],
+}: {
+  item: CategoryGroup['items'][number]
+  interestIncomeAmount: number
+  sourceSituationLabels?: string[]
+}) {
+  const cap = getNumber('special_deduction_savings_investment')
+  const deduction = Math.min(interestIncomeAmount, cap)
+  const isOverCap = interestIncomeAmount > cap
+
+  return (
+    <ChecklistCardShell
+      item={item}
+      sourceSituationLabels={sourceSituationLabels}
+      removable={false}
+    >
+      <div className="mt-3 rounded border border-blue-100 bg-blue-50/40 p-3">
+        <p className="text-base text-gray-700">
+          此卡片已與「利息收入」連動，金額由收入區的利息收入合計帶入，不需重複填寫。
+        </p>
+        <div className="mt-3 space-y-1 text-base">
+          <div className="flex justify-between gap-4 text-gray-600">
+            <span>利息收入合計</span>
+            <span className="tabular-nums">{formatTwd(interestIncomeAmount)} 元</span>
+          </div>
+          <div className="flex justify-between gap-4 font-semibold text-green-700">
+            <span>可扣除金額</span>
+            <span className="tabular-nums">{formatTwd(deduction)} 元</span>
+          </div>
+        </div>
+        <p className={`mt-2 text-sm ${isOverCap ? 'text-red-700' : 'text-blue-700'}`}>
+          {isOverCap
+            ? `已超過每戶 ${formatTwd(cap)} 元上限，超過部分不列入此扣除額。`
+            : `目前未超過每戶 ${formatTwd(cap)} 元上限。`}
+        </p>
+      </div>
+    </ChecklistCardShell>
+  )
+}
+
+function GrossIncomeFormulaPanel({
+  items,
+  showDividendScenarios,
+  mergedAmount,
+  separateDividendAmount,
+}: {
+  items: { id: string; label: string; amount: number | null }[]
+  showDividendScenarios: boolean
+  mergedAmount: number | null
+  separateDividendAmount: number | null
+}) {
+  if (!showDividendScenarios) return <FormulaRow items={items} />
+
+  return (
+    <div>
+      <FormulaRow items={items} />
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="gross-income-dividend-scenarios">
+        <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2">
+          <p className="text-sm font-semibold text-green-900">合併計稅</p>
+          <p className="mt-1 text-xs leading-relaxed text-green-800">
+            綜合所得總額包含薪資、股利、利息與其他收入；後續計算稅額時可再考慮股利可抵減稅額。
+          </p>
+          <p className="mt-2 text-lg font-bold tabular-nums text-green-800">
+            {mergedAmount === null ? '待填寫' : `${formatTwd(mergedAmount)} 元`}
+          </p>
+        </div>
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
+          <p className="text-sm font-semibold text-blue-900">28% 分開計稅</p>
+          <p className="mt-1 text-xs leading-relaxed text-blue-800">
+            股利不併入此處的綜合所得總額，改以固定稅率另行計算；本區先列出不含股利的總額。
+          </p>
+          <p className="mt-2 text-lg font-bold tabular-nums text-blue-800">
+            {separateDividendAmount === null ? '待填寫' : `${formatTwd(separateDividendAmount)} 元`}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function ChecklistResult({
   groups,
   totalSelected,
@@ -373,6 +497,16 @@ export function ChecklistResult({
 
   useEffect(() => {
     if (!scrollToItemId) return
+    if (scrollToItemId.startsWith('section:')) {
+      const categoryId = scrollToItemId.slice('section:'.length)
+      const target = sectionRefs.current[categoryId as CategoryId]
+      if (target) {
+        animateScrollToY(target.getBoundingClientRect().top + window.scrollY - 80)
+      }
+      onScrollHandled?.()
+      return
+    }
+
     const target = itemRefs.current[scrollToItemId]
     if (target) {
       const targetRect = target.getBoundingClientRect()
@@ -425,9 +559,20 @@ export function ChecklistResult({
   }
 
   function handleTogglePendingSituation(id: SituationId) {
-    setPendingSituationIds((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
-    )
+    if (id === 'savings_investment') return
+    setPendingSituationIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      if (id === 'interest_income') {
+        if (next.has('interest_income')) next.add('savings_investment')
+        else next.delete('savings_investment')
+      }
+      return Array.from(next)
+    })
   }
 
   function handleCancelAdd() {
@@ -480,6 +625,64 @@ export function ChecklistResult({
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
 
+  const incomeParticipants = useMemo(
+    () => parseIncomeParticipantsFromMap(cardInputMap, isMarriedFiling),
+    [cardInputMap, isMarriedFiling],
+  )
+
+  const presentIncomeCardIds = useMemo(
+    () => new Set(
+      groups
+        .flatMap((g) => g.items)
+        .map((item) => item.id)
+        .filter((id): id is IncomeCardId => INCOME_CARD_IDS.includes(id as IncomeCardId)),
+    ),
+    [groups],
+  )
+
+  const incomeSummaries = useMemo(
+    () =>
+      INCOME_CARD_IDS
+        .filter((id) => presentIncomeCardIds.has(id))
+        .map((id) => {
+          const config = INCOME_CARD_CONFIGS[id]
+          const persons = parseIncomeCardPersons(cardInputMap[id] ?? {}, incomeParticipants)
+          const amount = config.kind === 'salary'
+            ? persons.reduce((sum, p) => sum + calcPersonNetIncome(p.income), 0)
+            : calcRawIncomeTotal(persons.map(({ id: personId, label, income }) => ({ id: personId, label, income })))
+          return {
+            id,
+            label: config.formulaLabel,
+            amount,
+            complete: incomeCardIsComplete(config, persons),
+          }
+        }),
+    [cardInputMap, incomeParticipants, presentIncomeCardIds],
+  )
+
+  const allIncomeCardsComplete = incomeSummaries.every((item) => item.complete)
+  const grossIncomeMergedAmount = allIncomeCardsComplete
+    ? incomeSummaries.reduce((sum, item) => sum + item.amount, 0)
+    : null
+  const grossIncomeSeparateDividendAmount = allIncomeCardsComplete
+    ? incomeSummaries
+        .filter((item) => item.id !== 'dividend-income')
+        .reduce((sum, item) => sum + item.amount, 0)
+    : null
+  const dividendIncomeAmount = incomeSummaries.find((item) => item.id === 'dividend-income')?.amount ?? 0
+  const hasPositiveDividendIncome = dividendIncomeAmount > 0
+  const shouldDeferGrossIncomeSummary =
+    hasPositiveDividendIncome &&
+    grossIncomeMergedAmount !== null &&
+    grossIncomeSeparateDividendAmount !== null
+  const grossIncomeAmount = shouldDeferGrossIncomeSummary ? null : grossIncomeMergedAmount
+  const grossIncomeAmountForDeductionCaps = grossIncomeMergedAmount
+  const shouldShowDividendDonationCaps =
+    dividendIncomeAmount > 0 &&
+    grossIncomeMergedAmount !== null &&
+    grossIncomeSeparateDividendAmount !== null
+  const interestIncomeAmount = incomeSummaries.find((item) => item.id === 'interest-income')?.amount ?? 0
+
   const specialDeductionFormulaItems = useMemo(
     () =>
       (specialDeductionGroup?.items ?? [])
@@ -487,9 +690,11 @@ export function ChecklistResult({
         .map((item) => ({
           id: item.id,
           label: SPECIAL_DEDUCTION_META[item.id].label,
-          amount: getSpecialDeductionItemAmount(item.id, cardInputMap[item.id] ?? {}),
+          amount: item.id === 'savings-investment-deduction'
+            ? Math.min(interestIncomeAmount, getNumber('special_deduction_savings_investment'))
+            : getSpecialDeductionItemAmount(item.id, cardInputMap[item.id] ?? {}),
         })),
-    [specialDeductionGroup, cardInputMap],
+    [specialDeductionGroup, cardInputMap, interestIncomeAmount],
   )
 
   // Derived from formula items so sidebar and formula row share the same filled/unfilled policy.
@@ -500,50 +705,13 @@ export function ChecklistResult({
     return specialDeductionFormulaItems.reduce((sum, i) => sum + (i.amount ?? 0), 0)
   }, [specialDeductionFormulaItems])
 
-  const grossIncomeFormulaItems = useMemo(() => {
-    const hasGrossIncomeCard = groups.some((g) =>
-      g.items.some((item) => item.id === 'gross-income'),
-    )
-    if (!hasGrossIncomeCard) return null
-    const inputs = cardInputMap['gross-income'] ?? {}
-    const persons = parseGrossIncomePersons(inputs, isMarriedFiling)
-    const hasSelfIncomeInput = (inputs['self_income'] ?? '').trim() !== ''
-    const filledPersonIds = new Set<string>()
-    const rawPersonsJson = inputs['persons_json']
-    if (rawPersonsJson) {
-      try {
-        const parsed = JSON.parse(rawPersonsJson)
-        if (Array.isArray(parsed)) {
-          for (const person of parsed) {
-            if (
-              person &&
-              typeof person === 'object' &&
-              typeof person.id === 'string' &&
-              typeof person.income === 'number'
-            ) {
-              filledPersonIds.add(person.id)
-            }
-          }
-        }
-      } catch {
-        // Ignore malformed input and keep the row as unfilled.
-      }
-    }
-    return persons.map((p) => ({
-      id: p.id,
-      label: p.label,
-      amount:
-        p.id === 'self'
-          ? (hasSelfIncomeInput ? calcPersonNetIncome(p.income) : null)
-          : (filledPersonIds.has(p.id) ? calcPersonNetIncome(p.income) : null),
-    }))
-  }, [groups, cardInputMap, isMarriedFiling])
-
-  const grossIncomeAmount = useMemo(() => {
-    if (!grossIncomeFormulaItems || grossIncomeFormulaItems.length === 0) return null
-    if (grossIncomeFormulaItems.some((item) => item.amount === null)) return null
-    return grossIncomeFormulaItems.reduce((sum, item) => sum + (item.amount ?? 0), 0)
-  }, [grossIncomeFormulaItems])
+  const grossIncomeFormulaItems = incomeSummaries.length > 0
+    ? incomeSummaries.map((item) => ({
+        id: item.id,
+        label: item.label,
+        amount: item.complete ? item.amount : null,
+      }))
+    : null
 
   const savingsInvestmentEnabled = useMemo(() => {
     const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
@@ -552,21 +720,27 @@ export function ChecklistResult({
 
   const savingsInvestmentDeductionAmount = useMemo(() => {
     if (!savingsInvestmentEnabled) return null
-    return getSpecialDeductionItemAmount(
-      'savings-investment-deduction',
-      cardInputMap['savings-investment-deduction'] ?? {},
-    )
-  }, [cardInputMap, savingsInvestmentEnabled])
+    return Math.min(interestIncomeAmount, getNumber('special_deduction_savings_investment'))
+  }, [interestIncomeAmount, savingsInvestmentEnabled])
 
   const itemizedContext: Partial<ItemizedCalcContext> = useMemo(
     () => ({
-      grossIncomeAmount,
+      grossIncomeAmount: grossIncomeAmountForDeductionCaps,
+      dividendMergedGrossIncomeAmount: shouldShowDividendDonationCaps ? grossIncomeMergedAmount : null,
+      dividendSeparateGrossIncomeAmount: shouldShowDividendDonationCaps ? grossIncomeSeparateDividendAmount : null,
       savingsInvestmentEnabled,
       savingsInvestmentDeductionAmount,
       onScrollToSection: handleScrollToSection,
       onScrollToItem: handleScrollToItem,
     }),
-    [grossIncomeAmount, savingsInvestmentEnabled, savingsInvestmentDeductionAmount],
+    [
+      grossIncomeAmountForDeductionCaps,
+      grossIncomeMergedAmount,
+      grossIncomeSeparateDividendAmount,
+      savingsInvestmentEnabled,
+      savingsInvestmentDeductionAmount,
+      shouldShowDividendDonationCaps,
+    ],
   )
 
   const generalDeductionResolved = useMemo(
@@ -597,6 +771,24 @@ export function ChecklistResult({
     animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
   }
 
+  function handleIncomeParticipantsChange(nextParticipants: IncomeParticipant[], removedId?: string) {
+    onCardInputChange(
+      INCOME_PARTICIPANTS_ITEM_ID,
+      'persons_json',
+      serializeIncomeParticipants(nextParticipants),
+    )
+
+    if (!removedId) return
+    for (const itemId of INCOME_CARD_IDS) {
+      const raw = cardInputMap[itemId]?.['persons_json']
+      if (!raw) continue
+      const persons = parseIncomeCardPersons(cardInputMap[itemId] ?? {}, incomeParticipants)
+        .filter((p) => p.id !== 'self' && p.id !== removedId)
+        .map((p): GrossIncomePerson => ({ id: p.id, label: p.label, income: p.income }))
+      onCardInputChange(itemId, 'persons_json', serializeIncomeAmounts(persons))
+    }
+  }
+
   function getSectionSubtotal(group: CategoryGroup): number | null {
     switch (group.category) {
       case 'gross_income':
@@ -625,6 +817,7 @@ export function ChecklistResult({
       <AddSituationModal
         groups={addableSituationGroups}
         isOpen={isAddModalOpen}
+        selectedSituations={selectedSituations}
         pendingSituationIds={pendingSituationIds}
         onToggleSituation={handleTogglePendingSituation}
         onCancel={handleCancelAdd}
@@ -785,7 +978,16 @@ export function ChecklistResult({
                     <div className="mb-4">
                       {shouldWrapFormulaBox ? (
                         <div className={FORMULA_SECTION_BOX_CLASS}>
-                          <FormulaRow items={fItems} />
+                          {group.category === 'gross_income' ? (
+                            <GrossIncomeFormulaPanel
+                              items={fItems}
+                              showDividendScenarios={hasPositiveDividendIncome}
+                              mergedAmount={grossIncomeMergedAmount}
+                              separateDividendAmount={grossIncomeSeparateDividendAmount}
+                            />
+                          ) : (
+                            <FormulaRow items={fItems} />
+                          )}
                         </div>
                       ) : (
                         <FormulaRow items={fItems} />
@@ -802,15 +1004,23 @@ export function ChecklistResult({
                       }}
                       data-testid={`checklist-item-${item.id}`}
                     >
-                      {item.id === 'gross-income' ? (
-                        <GrossIncomeCard
+                      {INCOME_CARD_IDS.includes(item.id as IncomeCardId) ? (
+                        <IncomeCard
                           item={item}
+                          config={INCOME_CARD_CONFIGS[item.id as IncomeCardId]}
                           inputValues={cardInputMap[item.id] ?? {}}
-                          isMarriedFiling={isMarriedFiling}
+                          participants={incomeParticipants}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
                           removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
+                          onParticipantsChange={handleIncomeParticipantsChange}
                           onRemove={() => onRemoveItem?.(item.id)}
+                        />
+                      ) : item.id === 'savings-investment-deduction' ? (
+                        <SavingsInvestmentDeductionCard
+                          item={item}
+                          interestIncomeAmount={interestIncomeAmount}
+                          sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
                         />
                       ) : (
                         <DeductionCard
@@ -845,6 +1055,7 @@ export function ChecklistResult({
           <div className="print-only mt-8">
             <TaxSummaryPanel
               grossIncome={grossIncomeAmount}
+              grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
               exemptionAmount={exemptionAmount}
               generalDeductionAmount={generalDeductionAmount}
               generalDeductionMethod={generalDeductionMethod}
@@ -862,6 +1073,7 @@ export function ChecklistResult({
         >
           <TaxSummaryPanel
             grossIncome={grossIncomeAmount}
+            grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
             exemptionAmount={exemptionAmount}
             generalDeductionAmount={generalDeductionAmount}
             generalDeductionMethod={generalDeductionMethod}

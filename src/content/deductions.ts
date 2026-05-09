@@ -55,19 +55,49 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     show_wealth_clause_notice: false,
   },
   {
-    id: 'dividends-tax-choice',
+    id: 'dividend-income',
     title: '股利收入',
     category: 'gross_income',
     situations: ['dividends'],
-    why_it_matters: '股利所得可選擇「合併計稅」或「28%分開計稅」，須依個人綜所稅率判斷哪種方式較有利',
+    why_it_matters: '填入本人與共同報稅者的股利收入；系統會同時呈現合併計稅與 28% 分開計稅時的綜合所得總額差異。',
     eligibility_cues: [
       '申報年度有收到股利或盈餘分配者',
-      '兩種計稅方式各有利弊，需依個人邊際稅率判斷',
+      '兩種計稅方式各有利弊，需搭配完整稅額方案判斷',
       '選擇分開計稅者不可再享股利可抵減稅額',
       '建議使用財政部電子申報系統試算比較',
     ],
     documents_to_prepare: ['股利分配通知書或扣繳憑單'],
     source_refs: [SRC_ITA, SRC_MOF],
+    show_wealth_clause_notice: true,
+  },
+  {
+    id: 'interest-income',
+    title: '利息收入',
+    category: 'gross_income',
+    situations: ['interest_income'],
+    why_it_matters: '填入本人與共同報稅者的利息收入；此金額會同步作為「儲蓄投資特別扣除額」的計算基礎。',
+    eligibility_cues: [
+      '申報年度有金融機構存款利息、儲蓄性質信託收益等收入者',
+      '利息收入會自動帶動儲蓄投資特別扣除額，無需在扣除額卡片重複輸入',
+      '郵政儲金免稅利息及分離課稅利息不列入本項簡化試算',
+    ],
+    documents_to_prepare: ['利息所得扣繳憑單或金融機構所得資料'],
+    source_refs: [SRC_ITA, SRC_TAX_SAVING_MANUAL],
+    show_wealth_clause_notice: false,
+  },
+  {
+    id: 'other-income',
+    title: '其他收入',
+    category: 'gross_income',
+    situations: ['other_income'],
+    why_it_matters: '填入本人與共同報稅者除薪資、股利、利息以外的其他綜合所得金額；本版先以單一總額欄位估算。',
+    eligibility_cues: [
+      '申報年度有其他應併入綜合所得總額的收入者',
+      '本版不細分所得類型，請先填入合計金額',
+      '正式申報時仍需依所得類別與憑單資料確認',
+    ],
+    documents_to_prepare: ['其他所得相關憑單或收入資料'],
+    source_refs: [SRC_ITA, SRC_MANUAL],
     show_wealth_clause_notice: true,
   },
   {
@@ -309,6 +339,16 @@ export const SITUATIONS: Situation[] = [
     description: '持有台股或基金，收到股利或盈餘分配',
   },
   {
+    id: 'interest_income',
+    label: '利息收入',
+    description: '有銀行存款利息、儲蓄性質信託收益等收入',
+  },
+  {
+    id: 'other_income',
+    label: '其他收入',
+    description: '有薪資、股利、利息以外需併入綜所稅的收入',
+  },
+  {
     id: 'overseas_income',
     label: '海外所得',
     description: '全年海外所得超過100萬元，可能需申報最低稅負',
@@ -332,11 +372,6 @@ export const SITUATIONS: Situation[] = [
     id: 'mortgage_interest',
     label: '購屋借款利息',
     description: '自住房屋的房貸每年需繳利息',
-  },
-  {
-    id: 'savings_investment',
-    label: '儲蓄投資',
-    description: '有金融機構存款利息、儲蓄性質信託資金等收益',
   },
   {
     id: 'disability',
@@ -376,7 +411,7 @@ export const SITUATION_GROUPS: SituationGroup[] = [
     id: 'income-sources',
     title: '所得來源',
     description: '確認有哪些收入類型，影響適用的扣除與稅率計算。',
-    situationIds: ['salary_income', 'dividends', 'overseas_income'],
+    situationIds: ['salary_income', 'dividends', 'interest_income', 'other_income', 'overseas_income'],
   },
   {
     id: 'general-deductions',
@@ -387,7 +422,7 @@ export const SITUATION_GROUPS: SituationGroup[] = [
   {
     id: 'special-deductions',
     title: '特別扣除額',
-    description: '依身分、照顧、居住與金融所得等條件確認可用的特別扣除。',
-    situationIds: ['savings_investment', 'disability', 'childcare', 'education_tuition', 'long_term_care', 'rent'],
+    description: '依身分、照顧與居住等條件確認可用的特別扣除。',
+    situationIds: ['disability', 'childcare', 'education_tuition', 'long_term_care', 'rent'],
   },
 ]

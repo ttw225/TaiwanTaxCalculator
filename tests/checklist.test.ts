@@ -82,7 +82,7 @@ describe('filterBySituations', () => {
   })
 
   it('any non-empty situation returns baseline exemption and standard deduction', () => {
-    for (const id of ['rent', 'donations', 'salary_income', 'dividends', 'overseas_income'] as const) {
+    for (const id of ['rent', 'donations', 'salary_income', 'dividends', 'interest_income', 'other_income', 'overseas_income'] as const) {
       const ids = filterBySituations(published, [id]).map((i) => i.id)
       expect(ids).toContain('exemption-general')
       expect(ids).toContain('standard-deduction-single')
@@ -136,7 +136,18 @@ describe('filterBySituations', () => {
 
   it('dividends returns dividends tax choice item', () => {
     const ids = filterBySituations(published, ['dividends']).map((i) => i.id)
-    expect(ids).toContain('dividends-tax-choice')
+    expect(ids).toContain('dividend-income')
+  })
+
+  it('interest income returns interest and linked savings investment items', () => {
+    const ids = filterBySituations(published, ['interest_income', 'savings_investment']).map((i) => i.id)
+    expect(ids).toContain('interest-income')
+    expect(ids).toContain('savings-investment-deduction')
+  })
+
+  it('other income returns other income item', () => {
+    const ids = filterBySituations(published, ['other_income']).map((i) => i.id)
+    expect(ids).toContain('other-income')
   })
 
   it('every SITUATIONS id maps to at least one published item', () => {
@@ -166,22 +177,28 @@ describe('groupByCategory', () => {
     expect(categories).not.toContain('further_check')
   })
 
-  it('groups income source cards under gross income in salary, dividends, overseas order', () => {
+  it('groups income source cards under gross income in salary, dividends, interest, other, overseas order', () => {
     const groups = groupByCategory(filterBySituations(published, [
       'salary_income',
       'dividends',
+      'interest_income',
+      'other_income',
       'overseas_income',
     ]))
     const gross = groups.find((g) => g.category === 'gross_income')
     expect(gross?.label).toBe('綜合所得總額')
     expect(gross?.items.map((i) => i.id)).toEqual([
       'gross-income',
-      'dividends-tax-choice',
+      'dividend-income',
+      'interest-income',
+      'other-income',
       'overseas-income-amt',
     ])
     expect(gross?.items.map((i) => i.title)).toEqual([
       '薪資收入',
       '股利收入',
+      '利息收入',
+      '其他收入',
       '海外所得',
     ])
   })
@@ -633,7 +650,6 @@ describe('SITUATION_GROUPS', () => {
   it('orders special deduction situations by the requested homepage order', () => {
     const special = SITUATION_GROUPS.find((g) => g.id === 'special-deductions')
     expect(special?.situationIds).toEqual([
-      'savings_investment',
       'disability',
       'childcare',
       'education_tuition',
@@ -642,8 +658,8 @@ describe('SITUATION_GROUPS', () => {
     ])
   })
 
-  it('union of all situationIds equals all 14 SITUATIONS ids', () => {
-    expect(SITUATIONS).toHaveLength(14)
+  it('union of all visible situationIds equals all 15 public SITUATIONS ids', () => {
+    expect(SITUATIONS).toHaveLength(15)
     expect(allGroupedIds.sort()).toEqual(allSituationIds.sort())
   })
 
@@ -957,6 +973,24 @@ describe('DeductionCard inline input fields', () => {
     )
     expect(html).toContain('可申報上限為 200,000 元')
     expect(html).not.toContain('綜合所得總額 20%')
+  })
+
+  it('shows both qualified donation caps when dividend income is filled', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [qualifiedDonationField],
+        inputValues: { donation_amount_qualified: '300000' },
+        feedbackContext: {
+          grossIncomeAmount: 1_000_000,
+          dividendMergedGrossIncomeAmount: 1_000_000,
+          dividendSeparateGrossIncomeAmount: 700_000,
+        },
+      }),
+    )
+    expect(html).toContain('若股利合併計稅，捐贈金額上限為 200,000 元')
+    expect(html).toContain('若股利分開計稅，捐款金額上限為 140,000 元')
+    expect(html).not.toContain('已達可申報上限')
   })
 
   it('asks for gross income before qualified donation cap can be judged', () => {

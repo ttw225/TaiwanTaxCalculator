@@ -16,6 +16,8 @@ let requestAnimationFrameSpy: ReturnType<typeof vi.fn>
 
 const DONATION_TARGET_TOP = 900
 const DONATION_TARGET_HEIGHT = 120
+const GROSS_SECTION_TARGET_TOP = 540
+const GROSS_SECTION_TARGET_HEIGHT = 360
 const VIEWPORT_HEIGHT = 800
 
 function runNextAnimationFrame(timestamp: number) {
@@ -89,6 +91,19 @@ beforeEach(() => {
           toJSON: () => '',
         }
       }
+      if (testId === 'checklist-section-gross_income') {
+        return {
+          x: 0,
+          y: GROSS_SECTION_TARGET_TOP,
+          top: GROSS_SECTION_TARGET_TOP,
+          left: 0,
+          bottom: GROSS_SECTION_TARGET_TOP + GROSS_SECTION_TARGET_HEIGHT,
+          right: 640,
+          width: 640,
+          height: GROSS_SECTION_TARGET_HEIGHT,
+          toJSON: () => '',
+        }
+      }
       return {
         x: 0,
         y: 0,
@@ -158,6 +173,12 @@ function changeInputByTestId(testId: string, value: string) {
   })
 }
 
+function getGrossIncomeHeadingText() {
+  const section = container.querySelector<HTMLElement>('[data-testid="checklist-section-gross_income"]')
+  const heading = section?.querySelector('h2')
+  return heading?.textContent ?? ''
+}
+
 describe('situation single-source flow', () => {
   it('goes to selecting from intro start button when a selection exists but checklist is not generated', () => {
     renderApp({ autoStart: false })
@@ -215,6 +236,24 @@ describe('situation single-source flow', () => {
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
     clickButtonByText('台灣節稅資訊平台')
+    clickButtonByText('節稅試算')
+
+    expect(container.textContent).toContain('節稅試算清單')
+  })
+
+  it('goes to results from header nav after refresh on intro when checklist has been generated', () => {
+    const root = renderApp({ autoStart: false })
+    clickButtonByText('開始試算')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+    clickButtonByText('台灣節稅資訊平台')
+    expect(container.textContent).toContain('開始試算')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp({ autoStart: false })
     clickButtonByText('節稅試算')
 
     expect(container.textContent).toContain('節稅試算清單')
@@ -317,10 +356,16 @@ describe('situation single-source flow', () => {
     clickByTestId('open-add-situation-modal-btn')
     clickByTestId('add-situation-checkbox-married')
     clickByTestId('confirm-add-situations-btn')
+    act(() => {
+      runNextAnimationFrame(0)
+      runNextAnimationFrame(500)
+      runNextAnimationFrame(1000)
+    })
 
     expect(container.textContent).toContain('標準扣除額（配偶合併申報）')
     expect(container.textContent).toContain('262,000')
     expect(container.textContent).not.toContain('標準扣除額（單身）')
+    expect(scrollToSpy).toHaveBeenLastCalledWith(0, GROSS_SECTION_TARGET_TOP - 80)
   })
 
   it('cancel add in modal does not apply selection', () => {
@@ -510,7 +555,7 @@ describe('situation single-source flow', () => {
     const root = renderApp()
     clickButtonByText('房屋租金支出')
     expect(container.textContent).toContain('產生節稅清單')
-    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('selecting')
 
     act(() => {
       root.unmount()
@@ -520,17 +565,102 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
+  it('keeps intro page after refresh when no selection exists', () => {
+    const root = renderApp({ autoStart: false })
+    expect(container.textContent).toContain('開始試算')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp({ autoStart: false })
+    expect(container.textContent).toContain('開始試算')
+  })
+
+  it('keeps selecting page after refresh when selecting page has no selection', () => {
+    const root = renderApp({ autoStart: false })
+    clickButtonByText('節稅試算')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('selecting')
+
+    act(() => {
+      root.unmount()
+    })
+
+    renderApp({ autoStart: false })
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+  })
+
   it('allows spouse salary income to remain 0', () => {
     renderApp()
     clickButtonByText('配偶合併申報')
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
-    changeInputByTestId('gross-income-input-self', '300000')
-    changeInputByTestId('gross-income-input-spouse', '0')
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-gross-income-spouse', '0')
 
-    const spouseInput = container.querySelector<HTMLInputElement>('[data-testid="gross-income-input-spouse"]')
+    const spouseInput = container.querySelector<HTMLInputElement>('[data-testid="income-input-gross-income-spouse"]')
     expect(spouseInput?.value).toBe('0')
     expect(container.textContent).not.toContain('（1 項未填）')
+
+    changeInputByTestId('income-input-gross-income-spouse', '')
+    expect(spouseInput?.value).toBe('')
+    expect(container.querySelector('[data-testid="income-total-gross-income"]')?.textContent).toContain('未填寫')
+  })
+
+  it('shows a single gross income total when the dividend card total is 0', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '0')
+
+    expect(getGrossIncomeHeadingText()).toContain('82,000 元')
+    expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('82,000 元')
+    expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).toBeNull()
+  })
+
+  it('defers summary gross income calculation when completed income cards include positive dividends', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '100000')
+
+    expect(getGrossIncomeHeadingText()).not.toContain('182,000 元')
+    expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('待計算')
+    expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).not.toBeNull()
+    expect(container.textContent).toContain('合併計稅')
+    expect(container.textContent).toContain('28% 分開計稅')
+  })
+
+  it('hides savings investment from selectors and derives it from interest income on the result page', () => {
+    renderApp()
+
+    expect(container.textContent).not.toContain('儲蓄投資')
+
+    clickButtonByText('利息收入')
+    expect(container.textContent).not.toContain('儲蓄投資')
+    clickButtonByText('產生節稅清單')
+
+    expect(container.textContent).toContain('利息收入')
+    expect(container.textContent).toContain('儲蓄投資特別扣除額')
+    expect(container.querySelector('[data-testid="remove-item-savings-investment-deduction"]')).toBeNull()
+    clickByTestId('open-add-situation-modal-btn')
+    expect(container.querySelector('[data-testid="add-situation-checkbox-savings_investment"]')).toBeNull()
+    clickByTestId('cancel-add-situations-btn')
+
+    changeInputByTestId('income-input-interest-income-self', '300000')
+    expect(container.textContent).toContain('270,000 元')
+
+    clickByTestId('remove-item-interest-income')
+    clickByTestId('confirm-remove-item-btn')
+    expect(container.textContent).not.toContain('利息收入小計')
+    expect(container.textContent).not.toContain('儲蓄投資特別扣除額')
   })
 })

@@ -10,7 +10,7 @@
 | File | Focus |
 |------|--------|
 | [`tests/foundation.test.ts`](../tests/foundation.test.ts) | `numbers_2026.json`, `getNumber`, `getBrackets`, `readLocal` / `writeLocal` / `removeLocal` |
-| [`tests/grossIncome.test.ts`](../tests/grossIncome.test.ts) | [`grossIncome.ts`](../src/lib/grossIncome.ts): cap, per-person deduction/net, parsing `persons_json`, `calcTotalGrossIncome`, labels |
+| [`tests/grossIncome.test.ts`](../tests/grossIncome.test.ts) | [`grossIncome.ts`](../src/lib/grossIncome.ts): cap, per-person deduction/net, legacy salary parsing, shared income participants, explicit salary vs default-zero non-salary income |
 | [`tests/generalDeductionEffective.test.ts`](../tests/generalDeductionEffective.test.ts) | `resolveGeneralDeduction` + `getItemizedItemAmount` (includes itemized calc context: donation cap vs gross income, mortgage vs savings-investment dependency) |
 | [`tests/decisions.test.ts`](../tests/decisions.test.ts) | `calcBracketTax`, `calcDividendOptions`, `calcCoupleFilingOptions`, `checkAmtThreshold` |
 | [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` |
@@ -24,17 +24,22 @@
 
 - **Baseline items**: every non-empty selection includes `exemption-general` plus the correct standard deduction card.
 - **Married selection**: `standard-deduction-single` excluded when `married` selected.
-- **Card removal**: remove action deletes only the target active card (non-removable cards excluded) and clears that card input data.
+- **Card removal**: remove action deletes only the target active card (non-removable cards excluded) and clears that card input data; removing interest income also removes linked savings-investment.
 - **Add modal**: selected situations are omitted; after removing a related card, that situation becomes addable again.
-- **Non-removable cards**: exemption + standard deduction cards never render remove buttons.
+- **Non-removable cards**: exemption, standard deduction, and savings-investment cards never render remove buttons.
 - **Remove dialog copy**: title includes the item title (`確認移除此項目：...`); body uses item-aware copy (`將清除「{itemTitle}」已填寫的資料。`) and follow-up hint (`您可以隨時加回此項目`).
-- **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → overseas order.
-- **Situations**: count **14**; every `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals all ids, no duplicates, fixed subgroup ordering tests.
+- **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → interest → other → overseas order.
+- **Situations**: count **15 public situations**; every public `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals public ids, no duplicates, fixed subgroup ordering tests. Hidden derived `savings_investment` is tested through interest-income linkage.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
 - **AMT**: threshold **1_000_000** inclusive boundary.
 - **Itemized dependencies**:
-  - Donations: qualified donations are capped at 20% of `grossIncomeAmount`; if the qualified amount is filled but gross income is missing, itemized line is treated as unfilled (`null`).
-  - Mortgage interest: when `savings-investment-deduction` is enabled, mortgage interest subtracts the capped savings-investment deduction first; if savings-investment is enabled but unfilled, subtraction is deferred (treated as 0) so the mortgage line remains responsive.
+  - Donations: qualified donations are capped at 20% of `grossIncomeAmount`; if the qualified amount is filled but gross income is missing, itemized line is treated as unfilled (`null`). When positive dividend income is present, inline feedback shows both merged-tax and 28% separate-tax 20% caps.
+  - Mortgage interest: when `savings-investment-deduction` is enabled, mortgage interest subtracts the capped savings-investment deduction first; that deduction is derived from total interest income.
+- **Income dependencies**:
+  - Selector and add modal do not show savings-investment; selecting interest income auto-selects hidden savings-investment and shows the derived result card.
+  - Salary requires explicit input for each participant; dividend/interest/other default blank to 0.
+  - Clearing a non-self salary amount removes that row's filled marker and returns salary to an unfilled state.
+  - With dividend income active, gross income display shows both merged-tax and 28% separate-tax totals instead of one summary total.
 - **Inline cap copy contracts** (rendered via `DeductionCard` static markup tests):
   - Cap overflow copy is unified as `已達可申報上限 X 元` for all shared capped-field feedback paths.
   - Qualified donation empty-state hint no longer appends `綜合所得總額 20%`.
