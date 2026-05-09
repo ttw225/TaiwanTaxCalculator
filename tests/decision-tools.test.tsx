@@ -12,7 +12,7 @@ describe('DecisionToolsPanel', () => {
     )
 
     expect(html).toContain('決策工具')
-    expect(html).toContain('股利課稅方式試算')
+    expect(html).not.toContain('股利課稅方式試算')
     expect(html).toContain('夫妻申報方式比較')
     expect(html).toContain('海外所得 AMT 門檻確認')
     expect(html).not.toContain('三種方式估算稅額相同')

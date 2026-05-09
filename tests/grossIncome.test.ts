@@ -7,6 +7,14 @@ import {
   parseGrossIncomePersons,
   serializePersonsJson,
   calcTotalGrossIncome,
+  INCOME_CARD_CONFIGS,
+  INCOME_PARTICIPANTS_ITEM_ID,
+  calcRawIncomeTotal,
+  incomeCardIsComplete,
+  parseIncomeCardPersons,
+  parseIncomeParticipantsFromMap,
+  serializeIncomeAmounts,
+  serializeIncomeParticipants,
 } from '../src/lib/grossIncome'
 
 describe('getSalaryDeductionCap', () => {
@@ -160,5 +168,70 @@ describe('calcTotalGrossIncome', () => {
 
   it('returns 0 for empty persons list', () => {
     expect(calcTotalGrossIncome([])).toBe(0)
+  })
+})
+
+describe('shared income participants', () => {
+  it('syncs participants from the shared map and auto-adds spouse when married', () => {
+    const participants = parseIncomeParticipantsFromMap({
+      [INCOME_PARTICIPANTS_ITEM_ID]: {
+        persons_json: serializeIncomeParticipants([{ id: 'extra-0', label: '母親' }]),
+      },
+    }, true)
+
+    expect(participants).toEqual([
+      { id: 'self', label: '本人' },
+      { id: 'spouse', label: '配偶' },
+      { id: 'extra-0', label: '母親' },
+    ])
+  })
+
+  it('falls back to legacy salary persons_json labels for existing saved data', () => {
+    const participants = parseIncomeParticipantsFromMap({
+      'gross-income': {
+        persons_json: serializePersonsJson([{ id: 'extra-0', label: '父親', income: 100_000 }]),
+      },
+    }, false)
+
+    expect(participants).toEqual([
+      { id: 'self', label: '本人' },
+      { id: 'extra-0', label: '父親' },
+    ])
+  })
+})
+
+describe('parseIncomeCardPersons', () => {
+  const participants = [
+    { id: 'self', label: '本人' },
+    { id: 'spouse', label: '配偶' },
+    { id: 'extra-0', label: '父親' },
+  ]
+
+  it('marks salary rows as incomplete until each participant has explicit input', () => {
+    const persons = parseIncomeCardPersons({ self_income: '300000' }, participants)
+    expect(persons.map((p) => [p.id, p.hasInput])).toEqual([
+      ['self', true],
+      ['spouse', false],
+      ['extra-0', false],
+    ])
+    expect(incomeCardIsComplete(INCOME_CARD_CONFIGS['gross-income'], persons)).toBe(false)
+  })
+
+  it('treats explicit 0 salary as filled', () => {
+    const persons = parseIncomeCardPersons({
+      self_income: '300000',
+      persons_json: serializeIncomeAmounts([
+        { id: 'spouse', label: '配偶', income: 0 },
+        { id: 'extra-0', label: '父親', income: 0 },
+      ]),
+    }, participants)
+
+    expect(incomeCardIsComplete(INCOME_CARD_CONFIGS['gross-income'], persons)).toBe(true)
+  })
+
+  it('defaults non-salary income rows to 0 while remaining complete', () => {
+    const persons = parseIncomeCardPersons({}, participants)
+    expect(calcRawIncomeTotal(persons)).toBe(0)
+    expect(incomeCardIsComplete(INCOME_CARD_CONFIGS['interest-income'], persons)).toBe(true)
   })
 })

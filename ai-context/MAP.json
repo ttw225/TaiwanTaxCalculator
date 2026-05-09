@@ -21,7 +21,7 @@
     {
       "id": "domain-model",
       "file": "04-domain-model.md",
-      "keywords": ["SituationId", "ChecklistItem", "CategoryId", "SourceRef", "CardInlineField"]
+      "keywords": ["SituationId", "ChecklistItem", "CategoryId", "SourceRef", "CardInlineField", "income participants"]
     },
     {
       "id": "tax-numbers",
@@ -31,7 +31,7 @@
     {
       "id": "content",
       "file": "06-content-modules.md",
-      "keywords": ["deductions.ts", "CHECKLIST_ITEMS", "SITUATIONS", "inlineFields", "decision-tools"]
+      "keywords": ["deductions.ts", "CHECKLIST_ITEMS", "SITUATIONS", "inlineFields", "decision-tools", "interest income", "other income"]
     },
     {
       "id": "app-flow",

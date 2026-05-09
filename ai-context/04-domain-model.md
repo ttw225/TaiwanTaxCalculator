@@ -23,6 +23,8 @@ export type SituationId =
   | 'education_tuition'
   | 'savings_investment'
   | 'dividends'
+  | 'interest_income'
+  | 'other_income'
   | 'overseas_income'
 
 export interface Situation {
@@ -34,6 +36,7 @@ export interface Situation {
 
 - Labels/descriptions are **zh-TW** in [`src/content/deductions.ts`](../src/content/deductions.ts).
 - There is **no** separate `single` situation; the checklist engine adds the single-filer standard deduction as a result-page baseline item whenever `married` is not selected ([`08-checklist-engine.md`](./08-checklist-engine.md)).
+- `savings_investment` is a hidden derived id. It remains in the TypeScript union and checklist item mapping, but is omitted from public `SITUATIONS` / `SITUATION_GROUPS`; `App.tsx` adds it when `interest_income` is selected.
 
 ## Situation groups (UI grouping only)
 
@@ -113,16 +116,24 @@ export type CardInputMap = Record<string, Record<string, string>>
 
 - Outer key: checklist **`item.id`**. Inner key: **`CardInlineField.id`**. Values are **string** (raw input).
 
-### Special encoding: `gross-income`
+### Shared encoding: income cards
 
-The `gross-income` item does not use `ITEM_INLINE_FIELDS`; `GrossIncomeCard` manages its own fields:
+The four regular income cards (`gross-income`, `dividend-income`, `interest-income`, `other-income`) do not use `ITEM_INLINE_FIELDS`; `IncomeCard` manages their shared participant list and per-card amount fields.
+
+Shared participants are stored under the synthetic `CardInputMap` key `income-participants`:
 
 | fieldId | type | description |
 |---|---|---|
-| `self_income` | `string` (number) | 本人年薪 |
-| `persons_json` | JSON string | Array of `GrossIncomePerson` (excludes self): `[{id, label, income}]` |
+| `persons_json` | JSON string | Array of non-self participants: `[{id, label}]` |
 
-`id` values in `persons_json`: `"spouse"` (配偶; omitted when not married filing) and `"extra-<n>"` (non-negative integer suffix, e.g. `extra-0`, `extra-1`, …).
+Each income card stores its amounts with:
+
+| fieldId | type | description |
+|---|---|---|
+| `self_income` | `string` (number) | 本人 amount for that income card |
+| `persons_json` | JSON string | Array of non-self amounts: `[{id, income}]` |
+
+Participant `id` values: `"spouse"` (配偶; auto-present when married filing) and `"extra-<n>"` (non-negative integer suffix, e.g. `extra-0`, `extra-1`, …). Adding, renaming, or deleting an extra participant from any regular income card updates the shared list for all four cards.
 
 [`src/lib/grossIncome.ts`](../src/lib/grossIncome.ts) exports:
 
@@ -132,9 +143,17 @@ The `gross-income` item does not use `ITEM_INLINE_FIELDS`; `GrossIncomeCard` man
 | `calcPersonDeduction` | `min(income, cap)` — modeled 薪資所得特別扣除額 |
 | `calcPersonNetIncome` | Salary income minus that deduction (floored at 0) |
 | `defaultExtraDependentLabel` | Next placeholder label when adding an extra dependent (`親屬1`, …) |
-| `parseGrossIncomePersons` | Builds `[self, …others]` from `self_income` + `persons_json`; inserts spouse row when married filing |
-| `serializePersonsJson` | JSON-stringifies non-self persons |
-| `calcTotalGrossIncome` | **Sum of each person’s net salary income** (`calcPersonNetIncome`), not raw wage totals — used as `grossIncomeTotal` / sidebar 「綜合所得總額」 for this guided flow |
+| `parseIncomeParticipantsFromMap` | Builds shared participants from `income-participants`, with legacy fallback to old salary `persons_json` |
+| `parseIncomeCardPersons` | Combines shared participants with one income card's amounts and explicit-input flags |
+| `serializeIncomeParticipants` / `serializeIncomeAmounts` | JSON-stringify shared participants and per-card non-self amounts |
+| `incomeCardIsComplete` | Salary requires explicit input for every participant; dividend/interest/other default blank to 0 |
+| `parseGrossIncomePersons` / `serializePersonsJson` / `calcTotalGrossIncome` | Legacy-compatible salary helpers kept for tests and saved-data migration |
+
+Gross income semantics:
+
+- Without dividends: one gross total is shown and passed to the summary/sidebar.
+- With dividends: the gross section shows both merged-tax (`salary net + dividends + interest + other`) and 28% separate-tax (`salary net + interest + other`) totals; the summary/sidebar receives `null` for gross income until the later recommendation redesign.
+- Overseas income remains an AMT-oriented card and is not included in regular gross income totals.
 
 ## Decision tools
 

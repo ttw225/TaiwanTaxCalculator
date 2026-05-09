@@ -10,7 +10,7 @@ Reused constants (`SRC_ITA`, `SRC_MOF`, `SRC_MANUAL`, `SRC_TAX_SAVING_MANUAL`, `
 
 ### `CHECKLIST_ITEMS`
 
-**16** items. IDs (kebab-case):
+**18** items. IDs (kebab-case):
 
 | `id` | `category` | `situations` |
 |------|--------------|--------------|
@@ -22,7 +22,9 @@ Reused constants (`SRC_ITA`, `SRC_MOF`, `SRC_MANUAL`, `SRC_TAX_SAVING_MANUAL`, `
 | `medical-deduction` | `general_deductions` | `medical_expenses` |
 | `mortgage-interest-deduction` | `general_deductions` | `mortgage_interest` |
 | `gross-income` | `gross_income` | `salary_income` |
-| `dividends-tax-choice` | `gross_income` | `dividends` |
+| `dividend-income` | `gross_income` | `dividends` |
+| `interest-income` | `gross_income` | `interest_income` |
+| `other-income` | `gross_income` | `other_income` |
 | `overseas-income-amt` | `gross_income` | `overseas_income` |
 | `savings-investment-deduction` | `special_deductions` | `savings_investment` |
 | `disability-special-deduction` | `special_deductions` | `disability` |
@@ -37,7 +39,7 @@ Baseline items are not triggered by first-page situations. When `selected.length
 
 ### `SITUATIONS`
 
-**14** situations (see [`04-domain-model.md`](./04-domain-model.md) for `SituationId` union). Each has zh-TW `label` and `description`.
+**15** public situations (see [`04-domain-model.md`](./04-domain-model.md) for `SituationId` union). Each has zh-TW `label` and `description`. `savings_investment` remains a hidden internal `SituationId` used to derive the savings-investment result card from interest income; it is not shown on the selector or add modal.
 
 ### `SITUATION_GROUPS`
 
@@ -46,11 +48,11 @@ Baseline items are not triggered by first-page situations. When `selected.length
 | Group `id` | `situationIds` |
 |------------|----------------|
 | `filing-method` | `married` |
-| `income-sources` | `salary_income`, `dividends`, `overseas_income` |
+| `income-sources` | `salary_income`, `dividends`, `interest_income`, `other_income`, `overseas_income` |
 | `general-deductions` | `donations`, `insurance`, `medical_expenses`, `mortgage_interest` |
-| `special-deductions` | `savings_investment`, `disability`, `childcare`, `education_tuition`, `long_term_care`, `rent` |
+| `special-deductions` | `disability`, `childcare`, `education_tuition`, `long_term_care`, `rent` |
 
-Union of all `situationIds` equals the full `SituationId` set used in `SITUATIONS` (tests enforce this).
+Union of all grouped `situationIds` equals the public `SITUATIONS` ids (tests enforce this). Hidden derived ids such as `savings_investment` are intentionally excluded.
 
 ## `decision-tools.ts`
 
@@ -73,9 +75,11 @@ Logic and inputs live in [`src/lib/decisions.ts`](../src/lib/decisions.ts) and [
 | `medical-deduction` | `medical_amount` | `null` |
 | `donations-deduction` | `donation_amount_qualified` | `null` |
 | `donations-deduction` | `donation_amount_government` | `null` |
-| `savings-investment-deduction` | `savings_investment_amount` | `special_deduction_savings_investment` |
+| `savings-investment-deduction` | derived from `interest-income` | `special_deduction_savings_investment` |
 
 All fields: `type: 'number'`, `unit: '元'`.
+
+`savings-investment-deduction` still has an old inline-field entry for compatibility, but the rendered result card ignores manual input and derives its amount from total interest income.
 
 ## Related docs
 

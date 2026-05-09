@@ -16,6 +16,7 @@ export function filterBySituations(items: ChecklistItem[], selected: SituationId
   - otherwise include `standard-deduction-single`
 - Non-baseline items match when `item.situations.some(s => selected.includes(s))`.
 - Baseline item content uses `situations: []`; the engine derives all result cards from `selected`.
+- `src/lib/checklist.ts` itself is intentionally pure and does not enforce cross-situation links. `App.tsx` normalizes `interest_income` ↔ hidden `savings_investment` before calling the engine, so the savings-investment card is present whenever interest income is active even though it is not publicly selectable.
 
 ## `CATEGORY_ORDER` / `CATEGORY_LABELS`
 
@@ -37,6 +38,7 @@ export function groupByCategory(items: ChecklistItem[]): CategoryGroup[]
 - Buckets by `item.category`, then sorts buckets by `CATEGORY_ORDER`.
 - Returns `{ category, label, items }[]`.
 - **Within each bucket**, item order follows the order items appear in the input array (typically `CHECKLIST_ITEMS` order after filtering).
+- Current gross-income item order is salary → dividend → interest → other → overseas.
 
 ## `CategoryGroup`
 
