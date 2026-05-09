@@ -7,6 +7,7 @@ import type {
 } from '../types/content'
 import type { CategoryGroup } from '../lib/checklist'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS } from '../lib/checklistCardCopy'
+import { formatChecklistMarkdown } from '../lib/exportChecklist'
 import { resolveGeneralDeduction, type ItemizedCalcContext } from '../lib/generalDeductionEffective'
 import { getNumber } from '../lib/numbers'
 import { animateScrollToY } from '../lib/scrollAnimation'
@@ -92,6 +93,8 @@ const NON_REMOVABLE_ITEM_IDS = new Set([
   'standard-deduction-single',
   'standard-deduction-married',
 ])
+const SITE_HEADER_HEIGHT = 56
+const CONTENT_TOP_GAP = 12
 
 function getSpecialDeductionItemAmount(
   itemId: string,
@@ -353,12 +356,20 @@ export function ChecklistResult({
 }: Props) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
+  const [exportMenuOpen, setExportMenuOpen] = useState(false)
   const [pendingSituationIds, setPendingSituationIds] = useState<SituationId[]>([])
+  const [stickyHeadingHeight, setStickyHeadingHeight] = useState(0)
+  const stickyHeadingRef = useRef<HTMLDivElement | null>(null)
+  const exportMenuRef = useRef<HTMLDivElement | null>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
   const itemRefs = useRef<Record<string, HTMLElement | null>>({})
   const totalItems = groups.reduce((sum, g) => sum + g.items.length, 0)
   const hasResults = totalItems > 0
+  const showExport = hasResults
   const canAddMore = addableSituationGroups.length > 0
+  const hasDecisionTools = selectedSituations.some(
+    (id) => id === 'dividends' || id === 'married' || id === 'overseas_income',
+  )
 
   useEffect(() => {
     if (!scrollToItemId) return
@@ -372,6 +383,41 @@ export function ChecklistResult({
     }
     onScrollHandled?.()
   }, [onScrollHandled, scrollToItemId])
+
+  useEffect(() => {
+    function updateStickyHeadingHeight() {
+      const height = stickyHeadingRef.current?.getBoundingClientRect().height ?? 0
+      setStickyHeadingHeight(Math.ceil(height))
+    }
+
+    updateStickyHeadingHeight()
+    if (typeof ResizeObserver !== 'undefined' && stickyHeadingRef.current) {
+      const observer = new ResizeObserver(() => updateStickyHeadingHeight())
+      observer.observe(stickyHeadingRef.current)
+      return () => observer.disconnect()
+    }
+
+    window.addEventListener('resize', updateStickyHeadingHeight)
+    return () => window.removeEventListener('resize', updateStickyHeadingHeight)
+  }, [])
+
+  useEffect(() => {
+    if (!exportMenuOpen) return
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setExportMenuOpen(false)
+    }
+    function onPointerDown(event: MouseEvent) {
+      if (!exportMenuRef.current?.contains(event.target as Node)) {
+        setExportMenuOpen(false)
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('mousedown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('mousedown', onPointerDown)
+    }
+  }, [exportMenuOpen])
 
   function openAddModal() {
     setPendingSituationIds([])
@@ -397,6 +443,28 @@ export function ChecklistResult({
 
   function handleResetClick() {
     setIsResetDialogOpen(true)
+  }
+
+  function getMarkdown() {
+    return formatChecklistMarkdown(groups, {
+      totalSelected,
+      exportTime: new Date().toLocaleString('zh-TW'),
+    })
+  }
+
+  function handleDownload() {
+    const md = getMarkdown()
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'tax-checklist-2026.md'
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handlePrint() {
+    window.print()
   }
 
   const isMarriedFiling = selectedSituations.includes('married')
@@ -576,54 +644,101 @@ export function ChecklistResult({
         />
       )}
 
-      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start print-main-layout">
-        {/* ── Main column ── */}
-        <div>
-          <PageHeading
-            title="節稅試算清單"
-            description={`根據您選擇的 ${totalSelected} 項情況，找到 ${totalItems} 個值得確認的項目。`}
-            actions={(
-              <>
-                <button
-                  type="button"
-                  onClick={handleResetClick}
-                  data-testid="reset-checklist-btn"
-                  className="inline-flex items-center rounded-xl border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
-                >
-                  重新計算
-                </button>
-                <span
-                  className={[
-                    'group relative inline-flex',
-                    canAddMore ? '' : 'cursor-help',
-                  ].join(' ')}
-                >
+      <div
+        ref={stickyHeadingRef}
+        className="no-print sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-0 pb-1 backdrop-blur"
+      >
+        <PageHeading
+          title="節稅試算清單"
+          description={`根據您選擇的 ${totalSelected} 項情況，找到 ${totalItems} 個值得確認的項目。`}
+          className="[&_p]:mb-3 [&_p]:text-sm sm:[&_p]:text-base [&_.no-print]:mt-2"
+          actions={(
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleResetClick}
+                data-testid="reset-checklist-btn"
+                className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                重新計算
+              </button>
+              {showExport && (
+                <div ref={exportMenuRef} className="relative">
                   <button
                     type="button"
-                    onClick={openAddModal}
-                    disabled={!canAddMore}
-                    data-testid="open-add-situation-modal-btn"
-                    className={[
-                      'inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
-                      canAddMore
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'cursor-not-allowed bg-gray-100 text-gray-400',
-                    ].join(' ')}
+                    className="rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                    onClick={() => setExportMenuOpen((v) => !v)}
+                    aria-haspopup="menu"
+                    aria-expanded={exportMenuOpen}
                   >
-                    <span aria-hidden="true">+</span>
-                    <span>新增項目</span>
+                    匯出
                   </button>
-                  {!canAddMore && (
-                    <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
-                      所有項目都已加入
-                    </span>
+                  {exportMenuOpen && (
+                    <div className="absolute right-0 top-full z-10 mt-2 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleDownload()
+                          setExportMenuOpen(false)
+                        }}
+                        className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                        data-testid="download-checklist-btn"
+                      >
+                        下載 Markdown
+                      </button>
+                      <div className="mx-3 border-t border-gray-200" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handlePrint()
+                          setExportMenuOpen(false)
+                        }}
+                        className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                        data-testid="print-checklist-btn"
+                      >
+                        列印 / 另存 PDF
+                      </button>
+                    </div>
                   )}
-                </span>
-              </>
-            )}
-          />
+                </div>
+              )}
+              <span
+                className={[
+                  'group relative inline-flex',
+                  canAddMore ? '' : 'cursor-help',
+                ].join(' ')}
+              >
+                <button
+                  type="button"
+                  onClick={openAddModal}
+                  disabled={!canAddMore}
+                  data-testid="open-add-situation-modal-btn"
+                  className={[
+                    'inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
+                    canAddMore
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'cursor-not-allowed bg-gray-100 text-gray-400',
+                  ].join(' ')}
+                >
+                  <span aria-hidden="true">+</span>
+                  <span>新增項目</span>
+                </button>
+                {!canAddMore && (
+                  <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-150 whitespace-nowrap group-hover:opacity-100">
+                    所有項目都已加入
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
+        />
+      </div>
 
-          <div className="mb-6 no-print">
+      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start print-main-layout" style={{ marginTop: `${CONTENT_TOP_GAP}px` }}>
+        {/* ── Main column ── */}
+        <div>
+
+          <div className={`${hasDecisionTools ? 'mb-6' : ''} no-print`}>
             <DecisionToolsPanel selectedSituations={selectedSituations} />
           </div>
 
@@ -741,7 +856,10 @@ export function ChecklistResult({
         </div>
 
         {/* ── Sidebar ── */}
-        <aside className="no-print mt-6 lg:mt-0 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-auto">
+        <aside
+          className="no-print mt-6 lg:mt-0 lg:sticky lg:max-h-[calc(100vh-6rem)] lg:overflow-auto"
+          style={{ top: `${SITE_HEADER_HEIGHT + stickyHeadingHeight + CONTENT_TOP_GAP}px` }}
+        >
           <TaxSummaryPanel
             grossIncome={grossIncomeAmount}
             exemptionAmount={exemptionAmount}
@@ -750,8 +868,6 @@ export function ChecklistResult({
             specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
             hasSpecialDeductions={hasSpecialDeductions}
             onScrollToSection={handleScrollToSection}
-            exportGroups={hasResults ? groups : undefined}
-            exportTotalSelected={hasResults ? totalSelected : undefined}
           />
         </aside>
       </div>

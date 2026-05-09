@@ -273,6 +273,23 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('房屋租金支出')
   })
 
+  it('opens export menu below button with aligned rounded radius', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+    clickButtonByText('匯出')
+
+    const downloadButton = container.querySelector<HTMLElement>('[data-testid="download-checklist-btn"]')
+    const printButton = container.querySelector<HTMLElement>('[data-testid="print-checklist-btn"]')
+    expect(downloadButton).not.toBeNull()
+    expect(printButton).not.toBeNull()
+
+    const menuPanel = downloadButton?.parentElement
+    expect(menuPanel?.className).toContain('top-full')
+    expect(menuPanel?.className).toContain('mt-2')
+    expect(menuPanel?.className).toContain('rounded-xl')
+  })
+
   it('omits selected situations in add modal and shows them again after removing their card', () => {
     renderApp()
     clickButtonByText('薪資收入')

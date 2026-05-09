@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { calcTax, getBrackets } from '../lib/numbers'
-import { formatChecklistMarkdown } from '../lib/exportChecklist'
-import type { CategoryGroup } from '../lib/checklist'
 import { Card, CardBody, CardHeader } from './ui/Card'
 
 interface Props {
@@ -14,9 +12,6 @@ interface Props {
   specialDeductionAmount: number | null
   hasSpecialDeductions: boolean
   onScrollToSection?: (categoryId: string) => void
-  /** When provided (and groups non-empty) renders the inline export controls */
-  exportGroups?: CategoryGroup[]
-  exportTotalSelected?: number
   printMode?: boolean
 }
 
@@ -29,7 +24,8 @@ function GoFill({ sectionId, onScroll }: { sectionId: string; onScroll?: (id: st
     <button
       type="button"
       onClick={() => onScroll?.(sectionId)}
-      className="text-base font-medium text-blue-600 hover:text-blue-800 hover:underline underline-offset-2 transition-colors shrink-0"
+      data-padding="custom"
+      className="inline-flex items-baseline p-0 text-base font-semibold leading-6 text-blue-600 hover:text-blue-800 hover:underline underline-offset-2 transition-colors shrink-0"
     >
       前往填寫
     </button>
@@ -53,19 +49,21 @@ function SummaryRow({
 }) {
   const hasVal = value !== null && !missing
   return (
-    <div className="flex items-baseline justify-between gap-2">
+    <div className="flex min-h-6 items-baseline justify-between gap-2">
       <span className={`text-base shrink-0 ${hasVal ? 'text-gray-700' : 'text-muted'}`}>
         {label}
       </span>
-      {missing ? (
-        <GoFill sectionId={sectionId} onScroll={onScroll} />
-      ) : hasVal ? (
-        <span className="text-base font-semibold tabular-nums text-gray-800 shrink-0">
-          {isDeduction ? '−' : ''}{fmt(value!)} 元
-        </span>
-      ) : (
-        <span className="text-base text-gray-200 shrink-0">—</span>
-      )}
+      <span className="inline-flex min-h-6 shrink-0 items-baseline leading-6">
+        {missing ? (
+          <GoFill sectionId={sectionId} onScroll={onScroll} />
+        ) : hasVal ? (
+          <span className="text-base font-semibold leading-6 tabular-nums text-gray-800">
+            {isDeduction ? '−' : ''}{fmt(value!)} 元
+          </span>
+        ) : (
+          <span className="text-base leading-6 text-gray-200">—</span>
+        )}
+      </span>
     </div>
   )
 }
@@ -234,7 +232,7 @@ function TaxSummaryBody({
             {netIncome !== null ? (
               <span className="text-base font-bold tabular-nums text-gray-900">{fmt(netIncome)} 元</span>
             ) : (
-              <span className="text-sm text-muted">待計算</span>
+              <span className="text-base text-muted">待計算</span>
             )}
           </div>
 
@@ -257,22 +255,20 @@ function TaxSummaryBody({
           </div>
 
           {/* Bracket formula */}
-          {netIncome !== null && bracket && (
-            <div className="pl-2 space-y-0.5 border-l-2 border-gray-100">
-              <div className="flex items-baseline justify-between gap-1">
-                <span className="text-base text-gray-400">× 稅率</span>
-                <span className="text-base font-semibold text-gray-500 tabular-nums">
-                  {(bracket.rate * 100).toFixed(0)}%
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between gap-1">
-                <span className="text-base text-gray-400">− 累進差額</span>
-                <span className="text-base font-semibold text-gray-500 tabular-nums">
-                  {fmt(bracket.quick_deduction)} 元
-                </span>
-              </div>
+          <div className="pl-2 space-y-0.5 border-l-2 border-gray-100">
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-base text-gray-400">× 稅率</span>
+              <span className="text-base font-semibold text-gray-500 tabular-nums">
+                {bracket ? `${(bracket.rate * 100).toFixed(0)}%` : '—'}
+              </span>
             </div>
-          )}
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="text-base text-gray-400">− 累進差額</span>
+              <span className="text-base font-semibold text-gray-500 tabular-nums">
+                {bracket ? `${fmt(bracket.quick_deduction)} 元` : '—'}
+              </span>
+            </div>
+          </div>
         </div>
       </CardBody>
 
@@ -291,7 +287,7 @@ function TaxSummaryBody({
           {taxAmount !== null ? (
             <span className="text-base font-bold tabular-nums text-blue-700">{fmt(taxAmount)} 元</span>
           ) : (
-            <span className="text-sm text-muted">待計算</span>
+            <span className="text-base text-muted">待計算</span>
           )}
         </div>
       </div>
@@ -307,58 +303,9 @@ export function TaxSummaryPanel({
   specialDeductionAmount,
   hasSpecialDeductions,
   onScrollToSection,
-  exportGroups,
-  exportTotalSelected,
   printMode = false,
 }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [exportMenuOpen, setExportMenuOpen] = useState(false)
-  const exportMenuRef = useRef<HTMLDivElement | null>(null)
-
-  const showExport =
-    Array.isArray(exportGroups) &&
-    exportGroups.length > 0 &&
-    typeof exportTotalSelected === 'number'
-
-  function getMarkdown() {
-    return formatChecklistMarkdown(exportGroups ?? [], {
-      totalSelected: exportTotalSelected ?? 0,
-      exportTime: new Date().toLocaleString('zh-TW'),
-    })
-  }
-
-  function handleDownload() {
-    const md = getMarkdown()
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = 'tax-checklist-2026.md'
-    anchor.click()
-    URL.revokeObjectURL(url)
-  }
-
-  function handlePrint() {
-    window.print()
-  }
-
-  useEffect(() => {
-    if (!exportMenuOpen) return
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setExportMenuOpen(false)
-    }
-    function onPointerDown(event: MouseEvent) {
-      if (!exportMenuRef.current?.contains(event.target as Node)) {
-        setExportMenuOpen(false)
-      }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    document.addEventListener('mousedown', onPointerDown)
-    return () => {
-      document.removeEventListener('keydown', onKeyDown)
-      document.removeEventListener('mousedown', onPointerDown)
-    }
-  }, [exportMenuOpen])
 
   const netIncome =
     grossIncome !== null &&
@@ -381,57 +328,15 @@ export function TaxSummaryPanel({
       : null
 
   return (
-    <>
+    <div>
       {!printMode && dialogOpen && <TaxFormulaDialog onClose={() => setDialogOpen(false)} />}
 
       <Card variant="summary" className="print-summary-card">
         {/* Header */}
         <CardHeader variant="summary">
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-700">
-              節稅試算摘要
-            </h3>
-            {!printMode && showExport && (
-              <div ref={exportMenuRef} className="relative no-print">
-                <button
-                  type="button"
-                  className="rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                  onClick={() => setExportMenuOpen((v) => !v)}
-                  aria-haspopup="menu"
-                  aria-expanded={exportMenuOpen}
-                >
-                  匯出
-                </button>
-                {exportMenuOpen && (
-                  <div className="absolute right-0 top-8 z-10 w-44 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleDownload()
-                        setExportMenuOpen(false)
-                      }}
-                      className="block w-full px-3 py-2 text-left text-base font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                      data-testid="download-checklist-btn"
-                    >
-                      下載 Markdown
-                    </button>
-                    <div className="mx-3 border-t border-gray-200" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handlePrint()
-                        setExportMenuOpen(false)
-                      }}
-                      className="block w-full px-3 py-2 text-left text-base font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                      data-testid="print-checklist-btn"
-                    >
-                      列印 / 另存 PDF
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-700">
+            節稅試算摘要
+          </h3>
         </CardHeader>
 
         <TaxSummaryBody
@@ -448,6 +353,6 @@ export function TaxSummaryPanel({
           onOpenDialog={printMode ? undefined : () => setDialogOpen(true)}
         />
       </Card>
-    </>
+    </div>
   )
 }
