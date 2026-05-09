@@ -75,7 +75,7 @@ describe('situation selection storage', () => {
     expect(parseSavedSituationSelection('not-json', allowedIds)).toEqual([])
   })
 
-  it('clears page selection and browser storage from the first page', () => {
+  it('clears page selection and browser storage from selecting page', () => {
     localStorage.setItem(
       SITUATION_SELECTION_STORAGE_KEY,
       JSON.stringify({ selected: ['rent', 'salary_income'] }),
@@ -83,7 +83,7 @@ describe('situation selection storage', () => {
 
     renderApp()
 
-    expect(container.textContent).toContain('已選 ')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
     expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).not.toBeNull()
 
     clickButtonByText('清空')
