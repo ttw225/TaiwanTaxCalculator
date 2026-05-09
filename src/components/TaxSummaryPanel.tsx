@@ -54,7 +54,7 @@ function SummaryRow({
   const hasVal = value !== null && !missing
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <span className={`text-base shrink-0 ${hasVal ? 'text-gray-700' : missing ? 'text-gray-400' : 'text-gray-300'}`}>
+      <span className={`text-base shrink-0 ${hasVal ? 'text-gray-700' : 'text-muted'}`}>
         {label}
       </span>
       {missing ? (
@@ -228,13 +228,13 @@ function TaxSummaryBody({
         {/* Divider + net income */}
         <div className="border-t border-dashed border-gray-200 pt-2.5 space-y-1.5">
           <div className="flex items-baseline justify-between gap-2">
-            <span className={`text-base font-medium shrink-0 ${netIncome !== null ? 'text-gray-700' : 'text-gray-300'}`}>
+            <span className={`text-base font-medium shrink-0 ${netIncome !== null ? 'text-gray-700' : 'text-muted'}`}>
               所得淨額
             </span>
             {netIncome !== null ? (
               <span className="text-base font-bold tabular-nums text-gray-900">{fmt(netIncome)} 元</span>
             ) : (
-              <span className="text-sm text-gray-300">待計算</span>
+              <span className="text-sm text-muted">待計算</span>
             )}
           </div>
 
@@ -242,12 +242,12 @@ function TaxSummaryBody({
           <div className="flex items-baseline gap-1.5">
             <span className="text-base text-gray-500 shrink-0">所得稅應納稅額</span>
             {onOpenDialog && (
-              <span className="shrink-0 text-sm text-gray-400">
+              <span className="shrink-0 text-sm text-muted">
                 <span aria-hidden>(</span>
                 <button
                   type="button"
                   onClick={onOpenDialog}
-                  className="inline p-0 border-0 bg-transparent font-inherit text-sm text-gray-400 hover:text-blue-600 hover:underline underline-offset-2 transition-colors cursor-pointer"
+                  className="inline p-0 border-0 bg-transparent font-inherit text-sm text-muted hover:text-blue-600 hover:underline underline-offset-2 transition-colors cursor-pointer"
                 >
                   瞭解更多
                 </button>
@@ -285,13 +285,13 @@ function TaxSummaryBody({
         }`}
       >
         <div className="flex items-center justify-between gap-2">
-          <span className={`text-base font-semibold ${taxAmount !== null ? 'text-blue-800' : 'text-gray-400'}`}>
+          <span className={`text-base font-semibold ${taxAmount !== null ? 'text-blue-800' : 'text-muted'}`}>
             應納稅額
           </span>
           {taxAmount !== null ? (
             <span className="text-base font-bold tabular-nums text-blue-700">{fmt(taxAmount)} 元</span>
           ) : (
-            <span className="text-sm text-gray-300">待計算</span>
+            <span className="text-sm text-muted">待計算</span>
           )}
         </div>
       </div>
