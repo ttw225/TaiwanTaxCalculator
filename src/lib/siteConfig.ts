@@ -37,12 +37,12 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'payment-rewards', label: '繳稅回饋', status: 'coming-soon' },
 ]
 
-// Primary colour tokens (Task 1.1): deep teal — trust / financial feel.
+// Primary colour tokens (Task 1.1): brand blue.
 // Used as Tailwind class strings throughout header/footer components.
 // Mobile logo position (Task 1.2): left-aligned.
 export const BRAND = {
-  primary: 'text-teal-700',
-  primaryBorder: 'border-teal-700',
-  primaryHover: 'hover:text-teal-800',
-  primaryBg: 'bg-teal-700',
+  primary: 'text-blue-600',
+  primaryBorder: 'border-blue-600',
+  primaryHover: 'hover:text-blue-700',
+  primaryBg: 'bg-blue-600',
 } as const

@@ -895,7 +895,7 @@ export function ChecklistResult({
 
       <div
         ref={stickyHeadingRef}
-        className="no-print sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-0 pb-1 backdrop-blur"
+        className="no-print sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1 backdrop-blur"
       >
         <PageHeading
           title="節稅試算清單"
