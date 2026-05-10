@@ -54,6 +54,7 @@ export interface SituationGroup {
 ```ts
 export type CategoryId =
   | 'gross_income'
+  | 'overseas_income'
   | 'exemptions'
   | 'general_deductions'
   | 'special_deductions'

@@ -133,4 +133,22 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       perUnitKey: 'special_deduction_long_term_care',
     },
   ],
+  'overseas-income-amt': [
+    {
+      id: 'overseas_income_amount',
+      label: '海外所得',
+      type: 'number',
+      unit: '元',
+      capKey: null,
+      salaryLikeInput: true,
+    },
+    {
+      id: 'overseas_income_tax_paid',
+      label: '海外繳納之所得稅',
+      type: 'number',
+      unit: '元',
+      capKey: null,
+      implicitZeroWhenEmpty: true,
+    },
+  ],
 }

@@ -2,6 +2,13 @@ import type { ReactNode } from 'react'
 import type { CardInlineFeedbackContext, CardInlineField } from '../../types/content'
 import { getNumber } from '../../lib/numbers'
 
+/** Mirrors IncomeCard row display: implicit-zero income shows 0 when storage is empty. */
+function getInlineFieldDisplayValue(field: CardInlineField, stored: string | undefined): string {
+  const raw = stored ?? ''
+  if (field.implicitZeroWhenEmpty && raw.trim() === '') return '0'
+  return raw
+}
+
 function parseAmount(value: string) {
   const amount = Number(value.replace(/,/g, ''))
   return Number.isFinite(amount) ? amount : null
@@ -251,44 +258,56 @@ export function ChecklistInlineAmountFields({
 
   return (
     <div className="mt-3 space-y-3 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
-      {inlineFields.map((field) => (
-        <div key={field.id}>
-          <label className="block text-base font-medium text-gray-600 mb-1">
-            {field.label}（選填）
-          </label>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <input
-              type="number"
-              min="0"
-              max={field.max}
-              step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
+      {inlineFields.map((field) => {
+        const stored = inputValues[field.id]
+        const displayValue = getInlineFieldDisplayValue(field, stored)
+        const optionalSuffix =
+          field.salaryLikeInput || field.implicitZeroWhenEmpty ? '' : '（選填）'
+        const placeholder =
+          field.perUnitKey || field.splitPerUnitKeys
+            ? '輸入人數'
+            : field.implicitZeroWhenEmpty
+              ? '預設 0'
+              : '輸入金額'
+        return (
+          <div key={field.id}>
+            <label className="block text-base font-medium text-gray-600 mb-1">
+              {field.label}{optionalSuffix}
+            </label>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <input
+                type="number"
+                min="0"
+                max={field.max}
+                step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
+                value={displayValue}
+                onChange={(e) => onInputChange?.(field.id, e.target.value)}
+                data-testid={`card-input-${itemId}-${field.id}`}
+                className={[
+                  'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',
+                  field.perUnitKey || field.splitPerUnitKeys ? '' : 'no-spin',
+                ].join(' ')}
+                placeholder={placeholder}
+              />
+              <span className="text-base text-gray-500">{field.unit}</span>
+              {(() => {
+                const formula = getPerUnitInlineFormula(field, inputValues[field.id] ?? '')
+                if (!formula) return null
+                return (
+                  <span className="text-base text-gray-700">
+                    × {formula.perUnit.toLocaleString('zh-TW')} 元 ＝ <strong>{formula.total.toLocaleString('zh-TW')} 元</strong>
+                  </span>
+                )
+              })()}
+            </div>
+            <InlineFeedback
+              field={field}
               value={inputValues[field.id] ?? ''}
-              onChange={(e) => onInputChange?.(field.id, e.target.value)}
-              data-testid={`card-input-${itemId}-${field.id}`}
-              className={[
-                'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',
-                field.perUnitKey || field.splitPerUnitKeys ? '' : 'no-spin',
-              ].join(' ')}
-              placeholder={field.perUnitKey || field.splitPerUnitKeys ? '輸入人數' : '輸入金額'}
+              feedbackContext={feedbackContext}
             />
-            <span className="text-base text-gray-500">{field.unit}</span>
-            {(() => {
-              const formula = getPerUnitInlineFormula(field, inputValues[field.id] ?? '')
-              if (!formula) return null
-              return (
-                <span className="text-base text-gray-700">
-                  × {formula.perUnit.toLocaleString('zh-TW')} 元 ＝ <strong>{formula.total.toLocaleString('zh-TW')} 元</strong>
-                </span>
-              )
-            })()}
           </div>
-          <InlineFeedback
-            field={field}
-            value={inputValues[field.id] ?? ''}
-            feedbackContext={feedbackContext}
-          />
-        </div>
-      ))}
+        )
+      })}
       <div className="border-t border-gray-300 pt-2">
         <p className="text-xs text-gray-400">
           資料僅在您的瀏覽器處理，不會傳送至任何伺服器

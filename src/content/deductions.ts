@@ -103,7 +103,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   {
     id: 'overseas-income-amt',
     title: '海外所得',
-    category: 'gross_income',
+    category: 'overseas_income',
     situations: ['overseas_income'],
     why_it_matters: '海外所得超過所得基本稅額條例規定門檻者須計入最低稅負制（AMT），計算方式與一般綜所稅不同，稅負較複雜',
     eligibility_cues: [

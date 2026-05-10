@@ -12,6 +12,7 @@ import { formatChecklistMarkdown } from '../src/lib/exportChecklist'
 import { ChecklistResult } from '../src/components/ChecklistResult'
 import { DeductionCard } from '../src/components/DeductionCard'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS, WEALTH_CLAUSE_NOTICE } from '../src/lib/checklistCardCopy'
+import { ITEM_INLINE_FIELDS } from '../src/content/inlineFields'
 import type { CardInlineField, ChecklistItem } from '../src/types/content'
 
 function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
@@ -163,21 +164,23 @@ describe('filterBySituations', () => {
 describe('groupByCategory', () => {
   const published = CHECKLIST_ITEMS
 
-  it('returns groups in priority order: gross income before exemptions before general before special', () => {
+  it('returns groups in priority order: gross income, overseas income, exemptions, general, special', () => {
     const all = filterBySituations(published, SITUATIONS.map((s) => s.id))
     const groups = groupByCategory(all)
     const categories = groups.map((g) => g.category)
     const grossIdx = categories.indexOf('gross_income')
+    const overseasIdx = categories.indexOf('overseas_income')
     const exemptIdx = categories.indexOf('exemptions')
     const generalIdx = categories.indexOf('general_deductions')
     const specialIdx = categories.indexOf('special_deductions')
-    expect(grossIdx).toBeLessThan(exemptIdx)
+    expect(grossIdx).toBeLessThan(overseasIdx)
+    expect(overseasIdx).toBeLessThan(exemptIdx)
     expect(exemptIdx).toBeLessThan(generalIdx)
     expect(generalIdx).toBeLessThan(specialIdx)
     expect(categories).not.toContain('further_check')
   })
 
-  it('groups income source cards under gross income in salary, dividends, interest, other, overseas order', () => {
+  it('groups domestic income cards under gross income; overseas AMT card in its own section', () => {
     const groups = groupByCategory(filterBySituations(published, [
       'salary_income',
       'dividends',
@@ -186,21 +189,22 @@ describe('groupByCategory', () => {
       'overseas_income',
     ]))
     const gross = groups.find((g) => g.category === 'gross_income')
+    const overseas = groups.find((g) => g.category === 'overseas_income')
     expect(gross?.label).toBe('綜合所得總額')
     expect(gross?.items.map((i) => i.id)).toEqual([
       'gross-income',
       'dividend-income',
       'interest-income',
       'other-income',
-      'overseas-income-amt',
     ])
     expect(gross?.items.map((i) => i.title)).toEqual([
       '薪資收入',
       '股利收入',
       '利息收入',
       '其他收入',
-      '海外所得',
     ])
+    expect(overseas?.label).toBe('海外所得')
+    expect(overseas?.items.map((i) => i.id)).toEqual(['overseas-income-amt'])
   })
 
   it('each group has a human-readable label', () => {
@@ -1155,6 +1159,37 @@ describe('DeductionCard inline input fields', () => {
       createElement(DeductionCard, { item: makeItem(), inlineFields: [] }),
     )
     expect(html).not.toContain('資料僅在您的瀏覽器處理')
+  })
+
+  it('overseas-income-amt: salary-like and implicit-zero labels omit （選填）', () => {
+    const fields = ITEM_INLINE_FIELDS['overseas-income-amt']
+    expect(fields).toHaveLength(2)
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem({ id: 'overseas-income-amt', title: '海外所得' }),
+        inlineFields: fields,
+        inputValues: { overseas_income_amount: '500000' },
+      }),
+    )
+    expect(html).not.toContain('海外所得（選填）')
+    expect(html).not.toContain('海外繳納之所得稅（選填）')
+    expect(html).toContain('placeholder="輸入金額"')
+    expect(html).toContain('placeholder="預設 0"')
+    expect(html).toContain('data-testid="card-input-overseas-income-amt-overseas_income_tax_paid"')
+    expect(html).toContain('value="500000"')
+    expect(html).toContain('value="0"')
+  })
+
+  it('overseas-income-amt: tax field reflects stored value when set', () => {
+    const fields = ITEM_INLINE_FIELDS['overseas-income-amt']
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem({ id: 'overseas-income-amt' }),
+        inlineFields: fields,
+        inputValues: { overseas_income_tax_paid: '12000' },
+      }),
+    )
+    expect(html).toContain('value="12000"')
   })
 })
 

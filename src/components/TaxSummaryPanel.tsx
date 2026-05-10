@@ -7,6 +7,8 @@ import { Card, CardBody, CardHeader } from './ui/Card'
 interface Props {
   grossIncome: number | null
   grossIncomePendingCalculation?: boolean
+  /** When true, show a navigational row (no amount) after gross income */
+  hasOverseasIncomeSection?: boolean
   exemptionAmount: number | null
   /** null when itemized cards exist but amounts are not all filled */
   generalDeductionAmount: number | null
@@ -190,6 +192,7 @@ interface SummaryBodyProps {
   specialDeductionAmount: number | null
   hasSpecialDeductions: boolean
   grossIncomePendingCalculation?: boolean
+  hasOverseasIncomeSection?: boolean
   netIncome: number | null
   taxAmount: number | null
   bracket: ReturnType<typeof getBrackets>[number] | null
@@ -205,6 +208,7 @@ function TaxSummaryBody({
   specialDeductionAmount,
   hasSpecialDeductions,
   grossIncomePendingCalculation = false,
+  hasOverseasIncomeSection = false,
   netIncome,
   taxAmount,
   bracket,
@@ -232,6 +236,18 @@ function TaxSummaryBody({
           sectionId="gross_income"
           onScroll={onScrollToSection}
         />
+        {hasOverseasIncomeSection && (
+          <SummaryRow
+            label={(
+              <SummarySectionLink sectionId="overseas_income" onScroll={onScrollToSection}>
+                海外所得
+              </SummarySectionLink>
+            )}
+            value={null}
+            sectionId="overseas_income"
+            onScroll={onScrollToSection}
+          />
+        )}
         <SummaryRow
           label={(
             <SummarySectionLink sectionId="exemptions" onScroll={onScrollToSection}>
@@ -359,6 +375,7 @@ function TaxSummaryBody({
 export function TaxSummaryPanel({
   grossIncome,
   grossIncomePendingCalculation = false,
+  hasOverseasIncomeSection = false,
   exemptionAmount,
   generalDeductionAmount,
   generalDeductionMethod,
@@ -405,6 +422,7 @@ export function TaxSummaryPanel({
         <TaxSummaryBody
           grossIncome={grossIncome}
           grossIncomePendingCalculation={grossIncomePendingCalculation}
+          hasOverseasIncomeSection={hasOverseasIncomeSection}
           exemptionAmount={exemptionAmount}
           generalDeductionAmount={generalDeductionAmount}
           generalDeductionMethod={generalDeductionMethod}

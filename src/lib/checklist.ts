@@ -29,15 +29,17 @@ export function filterBySituations(
 // Display order for categories
 const CATEGORY_ORDER: Record<CategoryId, number> = {
   gross_income: 0,
-  exemptions: 1,
-  general_deductions: 2,
-  special_deductions: 3,
+  overseas_income: 1,
+  exemptions: 2,
+  general_deductions: 3,
+  special_deductions: 4,
 }
 
 // 標準扣除額 and 列舉扣除額 are mutually exclusive filing choices shown together
 // so that users understand both options before deciding; items note the exclusivity
 export const CATEGORY_LABELS: Record<CategoryId, string> = {
   gross_income: '綜合所得總額',
+  overseas_income: '海外所得',
   exemptions: '免稅額',
   general_deductions: '一般扣除額（標準或列舉擇一）',
   special_deductions: '特別扣除額',

@@ -133,6 +133,8 @@ interface Props {
 ```ts
 interface Props {
   grossIncome: number | null
+  grossIncomePendingCalculation?: boolean
+  hasOverseasIncomeSection?: boolean // navigational row only (—), between gross and exemptions
   exemptionAmount: number | null
   generalDeductionAmount: number | null // null when itemized checklist lines exist but not all filled
   specialDeductionAmount: number | null
@@ -142,7 +144,7 @@ interface Props {
 ```
 
 - Sticky right-sidebar panel in `ChecklistResult` (desktop, `lg:sticky lg:top-6`, `no-print`).
-- Rows: 綜合所得總額、免稅額、一般扣除額、（選）特別扣除額；所得淨額與應納稅額試算。
+- Rows: 綜合所得總額、（選）海外所得連結至 `#overseas_income`、免稅額、一般扣除額、（選）特別扣除額；所得淨額與應納稅額試算。
 - `generalDeductionAmount === null` → that row shows「前往填寫」捲動至 `general_deductions`，且所得淨額／應納稅額為「待計算」（與其他必填列一致）。
 - Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`) using an itemized calc context derived in [`ChecklistResult.tsx`](../src/components/ChecklistResult.tsx) (e.g. `grossIncomeAmount`, dividend merged/separate gross totals for qualified-donation feedback, `savingsInvestmentDeductionAmount`).
 

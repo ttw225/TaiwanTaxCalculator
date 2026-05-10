@@ -31,6 +31,7 @@ export interface SituationGroup {
 
 export type CategoryId =
   | 'gross_income'
+  | 'overseas_income'
   | 'exemptions'
   | 'general_deductions'
   | 'special_deductions'
@@ -69,6 +70,10 @@ export interface CardInlineField {
   splitPerUnitKeys?: { firstKey: string; additionalKey: string }
   /** Optional upper bound enforced in the input element */
   max?: number
+  /** Like salary income: raw string, no 「（選填）」 label suffix; placeholder 輸入金額 */
+  salaryLikeInput?: boolean
+  /** Like dividend/interest: empty storage shows 0 in the input without writing to map */
+  implicitZeroWhenEmpty?: boolean
 }
 
 export interface CardInlineFeedbackContext {

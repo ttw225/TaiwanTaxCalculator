@@ -25,7 +25,7 @@ Reused constants (`SRC_ITA`, `SRC_MOF`, `SRC_MANUAL`, `SRC_TAX_SAVING_MANUAL`, `
 | `dividend-income` | `gross_income` | `dividends` |
 | `interest-income` | `gross_income` | `interest_income` |
 | `other-income` | `gross_income` | `other_income` |
-| `overseas-income-amt` | `gross_income` | `overseas_income` |
+| `overseas-income-amt` | `overseas_income` | `overseas_income` |
 | `savings-investment-deduction` | `special_deductions` | `savings_investment` |
 | `disability-special-deduction` | `special_deductions` | `disability` |
 | `childcare-deduction` | `special_deductions` | `childcare` |
@@ -76,8 +76,12 @@ Logic and inputs live in [`src/lib/decisions.ts`](../src/lib/decisions.ts) and [
 | `donations-deduction` | `donation_amount_qualified` | `null` |
 | `donations-deduction` | `donation_amount_government` | `null` |
 | `savings-investment-deduction` | derived from `interest-income` | `special_deduction_savings_investment` |
+| `overseas-income-amt` | `overseas_income_amount` | `null` |
+| `overseas-income-amt` | `overseas_income_tax_paid` | `null` |
 
-All fields: `type: 'number'`, `unit: '元'`.
+All fields: `type: 'number'`, `unit: '元'` (count-based rows use `unit: '人'`).
+
+`overseas-income-amt` (checklist category `overseas_income`, section after `gross_income`): `overseas_income_amount` sets `salaryLikeInput` (raw string like salary `self_income`; numeric meaning via `parseIncome`); `overseas_income_tax_paid` sets `implicitZeroWhenEmpty` (empty storage shows `0` in the input like dividend/interest rows, without writing `'0'` to the map). Neither field feeds the gross-income summary total.
 
 `savings-investment-deduction` still has an old inline-field entry for compatibility, but the rendered result card ignores manual input and derives its amount from total interest income.
 

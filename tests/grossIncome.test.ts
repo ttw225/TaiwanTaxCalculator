@@ -5,6 +5,7 @@ import {
   calcPersonDeduction,
   calcPersonNetIncome,
   parseGrossIncomePersons,
+  parseIncome,
   serializePersonsJson,
   calcTotalGrossIncome,
   INCOME_CARD_CONFIGS,
@@ -16,6 +17,16 @@ import {
   serializeIncomeAmounts,
   serializeIncomeParticipants,
 } from '../src/lib/grossIncome'
+
+describe('parseIncome', () => {
+  it('treats empty and non-positive raw like salary self_income', () => {
+    expect(parseIncome('')).toBe(0)
+    expect(parseIncome('0')).toBe(0)
+    expect(parseIncome('-1')).toBe(0)
+    expect(parseIncome('abc')).toBe(0)
+    expect(parseIncome('100')).toBe(100)
+  })
+})
 
 describe('getSalaryDeductionCap', () => {
   it('returns 218000', () => {

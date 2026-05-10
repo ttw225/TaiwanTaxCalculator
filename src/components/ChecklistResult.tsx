@@ -809,6 +809,8 @@ export function ChecklistResult({
     switch (group.category) {
       case 'gross_income':
         return grossIncomeAmount
+      case 'overseas_income':
+        return null
       case 'exemptions':
         return exemptionAmount
       case 'general_deductions':
@@ -1074,6 +1076,7 @@ export function ChecklistResult({
             <TaxSummaryPanel
               grossIncome={grossIncomeAmount}
               grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
+              hasOverseasIncomeSection={groups.some((g) => g.category === 'overseas_income')}
               exemptionAmount={exemptionAmount}
               generalDeductionAmount={generalDeductionAmount}
               generalDeductionMethod={generalDeductionMethod}
@@ -1092,6 +1095,7 @@ export function ChecklistResult({
           <TaxSummaryPanel
             grossIncome={grossIncomeAmount}
             grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
+            hasOverseasIncomeSection={groups.some((g) => g.category === 'overseas_income')}
             exemptionAmount={exemptionAmount}
             generalDeductionAmount={generalDeductionAmount}
             generalDeductionMethod={generalDeductionMethod}
