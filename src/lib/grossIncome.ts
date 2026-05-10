@@ -28,7 +28,6 @@ export interface IncomeCardConfig {
   id: IncomeCardId
   kind: IncomeKind
   inputLabel: string
-  subtotalLabel: string
   formulaLabel: string
   placeholder: string
   requiresExplicitInput: boolean
@@ -41,7 +40,6 @@ export const INCOME_CARD_CONFIGS: Record<IncomeCardId, IncomeCardConfig> = {
     id: 'gross-income',
     kind: 'salary',
     inputLabel: '薪資收入',
-    subtotalLabel: '薪資淨額小計',
     formulaLabel: '薪資淨額',
     placeholder: '輸入金額',
     requiresExplicitInput: true,
@@ -50,7 +48,6 @@ export const INCOME_CARD_CONFIGS: Record<IncomeCardId, IncomeCardConfig> = {
     id: 'dividend-income',
     kind: 'dividend',
     inputLabel: '股利收入',
-    subtotalLabel: '股利收入小計',
     formulaLabel: '股利收入',
     placeholder: '預設 0',
     requiresExplicitInput: false,
@@ -59,7 +56,6 @@ export const INCOME_CARD_CONFIGS: Record<IncomeCardId, IncomeCardConfig> = {
     id: 'interest-income',
     kind: 'interest',
     inputLabel: '利息收入',
-    subtotalLabel: '利息收入小計',
     formulaLabel: '利息收入',
     placeholder: '預設 0',
     requiresExplicitInput: false,
@@ -68,7 +64,6 @@ export const INCOME_CARD_CONFIGS: Record<IncomeCardId, IncomeCardConfig> = {
     id: 'other-income',
     kind: 'other',
     inputLabel: '其他收入',
-    subtotalLabel: '其他收入小計',
     formulaLabel: '其他收入',
     placeholder: '預設 0',
     requiresExplicitInput: false,

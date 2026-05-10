@@ -787,6 +787,29 @@ export function ChecklistResult({
             ? 'itemized'
             : 'standard')
 
+  function handleRemovePersonFromCard(cardId: IncomeCardId, personId: string) {
+    // Remove from this card's persons_json
+    const cardPersons = parseIncomeCardPersons(cardInputMap[cardId] ?? {}, incomeParticipants)
+      .filter((p) => p.id !== 'self' && p.id !== personId && (p.id === 'spouse' || p.hasInput))
+      .map((p): GrossIncomePerson => ({ id: p.id, label: p.label, income: p.income }))
+    onCardInputChange(cardId, 'persons_json', serializeIncomeAmounts(cardPersons))
+
+    // If not in any other card, remove from global participants too
+    const stillInOtherCard = INCOME_CARD_IDS
+      .filter((id) => id !== cardId)
+      .some((otherId) =>
+        parseIncomeCardPersons(cardInputMap[otherId] ?? {}, incomeParticipants)
+          .some((p) => p.id === personId && p.hasInput),
+      )
+
+    if (!stillInOtherCard) {
+      handleIncomeParticipantsChange(
+        incomeParticipants.filter((p) => p.id !== 'self' && p.id !== personId),
+        personId,
+      )
+    }
+  }
+
   function handleIncomeParticipantsChange(nextParticipants: IncomeParticipant[], removedId?: string) {
     onCardInputChange(
       INCOME_PARTICIPANTS_ITEM_ID,
@@ -799,7 +822,7 @@ export function ChecklistResult({
       const raw = cardInputMap[itemId]?.['persons_json']
       if (!raw) continue
       const persons = parseIncomeCardPersons(cardInputMap[itemId] ?? {}, incomeParticipants)
-        .filter((p) => p.id !== 'self' && p.id !== removedId)
+        .filter((p) => p.id !== 'self' && p.id !== removedId && p.hasInput)
         .map((p): GrossIncomePerson => ({ id: p.id, label: p.label, income: p.income }))
       onCardInputChange(itemId, 'persons_json', serializeIncomeAmounts(persons))
     }
@@ -1032,6 +1055,7 @@ export function ChecklistResult({
                           removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
                           onParticipantsChange={handleIncomeParticipantsChange}
+                          onRemovePersonFromCard={(personId) => handleRemovePersonFromCard(item.id as IncomeCardId, personId)}
                           onRemove={() => onRemoveItem?.(item.id)}
                         />
                       ) : item.id === 'savings-investment-deduction' ? (
