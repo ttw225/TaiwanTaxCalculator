@@ -14,7 +14,7 @@ export function SiteFooter() {
       <div className="max-w-5xl mx-auto px-4 py-10">
 
         {/* Main 2-col grid (Task 4.1) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
 
           {/* Left: About + Disclaimer */}
           <div className="space-y-6">
@@ -23,19 +23,38 @@ export function SiteFooter() {
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-2">關於本站</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                {name} 是自發整理的節稅參考工具，開源、完全免費、無商業贊助。
-                每筆資料均標示來源與更新月份。
-                本站不需帳號，所有資料均在您的裝置本機處理，不上傳伺服器。
+                台灣節稅資訊平台是自發整理的綜合所得稅參考工具，開源、完全免費、無商業贊助。
+                試算無須登入，資料僅保存在您的瀏覽器。
+              </p>
+              <p className="mt-2 text-sm text-gray-400 leading-relaxed">
+                資料年度：{taxYear} 年度（{dataYear} 年 5 月申報）
+                <br />
+                最後更新：{lastUpdated}
               </p>
             </div>
 
             {/* Disclaimer — Task 4.3 */}
-            <div>
+            <div className="pt-2">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">申報提醒</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                本站內容協助整理申報前可先檢查的項目。
-                實際申報結果以財政部、稽徵機關及官方申報系統核定為準。
+                本網站內容供申報前整理與試算參考，
+                實際申報結果請以官方公告與申報系統認定為準。
               </p>
+              {officialLinks.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {officialLinks.map((link) => (
+                    <a
+                      key={link.url}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      {link.label} <ExternalLink size={12} />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -46,7 +65,7 @@ export function SiteFooter() {
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-2">支持我們</h3>
               <p className="text-sm text-gray-600 mb-2">
-                如果這個工具對你有幫助，歡迎請我們喝杯咖啡 ☕
+                如果這個工具對您有幫助，歡迎請我們喝杯咖啡 ☕
               </p>
               {buyMeCoffeeUrl ? (
                 <a
@@ -68,9 +87,9 @@ export function SiteFooter() {
             </div>
 
             {/* Feedback — Task 4.4 */}
-            <div>
+            <div className="pt-2">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">意見回報</h3>
-              <p className="text-sm text-gray-600 mb-2">資料有誤或有建議嗎？</p>
+              <p className="text-sm text-gray-600 mb-2">資料有誤、連結失效，或有功能建議，歡迎填寫回報表單。</p>
               {githubNewIssueUrl ? (
                 <a
                   href={githubNewIssueUrl}
@@ -92,33 +111,9 @@ export function SiteFooter() {
           </div>
         </div>
 
-        {/* Official links — Task 4.7 */}
-        {officialLinks.length > 0 && (
-          <div className="mb-6 pt-5 border-t border-gray-100">
-            <p className="text-sm text-gray-400 mb-2">官方資源</p>
-            <div className="flex flex-wrap gap-4">
-              {officialLinks.map((link) => (
-                <a
-                  key={link.url}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-                >
-                  {link.label} <ExternalLink size={12} />
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Bottom bar — Task 4.6 */}
         <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-x-2 gap-y-1 text-sm text-gray-400">
           <span>© {dataYear} {name} · {nameEn}</span>
-          <span className="hidden sm:inline">·</span>
-          <span>資料年度：{taxYear} 年度（{dataYear} 年 5 月申報）</span>
-          <span className="hidden sm:inline">·</span>
-          <span>最後更新：{lastUpdated}</span>
           {deployInfo && (
             <>
               <span className="hidden sm:inline">·</span>
