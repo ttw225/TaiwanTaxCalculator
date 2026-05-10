@@ -349,9 +349,7 @@ function App() {
       itemId,
       preview: {
         itemId,
-        itemTitle: itemId === 'interest-income'
-          ? `${targetItem.title}（也會移除儲蓄投資特別扣除額）`
-          : targetItem.title,
+        itemTitle: targetItem.title,
         hasInputLoss,
       },
       requiresConfirm: hasInputLoss,

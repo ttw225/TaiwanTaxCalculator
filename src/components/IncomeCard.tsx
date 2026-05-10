@@ -83,7 +83,7 @@ function SalaryFormulaInline({
   net: number
   showFullDeductionHint: boolean
 }) {
-  const netColor = net > 0 ? 'text-gray-800' : 'text-green-700'
+  const netColor = net > 0 ? 'text-green-700' : 'text-gray-800'
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <FormulaCol label="薪資收入" amount={income} amountClass="text-gray-700" />
@@ -241,11 +241,12 @@ interface AddRelativeMenuProps {
   extrasNotInThisCard: IncomeParticipant[]
   onSelectExisting: (personId: string) => void
   onNewRelative: () => void
+  direction: 'above' | 'below'
 }
 
-function AddRelativeMenu({ extrasNotInThisCard, onSelectExisting, onNewRelative }: AddRelativeMenuProps) {
+function AddRelativeMenu({ extrasNotInThisCard, onSelectExisting, onNewRelative, direction }: AddRelativeMenuProps) {
   return (
-    <div className="absolute top-full mt-2 left-0 z-20 min-w-[160px] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+    <div className={['absolute left-0 z-20 min-w-[160px] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg', direction === 'above' ? 'bottom-full mb-2' : 'top-full mt-2'].join(' ')}>
       {extrasNotInThisCard.map((p) => (
         <button
           key={p.id}
@@ -260,9 +261,9 @@ function AddRelativeMenu({ extrasNotInThisCard, onSelectExisting, onNewRelative 
       <button
         type="button"
         onClick={onNewRelative}
-        className="block w-full px-3 py-2 text-left text-sm font-medium text-blue-600 transition-colors hover:bg-gray-50"
+        className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
       >
-        ＋ 新增
+        新增
       </button>
     </div>
   )
@@ -284,7 +285,9 @@ export function IncomeCard({
   const [dialogLabel, setDialogLabel] = useState('')
   const [editingPersonId, setEditingPersonId] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuDirection, setMenuDirection] = useState<'above' | 'below'>('below')
   const menuContainerRef = useRef<HTMLDivElement>(null)
+  const menuAnchorRef = useRef<HTMLDivElement>(null)
 
   const persons = parseIncomeCardPersons(inputValues, participants)
   const visiblePersons = persons.filter((p) => p.id === 'self' || p.id === 'spouse' || p.hasInput)
@@ -380,6 +383,10 @@ export function IncomeCard({
     if (extrasNotInThisCard.length === 0) {
       openAddDialog()
     } else {
+      if (!menuOpen) {
+        const rect = menuAnchorRef.current?.getBoundingClientRect()
+        if (rect) setMenuDirection(rect.bottom > window.innerHeight / 2 ? 'above' : 'below')
+      }
       setMenuOpen((v) => !v)
     }
   }
@@ -463,28 +470,27 @@ export function IncomeCard({
           })}
         </div>
 
-        <div className="relative mt-2 border-t border-gray-200 pt-3" ref={menuContainerRef}>
-          <button
-            type="button"
-            onClick={handleClickAdd}
-            data-testid={`income-add-person-${config.id}`}
-            className="no-print inline-flex items-center gap-1 rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-          >
-            ＋ 新增共同報稅者
-          </button>
-          {menuOpen && (
-            <AddRelativeMenu
-              extrasNotInThisCard={extrasNotInThisCard}
-              onSelectExisting={handleAddExisting}
-              onNewRelative={openAddDialog}
-            />
-          )}
+        <div className="mt-2 border-t border-gray-200 pt-3" ref={menuContainerRef}>
+          <div className="relative" ref={menuAnchorRef}>
+            <button
+              type="button"
+              onClick={handleClickAdd}
+              data-testid={`income-add-person-${config.id}`}
+              className="no-print inline-flex items-center gap-1 rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              新增共同報稅者
+            </button>
+            {menuOpen && (
+              <AddRelativeMenu
+                extrasNotInThisCard={extrasNotInThisCard}
+                onSelectExisting={handleAddExisting}
+                onNewRelative={openAddDialog}
+                direction={menuDirection}
+              />
+            )}
+          </div>
         </div>
       </div>
-
-      <p className="mt-2 text-xs text-gray-400">
-        資料僅在您的瀏覽器處理，不會傳送至任何伺服器
-      </p>
 
       <div className="mt-3">
         {isComplete ? (

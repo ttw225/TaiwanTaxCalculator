@@ -396,7 +396,7 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('捐贈扣除額')
 
     clickByTestId('remove-item-rent-deduction')
-    expect(container.textContent).not.toContain('確認移除此項目')
+    expect(container.textContent).not.toContain('已填寫的資料將一併清除')
     expect(container.textContent).not.toContain('房屋租金支出')
     expect(container.textContent).toContain('薪資收入')
     expect(container.textContent).toContain('免稅額')
@@ -581,9 +581,8 @@ describe('situation single-source flow', () => {
     changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
 
     clickByTestId('remove-item-rent-deduction')
-    expect(container.textContent).toContain('確認移除此項目：房屋租金支出')
-    expect(container.textContent).toContain('將清除「房屋租金支出」已填寫的資料。')
-    expect(container.textContent).toContain('您可以隨時加回此項目')
+    expect(container.textContent).toContain('移除 房屋租金支出')
+    expect(container.textContent).toContain('已填寫的資料將一併清除。')
     clickByTestId('confirm-remove-item-btn')
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
     expect(container.querySelector('[data-testid="checklist-item-rent-deduction"]')).toBeNull()
