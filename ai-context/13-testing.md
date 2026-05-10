@@ -31,7 +31,7 @@
 - **Categories**: order `gross_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → interest → other → overseas order.
 - **Situations**: count **15 public situations**; every public `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals public ids, no duplicates, fixed subgroup ordering tests. Hidden derived `savings_investment` is tested through interest-income linkage.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
-- **AMT**: threshold **1_000_000** inclusive boundary.
+- **AMT**: threshold **1_000_000** inclusive boundary; summary scenario tests cover the 7,500,000 basic-income deduction, 20% basic-tax rate, overseas-tax credit, and supplement.
 - **Itemized dependencies**:
   - Donations: qualified donations are capped at 20% of `grossIncomeAmount`; if the qualified amount is filled but gross income is missing, itemized line is treated as unfilled (`null`). When positive dividend income is present, inline feedback shows both merged-tax and 28% separate-tax 20% caps.
   - Mortgage interest: when `savings-investment-deduction` is enabled, mortgage interest subtracts the capped savings-investment deduction first; that deduction is derived from total interest income.
@@ -39,7 +39,7 @@
   - Selector and add modal do not show savings-investment; selecting interest income auto-selects hidden savings-investment and shows the derived result card.
   - Salary requires explicit input for each participant; dividend/interest/other default blank to 0.
   - Clearing a non-self salary amount removes that row's filled marker and returns salary to an unfilled state.
-  - With dividend income active, gross income display shows both merged-tax and 28% separate-tax totals instead of one summary total.
+  - With dividend income active, gross income display shows both merged-tax and 28% separate-tax totals, and summary scenarios pick the best dividend/couple/AMT result.
 - **Inline cap copy contracts** (rendered via `DeductionCard` static markup tests):
   - Cap overflow copy is unified as `已達可申報上限 X 元` for all shared capped-field feedback paths.
   - Qualified donation empty-state hint no longer appends `綜合所得總額 20%`.

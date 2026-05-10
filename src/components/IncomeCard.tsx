@@ -207,7 +207,7 @@ export function IncomeCard({
     >
       {config.kind === 'dividend' && (
         <p className="mb-3 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-800">
-          股利收入會同時納入「合併計稅」與「28% 分開計稅」兩種情境試算；正式推薦結果將在後續稅額方案中比較。
+          股利收入會在摘要中同時比較「合併計稅並扣抵」與「28% 分開計稅」，系統會採用稅額較低的組合。
         </p>
       )}
 
