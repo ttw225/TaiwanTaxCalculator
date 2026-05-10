@@ -362,7 +362,11 @@ export function IncomeCard({
   }
 
   function openAddDialog() {
-    setDialogLabel(defaultExtraDependentLabel(globalExtras.length))
+    const extraNums = globalExtras
+      .map((p) => parseInt(p.id.slice('extra-'.length), 10))
+      .filter((n) => Number.isFinite(n))
+    const nextNum = extraNums.length > 0 ? Math.max(...extraNums) + 1 : 0
+    setDialogLabel(defaultExtraDependentLabel(nextNum))
     setDialogMode('add')
     setMenuOpen(false)
   }
