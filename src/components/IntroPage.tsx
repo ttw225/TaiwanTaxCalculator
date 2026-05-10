@@ -146,8 +146,7 @@ export function IntroPage({ onStart }: Props) {
 
       {/* How it works — vertical timeline (Option D) */}
       <div className="mb-10 mt-20 lg:mt-20">
-        <p className="text-xs font-semibold text-gray-500 tracking-wide uppercase mb-2">操作步驟</p>
-        <h2 className="text-xl font-semibold text-gray-900 tracking-tight mb-2">三個步驟，快速完成申報前準備</h2>
+        <h2 className="text-[28px] font-bold text-gray-900 tracking-tight mb-2">三個步驟，快速完成申報前準備</h2>
         <p className="text-sm text-gray-600 leading-relaxed mb-12">先釐清可報項目，再即時試算與匯出，整個流程更清楚也更有把握。</p>
         <div className="relative">
           {STEPS.map((s, idx) => (
@@ -233,6 +232,24 @@ export function IntroPage({ onStart }: Props) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* CTA */}
+      <div className="mt-16 pt-8 sm:pt-10 pb-4 flex items-center gap-12">
+        <div>
+          <h2 className="text-[28px] font-bold text-gray-900 tracking-tight mb-2">
+            開始試算，做好申報準備
+          </h2>
+          <span className="text-sm text-gray-700 tabular-nums">年所得若低於 NT$ {fmt(threshold)} 免報稅</span>
+        </div>
+        <button
+          type="button"
+          onClick={onStart}
+          data-padding="custom"
+          className="shrink-0 px-6 py-3 rounded-xl text-base font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+        >
+          開始試算
+        </button>
       </div>
     </div>
   )
