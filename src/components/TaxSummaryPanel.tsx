@@ -481,7 +481,6 @@ function TaxScenarioCombinationsDialog({
                   {sortedScenarios.map((scenario) => {
                   const isBest = scenario.id === bestId
                   const isOpen = !!openRows[scenario.id]
-                  const diff = scenario.finalTax - scenarioResult.bestScenario.finalTax
                   const coupleLabel = COUPLE_LABEL_MAP[scenario.coupleMode] ?? scenario.coupleMode
                   const coupleType = COUPLE_TYPE_MAP[scenario.coupleMode] ?? '—'
                   const dividendLabel = DIVIDEND_LABEL_MAP[scenario.dividendMode] ?? null
