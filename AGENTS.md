@@ -29,7 +29,7 @@ Run **`pnpm test`** and **`pnpm lint`** after non-trivial logic or content-schem
 |------|------|
 | `src/App.tsx`, `src/main.tsx` | App entry |
 | `src/components/` | UI components |
-| `src/content/` | Copy and structured content (`deductions.ts`, `decision-tools.ts`, `inlineFields.ts`) |
+| `src/content/` | Copy and structured content (`deductions.ts`, `inlineFields.ts`) |
 | `src/data/numbers_2026.json` | **In-repo** canonical numeric snapshot for the app |
 | `src/lib/` | Domain logic, storage, exports (`numbers.ts` reads `numbers_2026.json`) |
 | `src/types/` | Shared content/types |

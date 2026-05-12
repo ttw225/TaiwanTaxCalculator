@@ -2,7 +2,7 @@
 
 ## What this repository is
 
-- **Public frontend** (Vite + React + TypeScript) for Taiwan **individual income tax** (綜合所得稅) guidance: checklist-style deduction/exemption orientation, optional numeric inputs for rough ordering, and small **decision tools** (dividend taxation mode, simplified couple filing comparison, overseas-income AMT threshold check).
+- **Public frontend** (Vite + React + TypeScript) for Taiwan **individual income tax** (綜合所得稅) guidance: checklist-style deduction/exemption orientation and optional numeric inputs for rough ordering; summary scenarios compare filing and dividend options using shared domain logic.
 - **Not** the private research monorepo; see [`AGENTS.md`](../AGENTS.md).
 
 ## Audience and intent
@@ -26,7 +26,7 @@ Details: [`14-ci-and-deploy.md`](./14-ci-and-deploy.md).
 ## Non-goals (current scope)
 
 - No authenticated user accounts, no server-side tax filing, no persistence beyond browser storage.
-- Decision tools use **simplified models** (documented in [`09-decision-tools.md`](./09-decision-tools.md)); not a full tax engine.
+- The SPA is informational only; it is not a full tax engine or substitute for official e-filing.
 - No i18n beyond zh-TW unless explicitly added later.
 
 ## Related docs
