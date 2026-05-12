@@ -205,7 +205,7 @@ function TaxFormulaDialog({
                       <th className="sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium first:rounded-tl-xl last:rounded-tr-xl">累進差額</th>
                     </tr>
                   </thead>
-                  <tbody className="relative z-0 divide-y divide-gray-200">
+                  <tbody className="relative z-0 [&_tr+tr_td]:border-t [&_tr+tr_td]:border-gray-200">
                     {getBrackets().map((b, i) => {
                       const prev = getBrackets()[i - 1]
                       const from = i === 0 ? '0' : fmt((prev.up_to ?? 0) + 1)
@@ -477,7 +477,7 @@ function TaxScenarioCombinationsDialog({
                     <th className="sticky top-0 z-20 w-9 border-b border-gray-200 bg-gray-50 px-2 py-2.5 first:rounded-tl-xl last:rounded-tr-xl" />
                   </tr>
                 </thead>
-                <tbody className="relative z-0 divide-y divide-gray-100">
+                <tbody className="relative z-0 [&_tr+tr_td]:border-t [&_tr+tr_td]:border-gray-200">
                   {sortedScenarios.map((scenario) => {
                   const isBest = scenario.id === bestId
                   const isOpen = !!openRows[scenario.id]
@@ -488,7 +488,7 @@ function TaxScenarioCombinationsDialog({
                     <Fragment key={scenario.id}>
                       <tr
                         onClick={() => toggleRow(scenario.id)}
-                        className={`relative z-0 cursor-pointer border-gray-100 transition-colors ${
+                        className={`relative z-0 cursor-pointer border-gray-200 transition-colors ${
                           isBest ? 'bg-blue-50/60 hover:bg-blue-50' : 'bg-white hover:bg-gray-50'
                         }`}
                       >
@@ -526,7 +526,7 @@ function TaxScenarioCombinationsDialog({
                         </td>
                       </tr>
                       {isOpen && (
-                        <tr className={`relative z-0 border-gray-100 ${isBest ? 'bg-blue-50/30' : 'bg-gray-50/40'}`}>
+                        <tr className={`relative z-0 border-gray-200 ${isBest ? 'bg-blue-50/30' : 'bg-gray-50/40'}`}>
                           <td colSpan={colCount} className="px-4 pb-4 pt-1.5">
                             <StructureHint />
                             <FormulaTable scenario={scenario} />
