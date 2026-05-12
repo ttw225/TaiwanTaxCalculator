@@ -4,7 +4,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
   'mortgage-interest-deduction': [
     {
       id: 'mortgage_interest_amount',
-      label: '今年支付的房貸利息',
+      label: '購屋借款利息',
       type: 'number',
       unit: '元',
       capKey: null,
@@ -14,7 +14,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
   'rent-deduction': [
     {
       id: 'rent_amount',
-      label: '今年支付的租金',
+      label: '房屋租金支出',
       type: 'number',
       unit: '元',
       capKey: 'special_deduction_rent',
@@ -23,7 +23,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
   'medical-deduction': [
     {
       id: 'medical_amount',
-      label: '今年醫療費用（自費部分）',
+      label: '自費醫療費用',
       type: 'number',
       unit: '元',
       capKey: null,

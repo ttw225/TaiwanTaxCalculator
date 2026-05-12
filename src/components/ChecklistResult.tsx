@@ -301,13 +301,12 @@ function RemoveImpactDialog({
       <div className="w-full max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">
-            確認移除此項目：{impact.itemTitle}
+            移除 {impact.itemTitle}
           </h2>
         </div>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 text-base text-gray-600">
-          <p>將清除「{impact.itemTitle}」已填寫的資料。</p>
-          <p className="mt-1 text-sm text-gray-500">您可以隨時加回此項目</p>
+          <p>已填寫的資料將一併清除。{impact.itemId === 'interest-income' && '儲蓄投資特別扣除額卡片會一同移除。'}</p>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
@@ -325,7 +324,7 @@ function RemoveImpactDialog({
             className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
             data-testid="confirm-remove-item-btn"
           >
-            確認移除
+            移除
           </button>
         </div>
       </div>
@@ -349,10 +348,10 @@ function ResetConfirmDialog({
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
       <div className="w-full max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
-          <h2 className="text-base font-semibold text-gray-900">重新計算</h2>
+          <h2 className="text-base font-semibold text-gray-900">重新試算？</h2>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 text-base text-gray-600">
-          <p>將清除項目與所有輸入的試算資料</p>
+          <p>所有已勾選的項目與填寫的試算資料都會被清除。</p>
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
           <button
@@ -368,7 +367,7 @@ function ResetConfirmDialog({
             data-testid="confirm-reset-btn"
             className="rounded-xl bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
           >
-            重新計算
+            確認
           </button>
         </div>
       </div>
@@ -390,14 +389,30 @@ function SavingsInvestmentDeductionCard({
   item,
   interestIncomeAmount,
   sourceSituationLabels = [],
+  onScrollToItem,
 }: {
   item: CategoryGroup['items'][number]
   interestIncomeAmount: number
   sourceSituationLabels?: string[]
+  onScrollToItem?: (itemId: string) => void
 }) {
   const cap = getNumber('special_deduction_savings_investment')
   const deduction = Math.min(interestIncomeAmount, cap)
   const isOverCap = interestIncomeAmount > cap
+
+  const interestIncomeLink = (
+    <a
+      href="#interest-income"
+      onClick={(event) => {
+        if (!onScrollToItem) return
+        event.preventDefault()
+        onScrollToItem('interest-income')
+      }}
+      className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 underline underline-offset-2 hover:text-gray-800 transition-colors leading-none align-baseline"
+    >
+      利息收入
+    </a>
+  )
 
   return (
     <ChecklistCardShell
@@ -405,24 +420,17 @@ function SavingsInvestmentDeductionCard({
       sourceSituationLabels={sourceSituationLabels}
       removable={false}
     >
-      <div className="mt-3 rounded border border-blue-100 bg-blue-50/40 p-3">
-        <p className="text-base text-gray-700">
-          此卡片已與「利息收入」連動，金額由收入區的利息收入合計帶入，不需重複填寫。
-        </p>
-        <div className="mt-3 space-y-1 text-base">
-          <div className="flex justify-between gap-4 text-gray-600">
-            <span>利息收入合計</span>
-            <span className="tabular-nums">{formatTwd(interestIncomeAmount)} 元</span>
-          </div>
-          <div className="flex justify-between gap-4 font-semibold text-blue-700">
-            <span>可扣除金額</span>
-            <span className="tabular-nums">{formatTwd(deduction)} 元</span>
-          </div>
+      <div className="mt-3 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[14px] leading-tight text-gray-500">可申報</span>
+          <span className="text-[16px] font-semibold tabular-nums leading-tight text-gray-800">
+            {formatTwd(deduction)} 元
+          </span>
         </div>
-        <p className={`mt-2 text-sm ${isOverCap ? 'text-red-700' : 'text-blue-700'}`}>
+        <p className={`mt-1 text-sm ${isOverCap ? 'text-red-700' : 'text-gray-500'}`}>
           {isOverCap
-            ? `已超過每戶 ${formatTwd(cap)} 元上限，超過部分不列入此扣除額。`
-            : `目前未超過每戶 ${formatTwd(cap)} 元上限。`}
+            ? <>{interestIncomeLink}已達可申報上限 {formatTwd(cap)} 元</>
+            : <>{interestIncomeLink}低於最高可扣除額</>}
         </p>
       </div>
     </ChecklistCardShell>
@@ -489,6 +497,7 @@ export function ChecklistResult({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const [exportMenuDirection, setExportMenuDirection] = useState<'above' | 'below'>('below')
   const [pendingSituationIds, setPendingSituationIds] = useState<SituationId[]>([])
   const [stickyHeadingHeight, setStickyHeadingHeight] = useState(0)
   const stickyHeadingRef = useRef<HTMLDivElement | null>(null)
@@ -611,6 +620,14 @@ export function ChecklistResult({
       totalSelected,
       exportTime: new Date().toLocaleString('zh-TW'),
     })
+  }
+
+  function handleExportMenuToggle() {
+    if (!exportMenuOpen) {
+      const rect = exportMenuRef.current?.getBoundingClientRect()
+      if (rect) setExportMenuDirection(rect.bottom > window.innerHeight / 2 ? 'above' : 'below')
+    }
+    setExportMenuOpen((v) => !v)
   }
 
   function handleDownload() {
@@ -788,8 +805,8 @@ export function ChecklistResult({
   const handleScrollToItem = useCallback((itemId: string) => {
     const el = itemRefs.current[itemId]
     if (!el) return
-    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - 80)
-  }, [])
+    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
+  }, [getSectionScrollOffset])
 
   const itemizedCalculationContext: Partial<ItemizedCalcContext> = useMemo(
     () => ({
@@ -866,6 +883,29 @@ export function ChecklistResult({
     specialDeductionAmount,
   ])
 
+  function handleRemovePersonFromCard(cardId: IncomeCardId, personId: string) {
+    // Remove from this card's persons_json
+    const cardPersons = parseIncomeCardPersons(cardInputMap[cardId] ?? {}, incomeParticipants)
+      .filter((p) => p.id !== 'self' && p.id !== personId && (p.id === 'spouse' || p.hasInput))
+      .map((p): GrossIncomePerson => ({ id: p.id, label: p.label, income: p.income }))
+    onCardInputChange(cardId, 'persons_json', serializeIncomeAmounts(cardPersons))
+
+    // If not in any other card, remove from global participants too
+    const stillInOtherCard = INCOME_CARD_IDS
+      .filter((id) => id !== cardId)
+      .some((otherId) =>
+        parseIncomeCardPersons(cardInputMap[otherId] ?? {}, incomeParticipants)
+          .some((p) => p.id === personId && p.hasInput),
+      )
+
+    if (!stillInOtherCard) {
+      handleIncomeParticipantsChange(
+        incomeParticipants.filter((p) => p.id !== 'self' && p.id !== personId),
+        personId,
+      )
+    }
+  }
+
   function handleIncomeParticipantsChange(nextParticipants: IncomeParticipant[], removedId?: string) {
     onCardInputChange(
       INCOME_PARTICIPANTS_ITEM_ID,
@@ -878,7 +918,7 @@ export function ChecklistResult({
       const raw = cardInputMap[itemId]?.['persons_json']
       if (!raw) continue
       const persons = parseIncomeCardPersons(cardInputMap[itemId] ?? {}, incomeParticipants)
-        .filter((p) => p.id !== 'self' && p.id !== removedId)
+        .filter((p) => p.id !== 'self' && p.id !== removedId && p.hasInput)
         .map((p): GrossIncomePerson => ({ id: p.id, label: p.label, income: p.income }))
       onCardInputChange(itemId, 'persons_json', serializeIncomeAmounts(persons))
     }
@@ -936,7 +976,7 @@ export function ChecklistResult({
 
       <div
         ref={stickyHeadingRef}
-        className="no-print sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-0 pb-1 backdrop-blur"
+        className="no-print sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1 backdrop-blur"
       >
         <PageHeading
           title="節稅試算清單"
@@ -950,33 +990,21 @@ export function ChecklistResult({
                 data-testid="reset-checklist-btn"
                 className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
               >
-                重新計算
+                重新試算
               </button>
               {showExport && (
                 <div ref={exportMenuRef} className="relative">
                   <button
                     type="button"
                     className="rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                    onClick={() => setExportMenuOpen((v) => !v)}
+                    onClick={handleExportMenuToggle}
                     aria-haspopup="menu"
                     aria-expanded={exportMenuOpen}
                   >
                     匯出
                   </button>
                   {exportMenuOpen && (
-                    <div className="absolute right-0 top-full z-10 mt-2 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleDownload()
-                          setExportMenuOpen(false)
-                        }}
-                        className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                        data-testid="download-checklist-btn"
-                      >
-                        下載 Markdown
-                      </button>
-                      <div className="mx-3 border-t border-gray-200" />
+                    <div className={['absolute right-0 z-10 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg', exportMenuDirection === 'above' ? 'bottom-full mb-2' : 'top-full mt-2'].join(' ')}>
                       <button
                         type="button"
                         onClick={() => {
@@ -987,6 +1015,18 @@ export function ChecklistResult({
                         data-testid="print-checklist-btn"
                       >
                         列印 / 另存 PDF
+                      </button>
+                      <div className="mx-3 border-t border-gray-200" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleDownload()
+                          setExportMenuOpen(false)
+                        }}
+                        className="block w-full px-3 py-2 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                        data-testid="download-checklist-btn"
+                      >
+                        下載 Markdown
                       </button>
                     </div>
                   )}
@@ -1010,7 +1050,6 @@ export function ChecklistResult({
                       : 'cursor-not-allowed bg-gray-100 text-gray-400',
                   ].join(' ')}
                 >
-                  <span aria-hidden="true">+</span>
                   <span>新增項目</span>
                 </button>
                 {!canAddMore && (
@@ -1113,6 +1152,7 @@ export function ChecklistResult({
                           removable={!NON_REMOVABLE_ITEM_IDS.has(item.id)}
                           onInputChange={(fieldId, value) => onCardInputChange(item.id, fieldId, value)}
                           onParticipantsChange={handleIncomeParticipantsChange}
+                          onRemovePersonFromCard={(personId) => handleRemovePersonFromCard(item.id as IncomeCardId, personId)}
                           onRemove={() => onRemoveItem?.(item.id)}
                         />
                       ) : item.id === 'savings-investment-deduction' ? (
@@ -1120,6 +1160,7 @@ export function ChecklistResult({
                           item={item}
                           interestIncomeAmount={interestIncomeAmount}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
+                          onScrollToItem={handleScrollToItem}
                         />
                       ) : (
                         <DeductionCard
