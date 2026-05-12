@@ -260,37 +260,67 @@ export function ChecklistInlineAmountFields({
             <label className="block text-base font-medium text-gray-600 mb-1">
               {field.label}
             </label>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <input
-                type="number"
-                min="0"
-                max={field.max}
-                step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
-                value={displayValue}
-                onChange={(e) => onInputChange?.(field.id, e.target.value)}
-                data-testid={`card-input-${itemId}-${field.id}`}
-                className={[
-                  'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',
-                  field.perUnitKey || field.splitPerUnitKeys ? '' : 'no-spin',
-                ].join(' ')}
-                placeholder={placeholder}
-              />
-              <span className="text-base text-gray-500">{field.unit}</span>
-              {(() => {
-                const formula = getPerUnitInlineFormula(field, inputValues[field.id] ?? '')
-                if (!formula) return null
-                return (
-                  <span className="text-base text-gray-700">
-                    × {formula.perUnit.toLocaleString('zh-TW')} 元 ＝ <strong>{formula.total.toLocaleString('zh-TW')} 元</strong>
-                  </span>
-                )
-              })()}
-            </div>
-            <InlineFeedback
-              field={field}
-              value={displayValue}
-              feedbackContext={feedbackContext}
-            />
+            {field.type === 'choice' ? (
+              <div
+                className="inline-flex flex-wrap gap-1 rounded-lg border border-gray-300 bg-white p-1"
+                data-testid={`card-choice-${itemId}-${field.id}`}
+              >
+                {(field.choices ?? []).map((choice) => {
+                  const selected = displayValue === choice.value
+                  return (
+                    <button
+                      key={choice.value}
+                      type="button"
+                      onClick={() => onInputChange?.(field.id, choice.value)}
+                      data-testid={`card-choice-${itemId}-${field.id}-${choice.value}`}
+                      className={[
+                        'rounded-md px-3 py-1 text-sm font-medium transition-colors',
+                        selected
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800',
+                      ].join(' ')}
+                      aria-pressed={selected}
+                    >
+                      {choice.label}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="0"
+                    max={field.max}
+                    step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
+                    value={displayValue}
+                    onChange={(e) => onInputChange?.(field.id, e.target.value)}
+                    data-testid={`card-input-${itemId}-${field.id}`}
+                    className={[
+                      'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',
+                      field.perUnitKey || field.splitPerUnitKeys ? '' : 'no-spin',
+                    ].join(' ')}
+                    placeholder={placeholder}
+                  />
+                  <span className="text-base text-gray-500">{field.unit}</span>
+                  {(() => {
+                    const formula = getPerUnitInlineFormula(field, inputValues[field.id] ?? '')
+                    if (!formula) return null
+                    return (
+                      <span className="text-base text-gray-700">
+                        × {formula.perUnit.toLocaleString('zh-TW')} 元 ＝ <strong>{formula.total.toLocaleString('zh-TW')} 元</strong>
+                      </span>
+                    )
+                  })()}
+                </div>
+                <InlineFeedback
+                  field={field}
+                  value={displayValue}
+                  feedbackContext={feedbackContext}
+                />
+              </>
+            )}
           </div>
         )
       })}

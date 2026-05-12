@@ -65,8 +65,30 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
   ],
   'exemption-general': [
     {
+      id: 'self_age_band',
+      label: '本人年齡',
+      type: 'choice',
+      unit: '',
+      capKey: null,
+      choices: [
+        { value: 'under_70', label: '未滿 70 歲' },
+        { value: 'over_70', label: '70 歲以上' },
+      ],
+    },
+    {
+      id: 'spouse_age_band',
+      label: '配偶年齡',
+      type: 'choice',
+      unit: '',
+      capKey: null,
+      choices: [
+        { value: 'under_70', label: '未滿 70 歲' },
+        { value: 'over_70', label: '70 歲以上' },
+      ],
+    },
+    {
       id: 'exemption_under70_count',
-      label: '扶養親屬人數（未滿 70 歲，不含本人與配偶）',
+      label: '其他扶養親屬（未滿 70 歲，不含本人與配偶）',
       type: 'number',
       unit: '人',
       capKey: null,
@@ -74,7 +96,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
     },
     {
       id: 'exemption_over70_count',
-      label: '扶養親屬人數（70 歲以上）',
+      label: '其他扶養親屬（70 歲以上，不含本人與配偶）',
       type: 'number',
       unit: '人',
       capKey: null,

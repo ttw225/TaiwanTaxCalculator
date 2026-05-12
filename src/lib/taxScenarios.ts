@@ -59,6 +59,8 @@ export interface TaxScenarioInputs {
   isMarried: boolean
   persons: TaxScenarioPerson[]
   exemptionAmount: number
+  selfExemptionAmount: number
+  spouseExemptionAmount: number
   generalDeductionAmount: number
   specialDeductionAmount: number
   savingsInvestmentDeductionAmount: number
@@ -96,6 +98,10 @@ function getPerson(persons: TaxScenarioPerson[], id: 'self' | 'spouse'): TaxScen
     interestIncome: 0,
     otherIncome: 0,
   }
+}
+
+function getPersonExemption(inputs: TaxScenarioInputs, id: 'self' | 'spouse'): number {
+  return id === 'self' ? inputs.selfExemptionAmount : inputs.spouseExemptionAmount
 }
 
 function personIncome(person: TaxScenarioPerson, includeDividend: boolean): number {
@@ -208,9 +214,7 @@ function buildScenario(
   const includeDividend = dividendMode !== 'separate_28'
   const totalDividend = sumPersons(inputs.persons, (person) => person.dividendIncome)
   const grossIncome = sumPersons(inputs.persons, (person) => personIncome(person, includeDividend))
-  const personalExemption = getNumber('exemption_general')
   const assumptions = [
-    '本人與配偶先以未滿 70 歲一般免稅額試算。',
     '未能歸屬到特定個人的扣除額放在非分開計稅方。',
   ]
 
@@ -226,13 +230,15 @@ function buildScenario(
     )
     taxableParts = [{ label: '綜合所得淨額', taxableIncome, tax: calcTax(taxableIncome) }]
   } else if (coupleMode === 'self_salary_separate' || coupleMode === 'spouse_salary_separate') {
-    const splitPerson = getPerson(inputs.persons, coupleMode === 'self_salary_separate' ? 'self' : 'spouse')
-    const splitTaxable = Math.max(0, splitPerson.salaryNetIncome - personalExemption)
+    const splitPersonId = coupleMode === 'self_salary_separate' ? 'self' : 'spouse'
+    const splitPerson = getPerson(inputs.persons, splitPersonId)
+    const splitExemption = getPersonExemption(inputs, splitPersonId)
+    const splitTaxable = Math.max(0, splitPerson.salaryNetIncome - splitExemption)
     const otherTaxable = Math.max(
       0,
       grossIncome -
         splitPerson.salaryNetIncome -
-        (inputs.exemptionAmount - personalExemption) -
+        (inputs.exemptionAmount - splitExemption) -
         inputs.generalDeductionAmount -
         inputs.specialDeductionAmount,
     )
@@ -241,7 +247,9 @@ function buildScenario(
       { label: '不含薪資分開計稅部分所得淨額', taxableIncome: otherTaxable, tax: calcTax(otherTaxable) },
     ]
   } else {
-    const splitPerson = getPerson(inputs.persons, coupleMode === 'self_all_income_separate' ? 'self' : 'spouse')
+    const splitPersonId = coupleMode === 'self_all_income_separate' ? 'self' : 'spouse'
+    const splitPerson = getPerson(inputs.persons, splitPersonId)
+    const splitExemption = getPersonExemption(inputs, splitPersonId)
     const splitGross = personIncome(splitPerson, includeDividend)
     const splitSavingsDeduction = calcSplitSavingsDeduction(
       splitPerson,
@@ -249,12 +257,12 @@ function buildScenario(
       inputs.savingsInvestmentDeductionAmount,
     )
     const otherSpecialDeduction = Math.max(0, inputs.specialDeductionAmount - splitSavingsDeduction)
-    const splitTaxable = Math.max(0, splitGross - personalExemption - splitSavingsDeduction)
+    const splitTaxable = Math.max(0, splitGross - splitExemption - splitSavingsDeduction)
     const otherTaxable = Math.max(
       0,
       grossIncome -
         splitGross -
-        (inputs.exemptionAmount - personalExemption) -
+        (inputs.exemptionAmount - splitExemption) -
         inputs.generalDeductionAmount -
         otherSpecialDeduction,
     )
