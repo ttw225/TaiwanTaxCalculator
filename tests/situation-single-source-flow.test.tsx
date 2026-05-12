@@ -783,7 +783,7 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).not.toBeNull()
     expect(container.textContent).toContain('合併計稅')
     expect(container.textContent).toContain('28% 分開計稅')
-    expect(container.textContent).toContain('推薦組合')
+    expect(container.textContent).toContain('推薦：')
   })
 
   it('hides savings investment from selectors and derives it from interest income on the result page', () => {

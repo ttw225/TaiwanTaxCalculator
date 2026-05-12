@@ -33,7 +33,15 @@ export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
   }, [menuOpen])
 
   return (
-    // position: sticky — no layout offset, unlike fixed
+    <>
+    {menuOpen && (
+      <div
+        className="md:hidden fixed inset-0 z-40 bg-black/30"
+        aria-hidden="true"
+        onClick={() => setMenuOpen(false)}
+      />
+    )}
+    {/* position: sticky — no layout offset, unlike fixed */}
     <header className="sticky top-0 z-50 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
 
@@ -114,13 +122,14 @@ export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
       {menuOpen && (
         <div
           id="mobile-menu"
-          className="md:hidden border-t border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-1"
+          className="md:hidden absolute top-full left-0 right-0 border-t border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-1 shadow-md"
         >
           {NAV_ITEMS.map((item) =>
             item.status === 'active' ? (
               <button
                 key={item.id}
                 type="button"
+                data-padding="custom"
                 onClick={() => { onNavClick?.(item.id); setMenuOpen(false) }}
                 className="text-base font-normal py-2 text-left text-gray-700"
               >
@@ -135,5 +144,6 @@ export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
         </div>
       )}
     </header>
+    </>
   )
 }

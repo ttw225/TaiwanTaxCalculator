@@ -137,7 +137,7 @@ export function IntroPage({ onStart }: Props) {
                 {f.icon}
               </div>
               <div>
-                <p className="text-[18px] font-medium text-gray-900 mb-0.5">{f.title}</p>
+                <p className="text-lg font-medium text-gray-900 mb-0.5">{f.title}</p>
                 <p className="text-base text-gray-600 leading-relaxed">{f.body}</p>
               </div>
             </div>
@@ -147,7 +147,7 @@ export function IntroPage({ onStart }: Props) {
 
       {/* How it works — vertical timeline (Option D) */}
       <div className="mb-10 mt-20 lg:mt-20">
-        <h2 className="text-[28px] font-bold text-gray-900 tracking-tight mb-2">三個步驟，快速完成申報前準備</h2>
+        <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">三個步驟，快速完成申報前準備</h2>
         <p className="text-sm text-gray-600 leading-relaxed mb-12">先釐清可報項目，再即時試算與匯出，整個流程更清楚也更有把握。</p>
         <div className="relative">
           {STEPS.map((s, idx) => (
@@ -160,8 +160,8 @@ export function IntroPage({ onStart }: Props) {
                   <div className="absolute left-0 top-0 w-10 h-10 rounded-full bg-white border-2 border-blue-600 flex items-center justify-center">
                     <span className="font-mono text-sm font-semibold text-blue-700">{s.n}</span>
                   </div>
-                  <p className="text-[18px] font-medium text-blue-700 mb-1.5 leading-snug">{s.title}</p>
-                  <p className="text-[16px] text-gray-600 leading-relaxed mb-3">{s.body}</p>
+                  <p className="text-lg font-medium text-blue-700 mb-1.5 leading-snug">{s.title}</p>
+                  <p className="text-base text-gray-600 leading-relaxed mb-3">{s.body}</p>
                 </div>
                 <div className="pl-14">
                   {s.resultCards?.length ? (
@@ -173,7 +173,7 @@ export function IntroPage({ onStart }: Props) {
                             card.size === 'wide' ? 'lg:col-span-4' : 'lg:col-span-2'
                           }`}
                         >
-                          <p className="text-[16px] font-medium text-gray-700 mb-2">{card.title}</p>
+                          <p className="text-base font-medium text-gray-700 mb-2">{card.title}</p>
                           {card.size === 'narrow' ? (
                             <div className="flex-1 overflow-hidden rounded-lg border border-gray-200 bg-[#F4F6F8] lg:flex lg:items-center lg:justify-center">
                               <div className="h-full w-full overflow-hidden lg:w-auto lg:aspect-[3/4]">
@@ -238,7 +238,7 @@ export function IntroPage({ onStart }: Props) {
       {/* CTA */}
       <div className="mt-16 pt-8 sm:pt-10 pb-4 flex items-center gap-12">
         <div>
-          <h2 className="text-[28px] font-bold text-gray-900 tracking-tight mb-2">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight mb-2">
             開始試算，做好申報準備
           </h2>
           <span className="text-sm text-gray-700 tabular-nums">年所得若低於 NT$ {fmt(threshold)} 免報稅</span>
