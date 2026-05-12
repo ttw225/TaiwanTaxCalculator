@@ -875,7 +875,7 @@ describe('DeductionCard inline input fields', () => {
   const mortgageInterestField: CardInlineField = {
     ...noCapField,
     id: 'mortgage_interest_amount',
-    label: '今年支付的房貸利息',
+    label: '購屋借款利息',
     feedbackRule: 'mortgage-interest',
   }
 
