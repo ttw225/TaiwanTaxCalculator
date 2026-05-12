@@ -1,4 +1,5 @@
 import { getNumber } from '../lib/numbers'
+import { createPublicAssetUrl } from '../lib/publicAsset'
 
 interface Props {
   onStart: () => void
@@ -30,7 +31,7 @@ const FEATURES = [
         試算資料僅保留於您的瀏覽器；專案原始碼公開於
         {' '}
         <a
-          href="https://github.com/your-org/your-project"
+          href="https://github.com/ttw225/TaiwanTaxCalculator"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-700 underline hover:text-blue-800"
@@ -53,7 +54,7 @@ const STEPS = [
     n: '1',
     kicker: '篩選項目',
     title: '篩選可申報項目',
-    imageSrc: '/introduction-image/Step1.png',
+    imageSrc: createPublicAssetUrl('introduction-image/Step1.png'),
     imageAlt: '步驟 1 示意圖',
     body: (
       <>
@@ -73,7 +74,7 @@ const STEPS = [
     n: '2',
     kicker: '確認資格',
     title: '確認資格與所需資料',
-    imageSrc: '/introduction-image/Step2.png',
+    imageSrc: createPublicAssetUrl('introduction-image/Step2.png'),
     imageAlt: '步驟 2 示意圖',
     body: '查看各項目的適用資格與限制條件，並準備對應資料，減少申報前反覆查找。',
   },
@@ -85,10 +86,10 @@ const STEPS = [
     imageAlt: '步驟 3 示意圖',
     body: '系統即時更新試算結果與建議方向，完成後可匯出，供後續申報參考。',
     resultCards: [
-      { title: '綜合所得總額', size: 'wide', imageSrc: '/introduction-image/Step3-1-income-mobile.png', imageSrcDesktop: '/introduction-image/Step3-1-income-web.png', imageAlt: '綜合所得總額示意圖' },
-      { title: '一般扣除額', size: 'narrow', imageSrc: '/introduction-image/Step3-2-income-mobile.png', imageSrcDesktop: '/introduction-image/Step3-2-count-web.png', imageAlt: '一般扣除額示意圖' },
-      { title: '特別扣除額', size: 'narrow', imageSrc: '/introduction-image/Step3-3-special-mobile.png', imageSrcDesktop: '/introduction-image/Step3-3-special-web.png', imageAlt: '特別扣除額示意圖' },
-      { title: '試算摘要', size: 'wide', imageSrc: '/introduction-image/Step3-4-summary-mobile.png', imageSrcDesktop: '/introduction-image/Step3-4-summary-web.png', imageAlt: '試算摘要示意圖' },
+      { title: '綜合所得總額', size: 'wide', imageSrc: createPublicAssetUrl('introduction-image/Step3-1-income-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-1-income-web.png'), imageAlt: '綜合所得總額示意圖' },
+      { title: '一般扣除額', size: 'narrow', imageSrc: createPublicAssetUrl('introduction-image/Step3-2-income-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-2-count-web.png'), imageAlt: '一般扣除額示意圖' },
+      { title: '特別扣除額', size: 'narrow', imageSrc: createPublicAssetUrl('introduction-image/Step3-3-special-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-3-special-web.png'), imageAlt: '特別扣除額示意圖' },
+      { title: '試算摘要', size: 'wide', imageSrc: createPublicAssetUrl('introduction-image/Step3-4-summary-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-4-summary-web.png'), imageAlt: '試算摘要示意圖' },
     ],
   },
 ]
