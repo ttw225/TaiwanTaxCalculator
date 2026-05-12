@@ -22,7 +22,7 @@
 |-------|-------------|
 | `print-container` | Results page root in `ChecklistResult` |
 | `print-card` | Each checklist card root (`ChecklistCardShell` — used by `DeductionCard` / `IncomeCard`) |
-| `no-print` | Header actions, modals, decision tools panel (per product choice), back-to-top, export controls |
+| `no-print` | Header actions, modals, back-to-top, export controls |
 
 ## Scroll animation
 

@@ -157,14 +157,6 @@ Gross income semantics:
 - Overseas income remains an AMT-oriented card and is not included in regular gross income totals.
 - Exemption summary assumes the filer (and spouse when married) are under age 70; the exemption card inputs are dependent counts only.
 
-## Decision tools
-
-```ts
-export type DecisionToolId = 'dividend' | 'couple_filing' | 'amt'
-```
-
-Used by [`src/content/decision-tools.ts`](../src/content/decision-tools.ts) metadata and [`DecisionToolsPanel`](../src/components/DecisionToolsPanel.tsx) gating.
-
 ## Related docs
 
 - Content instances: [`06-content-modules.md`](./06-content-modules.md)

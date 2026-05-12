@@ -15,7 +15,7 @@
 | `filing_year` | number | Calendar year of filing season |
 | `filing_window` | string | In-repo filing window descriptor (opaque string in JSON) |
 | `items` | array | Named numeric constants (TWD) |
-| `brackets` | array | Progressive tax brackets for `calcBracketTax` |
+| `brackets` | array | Progressive tax brackets for [`calcTax`](../src/lib/numbers.ts) |
 
 ## `items[]` entries
 
@@ -75,8 +75,8 @@ Current rows (from file):
 
 ## Related code
 
-- Bracket tax: [`calcBracketTax`](../src/lib/decisions.ts) in [`09-decision-tools.md`](./09-decision-tools.md).
-- Couple filing tool reads `standard_deduction_married`, `special_deduction_salary`, `exemption_general` via `getNumber`.
+- Progressive tax on net income: [`calcTax`](../src/lib/numbers.ts) uses `getBrackets()` from `numbers_2026.json`.
+- Scenario comparison (filing mode, dividends, AMT) reads thresholds and caps via `getNumber` in [`taxScenarios.ts`](../src/lib/taxScenarios.ts) and related UI.
 
 ## Related docs
 

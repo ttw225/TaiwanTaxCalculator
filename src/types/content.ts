@@ -87,5 +87,3 @@ export interface CardInlineFeedbackContext {
 }
 
 export type CardInputMap = Record<string, Record<string, string>>
-
-export type DecisionToolId = 'dividend' | 'couple_filing' | 'amt'

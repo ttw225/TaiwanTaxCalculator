@@ -31,7 +31,7 @@
     {
       "id": "content",
       "file": "06-content-modules.md",
-      "keywords": ["deductions.ts", "CHECKLIST_ITEMS", "SITUATIONS", "inlineFields", "decision-tools", "interest income", "other income"]
+      "keywords": ["deductions.ts", "CHECKLIST_ITEMS", "SITUATIONS", "inlineFields", "interest income", "other income"]
     },
     {
       "id": "app-flow",
@@ -42,11 +42,6 @@
       "id": "checklist-engine",
       "file": "08-checklist-engine.md",
       "keywords": ["filterBySituations", "groupByCategory", "CATEGORY_LABELS", "CategoryGroup", "married rule"]
-    },
-    {
-      "id": "decision-tools",
-      "file": "09-decision-tools.md",
-      "keywords": ["dividend", "couple filing", "AMT", "decisions.ts", "calcBracketTax"]
     },
     {
       "id": "ui-components",

@@ -1,6 +1,6 @@
 # Content modules
 
-Primary files: [`src/content/deductions.ts`](../src/content/deductions.ts), [`src/content/decision-tools.ts`](../src/content/decision-tools.ts), [`src/content/inlineFields.ts`](../src/content/inlineFields.ts).
+Primary files: [`src/content/deductions.ts`](../src/content/deductions.ts), [`src/content/inlineFields.ts`](../src/content/inlineFields.ts).
 
 ## `deductions.ts`
 
@@ -54,16 +54,6 @@ Baseline items are not triggered by first-page situations. When `selected.length
 
 Union of all grouped `situationIds` equals the public `SITUATIONS` ids (tests enforce this). Hidden derived ids such as `savings_investment` are intentionally excluded.
 
-## `decision-tools.ts`
-
-Exports metadata only:
-
-- `DecisionToolMeta`: `id`, `title`, `subtitle`, `disclaimer`, `sourceRefs`
-- `DIVIDEND_TOOL_META`, `COUPLE_FILING_TOOL_META`, `AMT_TOOL_META`
-- `AMT_CHECKLIST_STEPS`: readonly tuple of **5** zh-TW procedural strings for AMT follow-up UI
-
-Logic and inputs live in [`src/lib/decisions.ts`](../src/lib/decisions.ts) and [`src/components/tools/*.tsx`](../src/components/tools/).
-
 ## `inlineFields.ts`
 
 `ITEM_INLINE_FIELDS: Record<string, CardInlineField[]>` — keys **must** match checklist `item.id`.
@@ -88,4 +78,4 @@ All fields: `type: 'number'`, `unit: '元'` (count-based rows use `unit: '人'`)
 ## Related docs
 
 - Engine filtering/grouping: [`08-checklist-engine.md`](./08-checklist-engine.md)
-- Decision math: [`09-decision-tools.md`](./09-decision-tools.md)
+- Summary scenarios: [`10-ui-components.md`](./10-ui-components.md) (`TaxSummaryPanel`), [`src/lib/taxScenarios.ts`](../src/lib/taxScenarios.ts)

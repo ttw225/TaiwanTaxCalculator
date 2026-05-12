@@ -58,7 +58,7 @@ interface Props {
 
 - Root uses `print-container` for print layout.
 - Layout: `max-w-5xl` with `lg:grid lg:grid-cols-[1fr_360px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
-- Embeds `DecisionToolsPanel`, per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
+- Embeds per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
 - Add-situation modal lists situations not currently present in `selected`; savings-investment is disabled and linked to interest income.
 - Card routing: regular income card ids (`gross-income`, `dividend-income`, `interest-income`, `other-income`) → `IncomeCard`; `savings-investment-deduction` → derived read-only card; all others → `DeductionCard`.
 - Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`, `savings-investment-deduction` (no `×` button).
@@ -72,7 +72,7 @@ interface Props {
 - When dividends are active, the gross section renders both merged-tax and 28% separate-tax totals and passes `null` to `TaxSummaryPanel` for gross income.
 - **`onReset`**: wired to the "重新計算" confirmation dialog.
 - Scroll-to-item: `useEffect` on `scrollToItemId` → [`animateScrollToY`](../src/lib/scrollAnimation.ts) to center card in viewport → `onScrollHandled`.
-- Overlays / tool panel: `no-print` where appropriate.
+- Overlays: `no-print` where appropriate.
 
 ## Checklist card shell (`ChecklistCardShell.tsx`)
 
@@ -150,16 +150,6 @@ interface Props {
 - `generalDeductionAmount === null` → that row shows「前往填寫」捲動至 `general_deductions`，且所得淨額／應納稅額為「待計算」（與其他必填列一致）。
 - Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`) using an itemized calc context derived in [`ChecklistResult.tsx`](../src/components/ChecklistResult.tsx) (e.g. `grossIncomeAmount`, dividend merged/separate gross totals for qualified-donation feedback, `savingsInvestmentDeductionAmount`).
 
-## `DecisionToolsPanel.tsx`
-
-```ts
-interface Props { selectedSituations: SituationId[] }
-```
-
-- Returns `null` if no tool matches.
-- Collapsible amber panel; privacy copy.
-- Currently triggered by married filing and overseas income. Dividend guidance moved into `IncomeCard`; `DividendTool.tsx` remains as legacy decision math UI until fully removed.
-
 ## `BackToTopButton.tsx`
 
 No props. Fixed FAB; visible when `scrollY > 240`; `aria-label` for scroll-to-top; uses `animateScrollToY(0)`; `no-print`.
@@ -179,15 +169,6 @@ interface Props { deployInfo: DeployInfo }
 ```
 
 - Styles by `deployInfo.context` (`dev` | `pr-preview`); optional `title` with commit detail.
-
-## `src/components/tools/`
-
-| File | Role |
-|------|------|
-| `DividendTool.tsx` | State for amount + marginal bracket select; calls `calcDividendOptions` |
-| `CoupleFilingTool.tsx` | Two salary strings; `calcCoupleFilingOptions` |
-| `AmtTool.tsx` | Overseas income string; `checkAmtThreshold`; lists `AMT_CHECKLIST_STEPS` |
-| `ToolSourceRefs.tsx` | `props: { refs: SourceRef[] }` collapsible source list |
 
 ## Related docs
 

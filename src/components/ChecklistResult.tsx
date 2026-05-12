@@ -30,7 +30,6 @@ import {
 import { calcTaxScenarios, type TaxScenarioPerson } from '../lib/taxScenarios'
 import { FormulaRow } from './checklist/FormulaRow'
 import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
-import { DecisionToolsPanel } from './DecisionToolsPanel'
 import { DeductionCard } from './DeductionCard'
 import { IncomeCard } from './IncomeCard'
 import { TaxSummaryPanel } from './TaxSummaryPanel'
@@ -508,10 +507,6 @@ export function ChecklistResult({
   const hasResults = totalItems > 0
   const showExport = hasResults
   const canAddMore = addableSituationGroups.length > 0
-  const hasDecisionTools = selectedSituations.some(
-    (id) => id === 'married' || id === 'overseas_income',
-  )
-
   const getSectionScrollOffset = useCallback(() => {
     const measuredStickyHeadingHeight = stickyHeadingRef.current?.getBoundingClientRect().height ?? 0
     const effectiveStickyHeadingHeight = stickyHeadingHeight > 0
@@ -1066,10 +1061,6 @@ export function ChecklistResult({
       <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start print-main-layout" style={{ marginTop: `${CONTENT_TOP_GAP}px` }}>
         {/* ── Main column ── */}
         <div>
-
-          <div className={`${hasDecisionTools ? 'mb-6' : ''} no-print`}>
-            <DecisionToolsPanel selectedSituations={selectedSituations} />
-          </div>
 
           {!hasResults && (
             <div className="py-12 text-center text-gray-400">
