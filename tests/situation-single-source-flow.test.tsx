@@ -359,14 +359,14 @@ describe('situation single-source flow', () => {
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
-    clickSummaryGoFill('exemptions')
+    clickSummaryGoFill('gross_income')
     act(() => {
       runNextAnimationFrame(0)
       runNextAnimationFrame(500)
       runNextAnimationFrame(1000)
     })
 
-    expect(scrollToSpy).toHaveBeenLastCalledWith(0, EXEMPTIONS_SECTION_TARGET_TOP - SECTION_SCROLL_OFFSET)
+    expect(scrollToSpy).toHaveBeenLastCalledWith(0, GROSS_SECTION_TARGET_TOP - SECTION_SCROLL_OFFSET)
   })
 
   it('supports grouped situation add modal and removes only the target card', () => {
@@ -769,7 +769,7 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).toBeNull()
   })
 
-  it('defers summary gross income calculation when completed income cards include positive dividends', () => {
+  it('calculates summary scenarios when completed income cards include positive dividends', () => {
     renderApp()
     clickButtonByText('薪資收入')
     clickButtonByText('股利收入')
@@ -778,11 +778,12 @@ describe('situation single-source flow', () => {
     changeInputByTestId('income-input-gross-income-self', '300000')
     changeInputByTestId('income-input-dividend-income-self', '100000')
 
-    expect(getGrossIncomeHeadingText()).not.toContain('182,000 元')
-    expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('待計算')
+    expect(getGrossIncomeHeadingText()).toContain('182,000 元')
+    expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('182,000 元')
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).not.toBeNull()
     expect(container.textContent).toContain('合併計稅')
     expect(container.textContent).toContain('28% 分開計稅')
+    expect(container.textContent).toContain('推薦組合')
   })
 
   it('hides savings investment from selectors and derives it from interest income on the result page', () => {

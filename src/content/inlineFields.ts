@@ -66,7 +66,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
   'exemption-general': [
     {
       id: 'exemption_under70_count',
-      label: '一般免稅額人數（未滿 70 歲）',
+      label: '扶養親屬人數（未滿 70 歲，不含本人與配偶）',
       type: 'number',
       unit: '人',
       capKey: null,
@@ -74,7 +74,7 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
     },
     {
       id: 'exemption_over70_count',
-      label: '年長免稅額人數（70 歲以上）',
+      label: '扶養親屬人數（70 歲以上）',
       type: 'number',
       unit: '人',
       capKey: null,
@@ -131,6 +131,24 @@ export const ITEM_INLINE_FIELDS: Record<string, CardInlineField[]> = {
       unit: '人',
       capKey: null,
       perUnitKey: 'special_deduction_long_term_care',
+    },
+  ],
+  'overseas-income-amt': [
+    {
+      id: 'overseas_income_amount',
+      label: '海外所得',
+      type: 'number',
+      unit: '元',
+      capKey: null,
+      salaryLikeInput: true,
+    },
+    {
+      id: 'overseas_income_tax_paid',
+      label: '海外繳納之所得稅',
+      type: 'number',
+      unit: '元',
+      capKey: null,
+      implicitZeroWhenEmpty: true,
     },
   ],
 }

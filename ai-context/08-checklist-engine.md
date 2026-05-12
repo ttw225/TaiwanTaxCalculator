@@ -23,9 +23,10 @@ export function filterBySituations(items: ChecklistItem[], selected: SituationId
 Fixed category sort order:
 
 1. `gross_income`
-2. `exemptions`
-3. `general_deductions`
-4. `special_deductions`
+2. `overseas_income` (AMT / overseas-income-amt card only)
+3. `exemptions`
+4. `general_deductions`
+5. `special_deductions`
 
 `CATEGORY_LABELS` maps each `CategoryId` to zh-TW section titles (includes note that standard vs itemized are mutually exclusive in `general_deductions`).
 
@@ -38,7 +39,7 @@ export function groupByCategory(items: ChecklistItem[]): CategoryGroup[]
 - Buckets by `item.category`, then sorts buckets by `CATEGORY_ORDER`.
 - Returns `{ category, label, items }[]`.
 - **Within each bucket**, item order follows the order items appear in the input array (typically `CHECKLIST_ITEMS` order after filtering).
-- Current gross-income item order is salary → dividend → interest → other → overseas.
+- Current `gross_income` item order is salary → dividend → interest → other; `overseas-income-amt` is under `overseas_income`.
 
 ## `CategoryGroup`
 

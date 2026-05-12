@@ -6,7 +6,6 @@
 
 | Condition | Component |
 |-----------|-----------|
-| includes `dividends` | [`DividendTool`](../src/components/tools/DividendTool.tsx) |
 | includes `married` | [`CoupleFilingTool`](../src/components/tools/CoupleFilingTool.tsx) |
 | includes `overseas_income` | [`AmtTool`](../src/components/tools/AmtTool.tsx) |
 
@@ -44,24 +43,24 @@ export function calcDividendOptions(dividendAmount: number, marginalRate: number
 
 UI supplies **marginal rate** from a fixed bracket selector in `DividendTool` (not from `numbers_2026.json` brackets directly).
 
-## Couple filing tool (`calcCoupleFilingOptions`)
+## Summary scenario engine (`calcTaxScenarios`)
 
 ```ts
-export function calcCoupleFilingOptions(husbandSalary: number, wifeSalary: number): CoupleFilingOptions
+export function calcTaxScenarios(inputs: TaxScenarioInputs): TaxScenarioResult
 ```
 
-- Salaries clamped with `Math.max(0, ...)`.
-- Reads from JSON via `getNumber`: `standard_deduction_married`, `special_deduction_salary`, `exemption_general`.
+- Source: [`src/lib/taxScenarios.ts`](../src/lib/taxScenarios.ts).
+- Used by `ChecklistResult` and `TaxSummaryPanel` to recommend the lowest final comparison tax.
+- Single users get 1 scenario, or 2 when dividends are positive.
+- Married users get the 5 official couple modes, or 10 scenarios when dividends are positive.
+- Dividend merged mode subtracts `min(dividend * 8.5%, 80_000)`.
+- Dividend separate mode excludes dividends from regular gross income and adds `dividend * 28%`.
+- Core AMT overlay applies when overseas income is at least `1_000_000`: basic income = taxable income + separate-tax dividends + overseas income; basic tax = `max(0, basic income - 7_500_000) * 20%`; final comparison tax = regular tax + AMT supplement.
+- Assumptions are surfaced in the detail dialog: self/spouse default under age 70, and deductions that cannot be attributed to a split-tax person stay with the non-split side.
 
-**Three modes** (labels zh-TW in return value):
+## Legacy couple filing tool (`calcCoupleFilingOptions`)
 
-1. **Joint filing** — taxable `max(0, h+w - STANDARD_MARRIED - 2*SALARY_DED - 2*EXEMPTION)`; single `calcBracketTax` on joint taxable.
-2. **Husband primary / separate salary** — `halfStandard = STANDARD_MARRIED / 2`; per-spouse taxable `max(0, salary - halfStandard - SALARY_DED - EXEMPTION)`; tax = sum of two `calcBracketTax` calls.
-3. **Wife primary** — for pure symmetric salary model, **same numeric tax** as mode 2 (order of addition only); still exposed as distinct row for UX.
-
-Returns `modes`, `bestIndex` (first minimum tax), `savings` = second-smallest tax minus smallest (sorted taxes array).
-
-**Comment in source:** simplified model vs full Taiwan separate-salary rules; see disclaimer in `COUPLE_FILING_TOOL_META`.
+`decisions.ts` still exports the old three-mode salary-only helper for the collapsible decision tool and historical tests. New summary recommendations should use `calcTaxScenarios`.
 
 ## AMT threshold (`checkAmtThreshold`)
 

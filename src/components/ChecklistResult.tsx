@@ -27,6 +27,7 @@ import {
   type IncomeCardId,
   type IncomeParticipant,
 } from '../lib/grossIncome'
+import { calcTaxScenarios, type TaxScenarioPerson } from '../lib/taxScenarios'
 import { FormulaRow } from './checklist/FormulaRow'
 import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DecisionToolsPanel } from './DecisionToolsPanel'
@@ -378,6 +379,12 @@ function formatTwd(n: number) {
   return n.toLocaleString('zh-TW')
 }
 
+function parseNonNegativeAmount(raw: string | undefined): number {
+  if (!raw || raw.trim() === '') return 0
+  const value = Number(raw.replace(/,/g, ''))
+  return Number.isFinite(value) && value > 0 ? value : 0
+}
+
 function SavingsInvestmentDeductionCard({
   item,
   interestIncomeAmount,
@@ -502,7 +509,7 @@ export function ChecklistResult({
   const showExport = hasResults
   const canAddMore = addableSituationGroups.length > 0
   const hasDecisionTools = selectedSituations.some(
-    (id) => id === 'dividends' || id === 'married' || id === 'overseas_income',
+    (id) => id === 'married' || id === 'overseas_income',
   )
 
   const getSectionScrollOffset = useCallback(() => {
@@ -644,9 +651,13 @@ export function ChecklistResult({
     const inputs = cardInputMap['exemption-general'] ?? {}
     const under70 = Number(inputs['exemption_under70_count'] ?? '') || 0
     const over70 = Number(inputs['exemption_over70_count'] ?? '') || 0
-    if (under70 === 0 && over70 === 0) return null
-    return under70 * getNumber('exemption_general') + over70 * getNumber('exemption_senior_70')
-  }, [cardInputMap])
+    const filerCount = isMarriedFiling ? 2 : 1
+    return (
+      filerCount * getNumber('exemption_general') +
+      under70 * getNumber('exemption_general') +
+      over70 * getNumber('exemption_senior_70')
+    )
+  }, [cardInputMap, isMarriedFiling])
 
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
@@ -686,6 +697,35 @@ export function ChecklistResult({
     [cardInputMap, incomeParticipants, presentIncomeCardIds],
   )
 
+  const scenarioPersons = useMemo(() => {
+    const byId = new Map<string, TaxScenarioPerson>()
+    for (const participant of incomeParticipants) {
+      byId.set(participant.id, {
+        id: participant.id,
+        label: participant.label,
+        salaryNetIncome: 0,
+        dividendIncome: 0,
+        interestIncome: 0,
+        otherIncome: 0,
+      })
+    }
+
+    for (const id of INCOME_CARD_IDS) {
+      const config = INCOME_CARD_CONFIGS[id]
+      const persons = parseIncomeCardPersons(cardInputMap[id] ?? {}, incomeParticipants)
+      for (const person of persons) {
+        const target = byId.get(person.id)
+        if (!target) continue
+        if (config.kind === 'salary') target.salaryNetIncome = calcPersonNetIncome(person.income)
+        else if (config.kind === 'dividend') target.dividendIncome = person.income
+        else if (config.kind === 'interest') target.interestIncome = person.income
+        else target.otherIncome = person.income
+      }
+    }
+
+    return Array.from(byId.values())
+  }, [cardInputMap, incomeParticipants])
+
   const allIncomeCardsComplete = incomeSummaries.every((item) => item.complete)
   const grossIncomeMergedAmount = allIncomeCardsComplete
     ? incomeSummaries.reduce((sum, item) => sum + item.amount, 0)
@@ -698,10 +738,8 @@ export function ChecklistResult({
   const dividendIncomeAmount = incomeSummaries.find((item) => item.id === 'dividend-income')?.amount ?? 0
   const hasPositiveDividendIncome = dividendIncomeAmount > 0
   const shouldDeferGrossIncomeSummary =
-    hasPositiveDividendIncome &&
-    grossIncomeMergedAmount !== null &&
-    grossIncomeSeparateDividendAmount !== null
-  const grossIncomeAmount = shouldDeferGrossIncomeSummary ? null : grossIncomeMergedAmount
+    false
+  const grossIncomeAmount = grossIncomeMergedAmount
   const grossIncomeAmountForDeductionCaps = grossIncomeMergedAmount
   const shouldShowDividendDonationCaps =
     dividendIncomeAmount > 0 &&
@@ -748,6 +786,15 @@ export function ChecklistResult({
     if (!savingsInvestmentEnabled) return null
     return Math.min(interestIncomeAmount, getNumber('special_deduction_savings_investment'))
   }, [interestIncomeAmount, savingsInvestmentEnabled])
+
+  const overseasIncomeAmount = useMemo(
+    () => parseNonNegativeAmount(cardInputMap['overseas-income-amt']?.['overseas_income_amount']),
+    [cardInputMap],
+  )
+  const overseasTaxPaidAmount = useMemo(
+    () => parseNonNegativeAmount(cardInputMap['overseas-income-amt']?.['overseas_income_tax_paid']),
+    [cardInputMap],
+  )
 
   const handleScrollToSection = useCallback((categoryId: string) => {
     const el = sectionRefs.current[categoryId as CategoryId]
@@ -804,6 +851,38 @@ export function ChecklistResult({
             ? 'itemized'
             : 'standard')
 
+  const taxScenarioResult = useMemo(() => {
+    if (
+      !allIncomeCardsComplete ||
+      generalDeductionAmount === null ||
+      (hasSpecialDeductions && specialDeductionAmount === null)
+    ) {
+      return null
+    }
+
+    return calcTaxScenarios({
+      isMarried: isMarriedFiling,
+      persons: scenarioPersons,
+      exemptionAmount,
+      generalDeductionAmount,
+      specialDeductionAmount: hasSpecialDeductions ? (specialDeductionAmount ?? 0) : 0,
+      savingsInvestmentDeductionAmount: savingsInvestmentDeductionAmount ?? 0,
+      overseasIncome: overseasIncomeAmount,
+      overseasTaxPaid: overseasTaxPaidAmount,
+    })
+  }, [
+    allIncomeCardsComplete,
+    exemptionAmount,
+    generalDeductionAmount,
+    hasSpecialDeductions,
+    isMarriedFiling,
+    overseasIncomeAmount,
+    overseasTaxPaidAmount,
+    savingsInvestmentDeductionAmount,
+    scenarioPersons,
+    specialDeductionAmount,
+  ])
+
   function handleRemovePersonFromCard(cardId: IncomeCardId, personId: string) {
     // Remove from this card's persons_json
     const cardPersons = parseIncomeCardPersons(cardInputMap[cardId] ?? {}, incomeParticipants)
@@ -849,6 +928,8 @@ export function ChecklistResult({
     switch (group.category) {
       case 'gross_income':
         return grossIncomeAmount
+      case 'overseas_income':
+        return null
       case 'exemptions':
         return exemptionAmount
       case 'general_deductions':
@@ -1115,6 +1196,8 @@ export function ChecklistResult({
             <TaxSummaryPanel
               grossIncome={grossIncomeAmount}
               grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
+              taxScenarioResult={taxScenarioResult}
+              hasOverseasIncomeSection={groups.some((g) => g.category === 'overseas_income')}
               exemptionAmount={exemptionAmount}
               generalDeductionAmount={generalDeductionAmount}
               generalDeductionMethod={generalDeductionMethod}
@@ -1133,6 +1216,8 @@ export function ChecklistResult({
           <TaxSummaryPanel
             grossIncome={grossIncomeAmount}
             grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
+            taxScenarioResult={taxScenarioResult}
+            hasOverseasIncomeSection={groups.some((g) => g.category === 'overseas_income')}
             exemptionAmount={exemptionAmount}
             generalDeductionAmount={generalDeductionAmount}
             generalDeductionMethod={generalDeductionMethod}
