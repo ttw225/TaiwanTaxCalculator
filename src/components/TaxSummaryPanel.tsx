@@ -51,9 +51,23 @@ function SummarySectionLink({
         event.preventDefault()
         onScroll(sectionId)
       }}
-      className="text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
+      className="inline-flex items-center gap-0.5 text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
     >
       {children}
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="shrink-0 text-gray-400"
+      >
+        <path d="M9 6l6 6-6 6" />
+      </svg>
     </a>
   )
 }

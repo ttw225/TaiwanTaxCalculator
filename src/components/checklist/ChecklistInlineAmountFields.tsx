@@ -43,14 +43,14 @@ function CapFeedback({
   const formatted = formatAmount(cap)
   if (value <= cap) {
     return (
-      <p className="mt-1 text-base text-green-700">
+      <p className="mt-1 text-sm text-gray-700">
         可申報上限為 {formatted} 元
         {children}
       </p>
     )
   }
   return (
-    <p className="mt-1 text-base text-red-700">
+    <p className="mt-1 text-sm text-red-700">
       已達可申報上限 {formatted} 元
       {children}
     </p>
@@ -59,7 +59,7 @@ function CapFeedback({
 
 function CapHint({ cap, children }: { cap: number; children?: ReactNode }) {
   return (
-    <p className="mt-1 text-base text-blue-700">
+    <p className="mt-1 text-sm text-gray-700">
       可申報上限為 {formatAmount(cap)} 元
       {children}
     </p>
@@ -85,7 +85,7 @@ function InlineFeedback({
         event.preventDefault()
         feedbackContext.onScrollToItem(savingsTargetItemId)
       }}
-      className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 hover:text-gray-800 hover:underline underline-offset-2 transition-colors leading-none align-baseline"
+      className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 underline underline-offset-2 hover:text-gray-800 transition-colors leading-none align-baseline"
     >
       儲蓄投資特別扣除額
     </a>
@@ -116,20 +116,7 @@ function InlineFeedback({
   }
 
   if (field.feedbackRule === 'unlimited') {
-    if (!hasValue) {
-      return (
-        <p className="mt-1 text-base text-blue-700">
-          此類捐贈無金額上限
-        </p>
-      )
-    }
-    const numVal = parseAmount(value)
-    if (numVal === null || numVal <= 0) return null
-    return (
-      <p className="mt-1 text-base text-green-700">
-        此類捐贈無金額上限
-      </p>
-    )
+    return null
   }
 
   if (field.feedbackRule === 'qualified-donation') {
@@ -138,8 +125,8 @@ function InlineFeedback({
     const dividendSeparateGrossIncomeAmount = feedbackContext?.dividendSeparateGrossIncomeAmount ?? null
     if (grossIncomeAmount === null) {
       return (
-        <p className="mt-1 text-base text-gray-700">
-          請先填寫
+        <p className="mt-1 text-sm text-gray-700">
+          填寫
           <a
             href="#gross_income"
             onClick={(event) => {
@@ -147,16 +134,17 @@ function InlineFeedback({
               event.preventDefault()
               feedbackContext.onScrollToSection('gross_income')
             }}
-            className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 hover:text-gray-800 hover:underline underline-offset-2 transition-colors leading-none align-baseline"
+            className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 underline underline-offset-2 hover:text-gray-800 transition-colors leading-none align-baseline"
           >
             綜合所得總額
           </a>
+          後顯示申報上限
         </p>
       )
     }
     if (dividendMergedGrossIncomeAmount !== null && dividendSeparateGrossIncomeAmount !== null) {
       return (
-        <div className="mt-1 space-y-0.5 text-base text-blue-700">
+        <div className="mt-1 space-y-0.5 text-sm text-blue-700">
           <p>若股利合併計稅，捐贈金額上限為 {formatAmount(dividendMergedGrossIncomeAmount * 0.2)} 元</p>
           <p>若股利分開計稅，捐款金額上限為 {formatAmount(dividendSeparateGrossIncomeAmount * 0.2)} 元</p>
         </div>
@@ -185,7 +173,7 @@ function InlineFeedback({
     if (!hasValue) {
       if (feedbackContext?.savingsInvestmentEnabled) {
         return (
-          <p className="mt-1 text-base text-blue-700">
+          <p className="mt-1 text-sm text-blue-700">
             須先扣除「{savingsLink}」
           </p>
         )
@@ -200,14 +188,14 @@ function InlineFeedback({
 
     if (savingsDeduction > 0 && eligibleAmount <= cap) {
       return (
-        <p className="mt-1 text-base text-green-700">
+        <p className="mt-1 text-sm text-gray-700">
           扣除「{savingsLink}」後為 {formatAmount(eligibleAmount)} 元
         </p>
       )
     }
     if (savingsDeduction > 0 && eligibleAmount > cap) {
       return (
-        <p className="mt-1 text-base text-red-700">
+        <p className="mt-1 text-sm text-red-700">
           扣除「{savingsLink}」後已達可申報上限 {formatAmount(cap)} 元
         </p>
       )
@@ -254,7 +242,7 @@ export function ChecklistInlineAmountFields({
       {inlineFields.map((field) => (
         <div key={field.id}>
           <label className="block text-base font-medium text-gray-600 mb-1">
-            {field.label}（選填）
+            {field.label}
           </label>
           <div className="flex flex-wrap items-center gap-1.5">
             <input
@@ -289,11 +277,6 @@ export function ChecklistInlineAmountFields({
           />
         </div>
       ))}
-      <div className="border-t border-gray-300 pt-2">
-        <p className="text-xs text-gray-400">
-          資料僅在您的瀏覽器處理，不會傳送至任何伺服器
-        </p>
-      </div>
-    </div>
+</div>
   )
 }

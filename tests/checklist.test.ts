@@ -734,7 +734,7 @@ describe('ChecklistResult export panel', () => {
   })
 
   it('checklist heading action order is reset, export, then add', () => {
-    const resetIndex = htmlWithResults.indexOf('>重新計算<')
+    const resetIndex = htmlWithResults.indexOf('>重新試算<')
     const exportIndex = htmlWithResults.indexOf('>匯出<')
     const addIndex = htmlWithResults.indexOf('>新增項目<')
 
@@ -872,11 +872,6 @@ describe('DeductionCard inline input fields', () => {
     feedbackRule: 'qualified-donation',
   }
 
-  const governmentDonationField: CardInlineField = {
-    ...noCapField,
-    feedbackRule: 'unlimited',
-  }
-
   const mortgageInterestField: CardInlineField = {
     ...noCapField,
     id: 'mortgage_interest_amount',
@@ -933,7 +928,7 @@ describe('DeductionCard inline input fields', () => {
         inputValues: { salary_amount: '100000' },
       }),
     )
-    expect(html).toContain('text-green-700')
+    expect(html).toContain('text-gray-700')
     expect(html).toContain('可申報上限為 218,000 元')
   })
 
@@ -1059,30 +1054,9 @@ describe('DeductionCard inline input fields', () => {
         feedbackContext: { grossIncomeAmount: null },
       }),
     )
-    expect(html).toContain('請先填寫')
+    expect(html).toContain('填寫')
     expect(html).toContain('綜合所得總額')
-  })
-
-  it('shows no-limit feedback for government donations', () => {
-    const html = renderToStaticMarkup(
-      createElement(DeductionCard, {
-        item: makeItem(),
-        inlineFields: [governmentDonationField],
-        inputValues: { donation_amount_government: '50000' },
-      }),
-    )
-    expect(html).toContain('此類捐贈無金額上限')
-  })
-
-  it('shows no-limit hint for government donations before input', () => {
-    const html = renderToStaticMarkup(
-      createElement(DeductionCard, {
-        item: makeItem(),
-        inlineFields: [governmentDonationField],
-        inputValues: { donation_amount_government: '' },
-      }),
-    )
-    expect(html).toContain('此類捐贈無金額上限')
+    expect(html).toContain('後顯示申報上限')
   })
 
   it('shows mortgage interest cap feedback after savings investment deduction', () => {
@@ -1115,7 +1089,7 @@ describe('DeductionCard inline input fields', () => {
         },
       }),
     )
-    expect(html).toContain('text-green-700')
+    expect(html).toContain('text-gray-700')
     expect(html).toContain('扣除「')
     expect(html).toContain('儲蓄投資特別扣除額')
     expect(html).toContain('」後為 110,111 元')
@@ -1136,23 +1110,6 @@ describe('DeductionCard inline input fields', () => {
     expect(html).not.toContain('可申報上限為 300,000 元')
   })
 
-  it('shows privacy notice when inlineFields is non-empty', () => {
-    const html = renderToStaticMarkup(
-      createElement(DeductionCard, {
-        item: makeItem(),
-        inlineFields: [noCapField],
-        inputValues: {},
-      }),
-    )
-    expect(html).toContain('資料僅在您的瀏覽器處理，不會傳送至任何伺服器')
-  })
-
-  it('no privacy notice when inlineFields is empty', () => {
-    const html = renderToStaticMarkup(
-      createElement(DeductionCard, { item: makeItem(), inlineFields: [] }),
-    )
-    expect(html).not.toContain('資料僅在您的瀏覽器處理')
-  })
 })
 
 // ── DeductionCard wealth-clause footer notice ─────────────────────────────────
