@@ -31,7 +31,7 @@ const FEATURES = [
         試算資料僅保留於您的瀏覽器；專案原始碼公開於
         {' '}
         <a
-          href="https://github.com/your-org/your-project"
+          href="https://github.com/ttw225/TaiwanTaxCalculator"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-700 underline hover:text-blue-800"

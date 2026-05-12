@@ -189,7 +189,7 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
   },
   {
     id: 'medical-deduction',
-    title: '自費醫療費用',
+    title: '醫藥及生育費',
     category: 'general_deductions',
     situations: ['medical_expenses'],
     why_it_matters: '符合資格的醫療機構費用扣除「保險給付」後的差額，可全額列舉',
@@ -364,7 +364,7 @@ export const SITUATIONS: Situation[] = [
   },
   {
     id: 'medical_expenses',
-    label: '自費醫療費用',
+    label: '醫藥及生育費',
     description: '家庭成員在醫療機構就診或生育的自費支出',
   },
   {
