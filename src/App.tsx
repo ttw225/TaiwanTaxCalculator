@@ -27,6 +27,7 @@ import {
   saveSituationSelection,
   SITUATION_SELECTION_STORAGE_KEY,
 } from './lib/situationSelectionStorage'
+import { INCOME_CARD_IDS, INCOME_PARTICIPANTS_ITEM_ID } from './lib/grossIncome'
 import { SituationSelector } from './components/SituationSelector'
 import { ChecklistResult } from './components/ChecklistResult'
 import type { RemovalImpactPreview } from './components/ChecklistResult'
@@ -367,12 +368,16 @@ function App() {
       selected.filter((situationId) => !removedSituationIds.has(situationId)),
     )
     setSelected(nextSelected)
-    setCardInputMap((prev) => omitIdsFromCardInputMap(
-      prev,
-      effect.itemId === 'interest-income'
+    setCardInputMap((prev) => {
+      const removedIds = effect.itemId === 'interest-income'
         ? [effect.itemId, 'savings-investment-deduction']
-        : [effect.itemId],
-    ))
+        : [effect.itemId]
+      const next = omitIdsFromCardInputMap(prev, removedIds)
+      if (!INCOME_CARD_IDS.some((id) => id in next)) {
+        delete next[INCOME_PARTICIPANTS_ITEM_ID]
+      }
+      return next
+    })
     if (nextSelected.length === 0) {
       setScrollToItemId(null)
       setHasGeneratedChecklist(false)
