@@ -47,7 +47,6 @@ export const CHECKLIST_ITEMS: ChecklistItem[] = [
     eligibility_cues: [
       '有薪資收入的納稅義務人、配偶及申報受扶養親屬均需申報',
       `薪資所得特別扣除額每人最高 ${n('special_deduction_salary')} 元，不超過實際薪資收入`,
-      '申報系統通常自動帶入薪資資料，請確認金額正確',
       '本網站簡化扣除額流程，統一採用「薪資所得特別扣除額」計算，無「必要費用」選項。',
     ],
     documents_to_prepare: [],

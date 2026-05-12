@@ -507,9 +507,8 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
       }),
     )
     expect(html).toContain('data-testid="standard-deduction-container" class="rounded-xl border px-4 py-3 border-blue-400 bg-blue-50/30 shadow-sm"')
-    expect(html).toContain('data-testid="standard-deduction-card" class="checklist-formula-card mx-auto inline-block w-fit border-blue-200 bg-white"')
     expect(html).toContain('data-testid="itemized-deduction-card" class="rounded-xl border px-4 py-3 border-gray-200"')
-    expect(html).toContain('<p class="mb-2 text-base font-semibold text-blue-700">標準扣除額</p>')
+    expect(html).toContain('<p class="mb-0 text-base font-semibold text-blue-700">標準扣除額：131,000 元 (單身)</p>')
     expect(html).toContain('<p class="mb-2 text-base font-semibold text-gray-400">列舉扣除額</p>')
     expect(html).toContain('checklist-formula-card border-gray-300 bg-gray-50')
   })
@@ -528,8 +527,7 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     )
     expect(html).toContain('data-testid="itemized-deduction-card" class="rounded-xl border px-4 py-3 border-blue-400 bg-blue-50/30 shadow-sm"')
     expect(html).toContain('data-testid="standard-deduction-container" class="rounded-xl border px-4 py-3 border-gray-200"')
-    expect(html).toContain('data-testid="standard-deduction-card" class="checklist-formula-card mx-auto inline-block w-fit border-gray-300 bg-gray-50"')
-    expect(html).toContain('<p class="mb-2 text-base font-semibold text-gray-400">標準扣除額</p>')
+    expect(html).toContain('<p class="mb-0 text-base font-semibold text-gray-400">標準扣除額：131,000 元 (單身)</p>')
     expect(html).toContain('<p class="mb-2 text-base font-semibold text-blue-700">列舉扣除額</p>')
   })
 
@@ -546,7 +544,6 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
       }),
     )
     expect(html).toContain('data-testid="standard-deduction-container" class="rounded-xl border px-4 py-3 border-blue-400 bg-blue-50/30 shadow-sm"')
-    expect(html).toContain('data-testid="standard-deduction-card" class="checklist-formula-card mx-auto inline-block w-fit border-blue-200 bg-white"')
     expect(html).toContain('data-testid="itemized-deduction-card" class="rounded-xl border px-4 py-3 border-gray-200"')
   })
 })
