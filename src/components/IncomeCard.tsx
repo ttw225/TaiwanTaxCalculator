@@ -64,8 +64,8 @@ interface PersonRowProps {
 function FormulaCol({ label, amount, amountClass }: { label: string; amount: number; amountClass: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[14px] leading-tight text-gray-500">{label}</span>
-      <span className={`text-[16px] font-semibold tabular-nums leading-tight ${amountClass}`}>
+      <span className="text-sm leading-tight text-gray-500">{label}</span>
+      <span className={`text-base font-semibold tabular-nums leading-tight ${amountClass}`}>
         {amount.toLocaleString('zh-TW')} 元
       </span>
     </div>
@@ -83,14 +83,14 @@ function SalaryFormulaInline({
   net: number
   showFullDeductionHint: boolean
 }) {
-  const netColor = net > 0 ? 'text-green-700' : 'text-gray-800'
+  const netColor = 'text-gray-800'
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
       <FormulaCol label="薪資收入" amount={income} amountClass="text-gray-700" />
       <span className="select-none self-end pb-[2px] text-sm text-gray-400">−</span>
       <div className="flex flex-col gap-0.5">
-        <span className="text-[14px] leading-tight text-gray-500">薪資所得特別扣除額</span>
-        <span className="text-[16px] font-semibold tabular-nums leading-tight text-gray-700">
+        <span className="text-sm leading-tight text-gray-500">薪資所得特別扣除額</span>
+        <span className="text-base font-semibold tabular-nums leading-tight text-gray-700">
           {deduction.toLocaleString('zh-TW')} 元
           {showFullDeductionHint && <span className="ml-1 text-xs font-normal text-gray-400">（全額扣除）</span>}
         </span>
@@ -146,7 +146,7 @@ function PersonRow({
             type="button"
             onClick={onRemove}
             aria-label={`移除 ${person.label || '此人員'}`}
-            className="ml-auto inline-flex h-7 w-7 items-center justify-center text-[24px] text-gray-400 transition-colors hover:text-gray-700"
+            className="ml-auto inline-flex h-7 w-7 items-center justify-center text-2xl text-gray-400 transition-colors hover:text-gray-700"
           >
             ×
           </button>

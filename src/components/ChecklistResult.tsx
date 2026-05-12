@@ -422,8 +422,8 @@ function SavingsInvestmentDeductionCard({
     >
       <div className="mt-3 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[14px] leading-tight text-gray-500">可申報</span>
-          <span className="text-[16px] font-semibold tabular-nums leading-tight text-gray-800">
+          <span className="text-sm leading-tight text-gray-500">可申報</span>
+          <span className="text-base font-semibold tabular-nums leading-tight text-gray-800">
             {formatTwd(deduction)} 元
           </span>
         </div>
@@ -1093,7 +1093,7 @@ export function ChecklistResult({
                   {(() => {
                     const sub = getSectionSubtotal(group)
                     return sub !== null ? (
-                      <span className="text-[20px] font-semibold text-blue-700 tabular-nums">
+                      <span className="text-xl font-semibold text-blue-700 tabular-nums">
                         {sub.toLocaleString('zh-TW')} 元
                       </span>
                     ) : null
