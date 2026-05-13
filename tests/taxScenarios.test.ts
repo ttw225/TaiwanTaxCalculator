@@ -142,6 +142,18 @@ describe('calcTaxScenarios', () => {
     ])
   })
 
+  it('adds unassigned-deduction assumption only for split-tax scenarios', () => {
+    const result = calcTaxScenarios(baseMarried)
+    const scenariosByMode = new Map(result.scenarios.map((scenario) => [scenario.coupleMode, scenario]))
+    const assumption = '未能歸屬到特定個人的扣除額放在非分開計稅方。'
+
+    expect(scenariosByMode.get('joint')?.assumptions).toEqual([])
+    expect(scenariosByMode.get('self_salary_separate')?.assumptions).toEqual([assumption])
+    expect(scenariosByMode.get('spouse_salary_separate')?.assumptions).toEqual([assumption])
+    expect(scenariosByMode.get('self_all_income_separate')?.assumptions).toEqual([assumption])
+    expect(scenariosByMode.get('spouse_all_income_separate')?.assumptions).toEqual([assumption])
+  })
+
   it('returns ten couple scenarios with dividends', () => {
     const result = calcTaxScenarios({
       ...baseMarried,

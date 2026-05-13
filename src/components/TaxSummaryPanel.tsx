@@ -190,9 +190,11 @@ function TaxFormulaDialog({
                         </div>
                       ))}
                     </div>
-                    <p className="mt-2 text-xs leading-relaxed text-gray-500">
-                      假設：{scenario.assumptions.join('；')}
-                    </p>
+                    {scenario.assumptions.length > 0 && (
+                      <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                        假設：{scenario.assumptions.join('；')}
+                      </p>
+                    )}
                   </section>
                 )
               })}
@@ -365,9 +367,11 @@ function FormulaTable({ scenario }: { scenario: TaxScenario }) {
           </div>
         ))}
       </div>
-      <p className="mt-2 border-t border-dashed border-gray-200 pt-2 text-base leading-relaxed text-gray-500">
-        假設：{scenario.assumptions.join('；')}
-      </p>
+      {scenario.assumptions.length > 0 && (
+        <p className="mt-2 border-t border-dashed border-gray-200 pt-2 text-base leading-relaxed text-gray-500">
+          假設：{scenario.assumptions.join('；')}
+        </p>
+      )}
     </div>
   )
 }

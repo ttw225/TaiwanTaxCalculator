@@ -247,9 +247,7 @@ function buildScenario(
   const totalDividend = sumPersons(inputs.persons, (person) => person.dividendIncome)
   const grossIncome = sumPersons(inputs.persons, (person) => personIncome(person, includeDividend))
   const basicLivingExpenseDifference = calcBasicLivingExpenseDifference(inputs)
-  const assumptions = [
-    '未能歸屬到特定個人的扣除額放在非分開計稅方。',
-  ]
+  const assumptions: string[] = []
 
   let taxableParts: { label: string; taxableIncome: number; tax: number }[]
 
@@ -267,6 +265,7 @@ function buildScenario(
     const splitPersonId = coupleMode === 'self_salary_separate' ? 'self' : 'spouse'
     const splitPerson = getPerson(inputs.persons, splitPersonId)
     const splitExemption = getPersonExemption(inputs, splitPersonId)
+    assumptions.push('未能歸屬到特定個人的扣除額放在非分開計稅方。')
     const splitTaxable = Math.max(0, splitPerson.salaryNetIncome - splitExemption)
     const otherTaxable = Math.max(
       0,
@@ -286,6 +285,7 @@ function buildScenario(
     const splitPerson = getPerson(inputs.persons, splitPersonId)
     const splitExemption = getPersonExemption(inputs, splitPersonId)
     const splitGross = personIncome(splitPerson, includeDividend)
+    assumptions.push('未能歸屬到特定個人的扣除額放在非分開計稅方。')
     const splitSavingsDeduction = calcSplitSavingsDeduction(
       splitPerson,
       inputs.persons,
