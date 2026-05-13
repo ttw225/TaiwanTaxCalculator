@@ -1017,6 +1017,30 @@ describe('DeductionCard inline input fields', () => {
     expect(html).toContain('aria-pressed="true"')
   })
 
+  it('renders exemption inputs as four compact rows with custom radio controls', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem({ id: 'exemption-general' }),
+        inlineFields: ITEM_INLINE_FIELDS['exemption-general'],
+        inputValues: {
+          self_age_band: 'under_70',
+          spouse_age_band: 'over_70',
+          exemption_under70_count: '1',
+          exemption_over70_count: '2',
+        },
+      }),
+    )
+    expect(html).toContain('role="radiogroup"')
+    expect(html).toContain('role="radio"')
+    expect(html).toContain('aria-checked="true"')
+    expect(html).toContain('本人年齡')
+    expect(html).toContain('配偶年齡')
+    expect(html).toContain('其他親屬')
+    expect(html).toContain('data-testid="card-input-exemption-general-exemption_under70_count"')
+    expect(html).toContain('data-testid="card-input-exemption-general-exemption_over70_count"')
+    expect(html).not.toContain('一般免稅額人數（未滿 70 歲）')
+  })
+
   it('shows green cap feedback when value <= cap', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
