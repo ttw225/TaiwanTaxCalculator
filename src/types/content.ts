@@ -59,9 +59,11 @@ export interface ChecklistItem {
 export interface CardInlineField {
   id: string
   label: string
-  type: 'number'
+  type: 'number' | 'choice'
   unit: string
   capKey: string | null
+  /** For choice fields: finite, explicit values shown as a segmented control. */
+  choices?: { value: string; label: string }[]
   /** If set: field shows contextual limit feedback that cannot be represented by a static capKey. */
   feedbackRule?: 'qualified-donation' | 'mortgage-interest' | 'unlimited'
   /** If set: user enters a count; deduction = count × getNumber(perUnitKey) */

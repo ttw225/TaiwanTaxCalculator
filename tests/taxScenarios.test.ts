@@ -14,6 +14,8 @@ const baseSingle: TaxScenarioInputs = {
     },
   ],
   exemptionAmount: 97_000,
+  selfExemptionAmount: 97_000,
+  spouseExemptionAmount: 0,
   generalDeductionAmount: 131_000,
   specialDeductionAmount: 0,
   savingsInvestmentDeductionAmount: 0,
@@ -42,6 +44,8 @@ const baseMarried: TaxScenarioInputs = {
     },
   ],
   exemptionAmount: 194_000,
+  selfExemptionAmount: 97_000,
+  spouseExemptionAmount: 97_000,
   generalDeductionAmount: 262_000,
   specialDeductionAmount: 0,
   savingsInvestmentDeductionAmount: 0,
@@ -90,11 +94,36 @@ describe('calcTaxScenarios', () => {
     expect(result.scenarios).toHaveLength(10)
   })
 
+  it('uses a senior self exemption in single filing', () => {
+    const result = calcTaxScenarios({
+      ...baseSingle,
+      exemptionAmount: 145_500,
+      selfExemptionAmount: 145_500,
+    })
+    expect(result.bestScenario.taxableIncome).toBe(23_500)
+    expect(result.bestScenario.regularTax).toBe(1_175)
+  })
+
+  it('uses spouse senior exemption for spouse separate modes', () => {
+    const result = calcTaxScenarios({
+      ...baseMarried,
+      exemptionAmount: 242_500,
+      spouseExemptionAmount: 145_500,
+    })
+    const spouseSalarySeparate = result.scenarios.find((scenario) => scenario.coupleMode === 'spouse_salary_separate')
+    const spouseAllIncomeSeparate = result.scenarios.find((scenario) => scenario.coupleMode === 'spouse_all_income_separate')
+
+    expect(spouseSalarySeparate?.formulas.find((line) => line.label === '配偶薪資分開計稅淨額')?.amount).toBe(454_500)
+    expect(spouseAllIncomeSeparate?.formulas.find((line) => line.label === '配偶各類所得分開計稅淨額')?.amount).toBe(454_500)
+  })
+
   it('chooses the lower dividend mode after credit or 28% separate tax', () => {
     const result = calcTaxScenarios({
       ...baseSingle,
       persons: [{ ...baseSingle.persons[0], salaryNetIncome: 5_000_000, dividendIncome: 1_000_000 }],
       exemptionAmount: 97_000,
+      selfExemptionAmount: 97_000,
+      spouseExemptionAmount: 0,
       generalDeductionAmount: 131_000,
     })
     expect(result.bestScenario.dividendMode).toBe('separate_28')
@@ -147,6 +176,8 @@ describe('calcTaxScenarios', () => {
         },
       ],
       exemptionAmount: 291_000,
+      selfExemptionAmount: 97_000,
+      spouseExemptionAmount: 97_000,
       generalDeductionAmount: 262_000,
       specialDeductionAmount: 270_000,
       savingsInvestmentDeductionAmount: 270_000,

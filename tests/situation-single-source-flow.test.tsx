@@ -777,6 +777,7 @@ describe('situation single-source flow', () => {
 
     changeInputByTestId('income-input-gross-income-self', '300000')
     changeInputByTestId('income-input-dividend-income-self', '100000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
 
     expect(getGrossIncomeHeadingText()).toContain('182,000 元')
     expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('182,000 元')

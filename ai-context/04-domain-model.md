@@ -155,7 +155,7 @@ Gross income semantics:
 - Without dividends: one gross total is shown and passed to the summary/sidebar.
 - With dividends: the gross section shows both merged-tax (`salary net + dividends + interest + other`) and 28% separate-tax (`salary net + interest + other`) totals. The summary uses `calcTaxScenarios` to pick the best dividend/couple/AMT scenario instead of deferring gross income.
 - Overseas income remains an AMT-oriented card and is not included in regular gross income totals.
-- Exemption summary assumes the filer (and spouse when married) are under age 70; the exemption card inputs are dependent counts only.
+- Exemption summary requires the filer age band, and spouse age band when married filing is selected. Dependent count inputs represent other dependents only, excluding the filer and spouse.
 
 ## Related docs
 

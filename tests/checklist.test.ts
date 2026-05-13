@@ -341,6 +341,13 @@ describe('ChecklistResult traceability UI', () => {
 describe('ChecklistResult standard vs itemized filing reminder panel', () => {
   const published = CHECKLIST_ITEMS
 
+  function summaryRowMarkup(html: string, testId: string): string {
+    const rowIndex = html.indexOf(`data-testid="${testId}"`)
+    expect(rowIndex).toBeGreaterThanOrEqual(0)
+    const nextRowIndex = html.indexOf('data-testid="summary-row-', rowIndex + 1)
+    return html.slice(rowIndex, nextRowIndex === -1 ? undefined : nextRowIndex)
+  }
+
   function renderResult(selectedSituations: Parameters<typeof filterBySituations>[1]) {
     const groups = groupByCategory(filterBySituations(published, selectedSituations))
     return renderToStaticMarkup(
@@ -361,6 +368,66 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     expect(html).toContain('推薦：標準扣除')
     expect(html).not.toContain('建議確認')
     expect(html).toContain('131,000')
+  })
+
+  it('shows self age but not spouse age for single filing exemption inputs', () => {
+    const html = renderResult(['salary_income'])
+    expect(html).toContain('本人年齡')
+    expect(html).not.toContain('配偶年齡')
+  })
+
+  it('shows self and spouse age for married filing exemption inputs', () => {
+    const html = renderResult(['married', 'salary_income'])
+    expect(html).toContain('本人年齡')
+    expect(html).toContain('配偶年齡')
+  })
+
+  it('keeps exemption summary pending until required age band is selected', () => {
+    const html = renderResult(['salary_income'])
+    expect(summaryRowMarkup(html, 'summary-row-exemptions')).toContain('前往填寫')
+  })
+
+  it('calculates exemption summary from filer age and dependent counts', () => {
+    const groups = groupByCategory(filterBySituations(published, ['salary_income']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['salary_income'],
+        cardInputMap: {
+          'exemption-general': {
+            self_age_band: 'over_70',
+            exemption_under70_count: '1',
+            exemption_over70_count: '1',
+          },
+        },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    expect(summaryRowMarkup(html, 'summary-row-exemptions')).toContain('388,000 元')
+  })
+
+  it('ignores stale income inputs for cards that are not currently selected', () => {
+    const groups = groupByCategory(filterBySituations(published, ['salary_income']))
+    const html = renderToStaticMarkup(
+      createElement(ChecklistResult, {
+        groups,
+        totalSelected: 1,
+        selectedSituations: ['salary_income'],
+        cardInputMap: {
+          'exemption-general': { self_age_band: 'under_70' },
+          'gross-income': { self_income: '300000' },
+          'dividend-income': { self_income: '100000' },
+          'overseas-income-amt': { overseas_income_amount: '8000000' },
+        },
+        onCardInputChange: () => undefined,
+        onReset: () => undefined,
+      }),
+    )
+    const grossSummaryRow = summaryRowMarkup(html, 'summary-row-gross_income')
+    expect(grossSummaryRow).toContain('82,000 元')
+    expect(grossSummaryRow).not.toContain('182,000 元')
   })
 
   it('renders the standard vs itemized panel inside the general deductions section', () => {
@@ -892,6 +959,18 @@ describe('DeductionCard inline input fields', () => {
     perUnitKey: 'exemption_general',
   }
 
+  const choiceField: CardInlineField = {
+    id: 'self_age_band',
+    label: '本人年齡',
+    type: 'choice',
+    unit: '',
+    capKey: null,
+    choices: [
+      { value: 'under_70', label: '未滿 70 歲' },
+      { value: 'over_70', label: '70 歲以上' },
+    ],
+  }
+
   const splitPerUnitCountField: CardInlineField = {
     id: 'childcare_count',
     label: '幼兒人數',
@@ -922,6 +1001,44 @@ describe('DeductionCard inline input fields', () => {
     expect(html).toContain('type="number"')
     expect(html).toContain('今年薪資所得總額')
     expect(html).toContain('元')
+  })
+
+  it('renders choice fields as segmented buttons', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [choiceField],
+        inputValues: { self_age_band: 'over_70' },
+      }),
+    )
+    expect(html).toContain('data-testid="card-choice-test-item-self_age_band"')
+    expect(html).toContain('未滿 70 歲')
+    expect(html).toContain('70 歲以上')
+    expect(html).toContain('aria-pressed="true"')
+  })
+
+  it('renders exemption inputs as four compact rows with custom radio controls', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem({ id: 'exemption-general' }),
+        inlineFields: ITEM_INLINE_FIELDS['exemption-general'],
+        inputValues: {
+          self_age_band: 'under_70',
+          spouse_age_band: 'over_70',
+          exemption_under70_count: '1',
+          exemption_over70_count: '2',
+        },
+      }),
+    )
+    expect(html).toContain('role="radiogroup"')
+    expect(html).toContain('role="radio"')
+    expect(html).toContain('aria-checked="true"')
+    expect(html).toContain('本人年齡')
+    expect(html).toContain('配偶年齡')
+    expect(html).toContain('其他親屬')
+    expect(html).toContain('data-testid="card-input-exemption-general-exemption_under70_count"')
+    expect(html).toContain('data-testid="card-input-exemption-general-exemption_over70_count"')
+    expect(html).not.toContain('一般免稅額人數（未滿 70 歲）')
   })
 
   it('shows green cap feedback when value <= cap', () => {

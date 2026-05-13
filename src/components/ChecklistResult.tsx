@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   CardInputMap,
+  CardInlineField,
   CategoryId,
   Situation,
   SituationId,
@@ -384,6 +385,31 @@ function parseNonNegativeAmount(raw: string | undefined): number {
   return Number.isFinite(value) && value > 0 ? value : 0
 }
 
+type ExemptionAgeBand = 'under_70' | 'over_70'
+
+function parseAgeBand(raw: string | undefined): ExemptionAgeBand | null {
+  return raw === 'under_70' || raw === 'over_70' ? raw : null
+}
+
+function getExemptionByAgeBand(ageBand: ExemptionAgeBand): number {
+  return getNumber(ageBand === 'over_70' ? 'exemption_senior_70' : 'exemption_general')
+}
+
+function parseCount(raw: string | undefined): number {
+  if (!raw || raw.trim() === '') return 0
+  const value = Number(raw.replace(/,/g, ''))
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0
+}
+
+function getInlineFieldsForItem(
+  itemId: string,
+  isMarriedFiling: boolean,
+): CardInlineField[] {
+  const fields = ITEM_INLINE_FIELDS[itemId] ?? []
+  if (itemId !== 'exemption-general' || isMarriedFiling) return fields
+  return fields.filter((field) => field.id !== 'spouse_age_band')
+}
+
 function SavingsInvestmentDeductionCard({
   item,
   interestIncomeAmount,
@@ -642,17 +668,29 @@ export function ChecklistResult({
 
   const isMarriedFiling = selectedSituations.includes('married')
 
-  const exemptionAmount = useMemo(() => {
+  const exemptionResolved = useMemo(() => {
     const inputs = cardInputMap['exemption-general'] ?? {}
-    const under70 = Number(inputs['exemption_under70_count'] ?? '') || 0
-    const over70 = Number(inputs['exemption_over70_count'] ?? '') || 0
-    const filerCount = isMarriedFiling ? 2 : 1
-    return (
-      filerCount * getNumber('exemption_general') +
-      under70 * getNumber('exemption_general') +
-      over70 * getNumber('exemption_senior_70')
-    )
+    const selfAgeBand = parseAgeBand(inputs['self_age_band'])
+    const spouseAgeBand = isMarriedFiling ? parseAgeBand(inputs['spouse_age_band']) : null
+    if (!selfAgeBand || (isMarriedFiling && !spouseAgeBand)) {
+      return null
+    }
+
+    const selfExemptionAmount = getExemptionByAgeBand(selfAgeBand)
+    const spouseExemptionAmount = spouseAgeBand ? getExemptionByAgeBand(spouseAgeBand) : 0
+    const dependentUnder70 = parseCount(inputs['exemption_under70_count'])
+    const dependentOver70 = parseCount(inputs['exemption_over70_count'])
+    const dependentExemptionAmount =
+      dependentUnder70 * getNumber('exemption_general') +
+      dependentOver70 * getNumber('exemption_senior_70')
+
+    return {
+      amount: selfExemptionAmount + spouseExemptionAmount + dependentExemptionAmount,
+      selfExemptionAmount,
+      spouseExemptionAmount,
+    }
   }, [cardInputMap, isMarriedFiling])
+  const exemptionAmount = exemptionResolved?.amount ?? null
 
   const specialDeductionGroup = groups.find((g) => g.category === 'special_deductions')
   const hasSpecialDeductions = (specialDeductionGroup?.items.length ?? 0) > 0
@@ -669,6 +707,10 @@ export function ChecklistResult({
         .map((item) => item.id)
         .filter((id): id is IncomeCardId => INCOME_CARD_IDS.includes(id as IncomeCardId)),
     ),
+    [groups],
+  )
+  const hasOverseasIncomeSection = useMemo(
+    () => groups.some((g) => g.category === 'overseas_income'),
     [groups],
   )
 
@@ -705,7 +747,7 @@ export function ChecklistResult({
       })
     }
 
-    for (const id of INCOME_CARD_IDS) {
+    for (const id of presentIncomeCardIds) {
       const config = INCOME_CARD_CONFIGS[id]
       const persons = parseIncomeCardPersons(cardInputMap[id] ?? {}, incomeParticipants)
       for (const person of persons) {
@@ -719,7 +761,7 @@ export function ChecklistResult({
     }
 
     return Array.from(byId.values())
-  }, [cardInputMap, incomeParticipants])
+  }, [cardInputMap, incomeParticipants, presentIncomeCardIds])
 
   const allIncomeCardsComplete = incomeSummaries.every((item) => item.complete)
   const grossIncomeMergedAmount = allIncomeCardsComplete
@@ -783,12 +825,16 @@ export function ChecklistResult({
   }, [interestIncomeAmount, savingsInvestmentEnabled])
 
   const overseasIncomeAmount = useMemo(
-    () => parseNonNegativeAmount(cardInputMap['overseas-income-amt']?.['overseas_income_amount']),
-    [cardInputMap],
+    () => hasOverseasIncomeSection
+      ? parseNonNegativeAmount(cardInputMap['overseas-income-amt']?.['overseas_income_amount'])
+      : 0,
+    [cardInputMap, hasOverseasIncomeSection],
   )
   const overseasTaxPaidAmount = useMemo(
-    () => parseNonNegativeAmount(cardInputMap['overseas-income-amt']?.['overseas_income_tax_paid']),
-    [cardInputMap],
+    () => hasOverseasIncomeSection
+      ? parseNonNegativeAmount(cardInputMap['overseas-income-amt']?.['overseas_income_tax_paid'])
+      : 0,
+    [cardInputMap, hasOverseasIncomeSection],
   )
 
   const handleScrollToSection = useCallback((categoryId: string) => {
@@ -849,6 +895,7 @@ export function ChecklistResult({
   const taxScenarioResult = useMemo(() => {
     if (
       !allIncomeCardsComplete ||
+      !exemptionResolved ||
       generalDeductionAmount === null ||
       (hasSpecialDeductions && specialDeductionAmount === null)
     ) {
@@ -858,7 +905,9 @@ export function ChecklistResult({
     return calcTaxScenarios({
       isMarried: isMarriedFiling,
       persons: scenarioPersons,
-      exemptionAmount,
+      exemptionAmount: exemptionResolved.amount,
+      selfExemptionAmount: exemptionResolved.selfExemptionAmount,
+      spouseExemptionAmount: exemptionResolved.spouseExemptionAmount,
       generalDeductionAmount,
       specialDeductionAmount: hasSpecialDeductions ? (specialDeductionAmount ?? 0) : 0,
       savingsInvestmentDeductionAmount: savingsInvestmentDeductionAmount ?? 0,
@@ -867,7 +916,7 @@ export function ChecklistResult({
     })
   }, [
     allIncomeCardsComplete,
-    exemptionAmount,
+    exemptionResolved,
     generalDeductionAmount,
     hasSpecialDeductions,
     isMarriedFiling,
@@ -1156,7 +1205,7 @@ export function ChecklistResult({
                       ) : (
                         <DeductionCard
                           item={item}
-                          inlineFields={ITEM_INLINE_FIELDS[item.id] ?? []}
+                          inlineFields={getInlineFieldsForItem(item.id, isMarriedFiling)}
                           inputValues={cardInputMap[item.id] ?? {}}
                           feedbackContext={itemizedFeedbackContext}
                           sourceSituationLabels={itemSourceSituationLabelsById[item.id] ?? []}
@@ -1188,7 +1237,7 @@ export function ChecklistResult({
               grossIncome={grossIncomeAmount}
               grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
               taxScenarioResult={taxScenarioResult}
-              hasOverseasIncomeSection={groups.some((g) => g.category === 'overseas_income')}
+              hasOverseasIncomeSection={hasOverseasIncomeSection}
               exemptionAmount={exemptionAmount}
               generalDeductionAmount={generalDeductionAmount}
               generalDeductionMethod={generalDeductionMethod}
@@ -1208,7 +1257,7 @@ export function ChecklistResult({
             grossIncome={grossIncomeAmount}
             grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
             taxScenarioResult={taxScenarioResult}
-            hasOverseasIncomeSection={groups.some((g) => g.category === 'overseas_income')}
+            hasOverseasIncomeSection={hasOverseasIncomeSection}
             exemptionAmount={exemptionAmount}
             generalDeductionAmount={generalDeductionAmount}
             generalDeductionMethod={generalDeductionMethod}

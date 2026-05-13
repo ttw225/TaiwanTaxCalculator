@@ -235,6 +235,145 @@ export interface ChecklistInlineAmountFieldsProps {
   onInputChange?: (fieldId: string, value: string) => void
 }
 
+function findInlineField(inlineFields: CardInlineField[], fieldId: string): CardInlineField | undefined {
+  return inlineFields.find((field) => field.id === fieldId)
+}
+
+function ExemptionAgeRow({
+  field,
+  value,
+  onInputChange,
+}: {
+  field: CardInlineField
+  value: string
+  onInputChange?: (fieldId: string, value: string) => void
+}) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-[6rem_1fr] sm:items-center">
+      <div className="text-base font-medium text-gray-700">{field.label}</div>
+      <div
+        className="grid grid-cols-2 gap-2"
+        role="radiogroup"
+        aria-label={field.label}
+        data-testid={`card-choice-exemption-general-${field.id}`}
+      >
+        {(field.choices ?? []).map((choice) => {
+          const selected = value === choice.value
+          return (
+            <button
+              key={choice.value}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onInputChange?.(field.id, choice.value)}
+              data-testid={`card-choice-exemption-general-${field.id}-${choice.value}`}
+              className={[
+                'flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-left text-base transition-colors',
+                selected
+                  ? 'border-blue-400 bg-blue-50 text-gray-900'
+                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
+              ].join(' ')}
+            >
+              <span
+                className={[
+                  'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors',
+                  selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
+                ].join(' ')}
+                aria-hidden="true"
+              >
+                {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              <span className="font-medium">{choice.label}</span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function ExemptionDependentCountRow({
+  field,
+  label,
+  value,
+  onInputChange,
+}: {
+  field: CardInlineField
+  label: string
+  value: string
+  onInputChange?: (fieldId: string, value: string) => void
+}) {
+  return (
+    <label className="grid gap-2 sm:grid-cols-[6rem_1fr] sm:items-center">
+      <span className="text-base font-medium text-gray-700">其他親屬</span>
+      <span className="flex flex-wrap items-center gap-2 text-base text-gray-700">
+        <span className="min-w-20 font-medium">{label}</span>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          value={value}
+          onChange={(e) => onInputChange?.(field.id, e.target.value)}
+          data-testid={`card-input-exemption-general-${field.id}`}
+          className="w-24 rounded border border-gray-300 bg-white px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none"
+          placeholder="0"
+        />
+        <span className="text-gray-500">人</span>
+      </span>
+    </label>
+  )
+}
+
+function ExemptionGeneralInlineFields({
+  inlineFields,
+  inputValues,
+  onInputChange,
+}: {
+  inlineFields: CardInlineField[]
+  inputValues: Record<string, string>
+  onInputChange?: (fieldId: string, value: string) => void
+}) {
+  const selfAgeField = findInlineField(inlineFields, 'self_age_band')
+  const spouseAgeField = findInlineField(inlineFields, 'spouse_age_band')
+  const under70CountField = findInlineField(inlineFields, 'exemption_under70_count')
+  const over70CountField = findInlineField(inlineFields, 'exemption_over70_count')
+
+  return (
+    <div className="mt-3 space-y-2 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
+      {selfAgeField && (
+        <ExemptionAgeRow
+          field={selfAgeField}
+          value={inputValues[selfAgeField.id] ?? ''}
+          onInputChange={onInputChange}
+        />
+      )}
+      {spouseAgeField && (
+        <ExemptionAgeRow
+          field={spouseAgeField}
+          value={inputValues[spouseAgeField.id] ?? ''}
+          onInputChange={onInputChange}
+        />
+      )}
+      {under70CountField && (
+        <ExemptionDependentCountRow
+          field={under70CountField}
+          label="未滿 70 歲"
+          value={inputValues[under70CountField.id] ?? ''}
+          onInputChange={onInputChange}
+        />
+      )}
+      {over70CountField && (
+        <ExemptionDependentCountRow
+          field={over70CountField}
+          label="70 歲以上"
+          value={inputValues[over70CountField.id] ?? ''}
+          onInputChange={onInputChange}
+        />
+      )}
+    </div>
+  )
+}
+
 export function ChecklistInlineAmountFields({
   itemId,
   inlineFields,
@@ -243,6 +382,16 @@ export function ChecklistInlineAmountFields({
   onInputChange,
 }: ChecklistInlineAmountFieldsProps) {
   if (inlineFields.length === 0) return null
+
+  if (itemId === 'exemption-general') {
+    return (
+      <ExemptionGeneralInlineFields
+        inlineFields={inlineFields}
+        inputValues={inputValues}
+        onInputChange={onInputChange}
+      />
+    )
+  }
 
   return (
     <div className="mt-3 space-y-3 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
@@ -260,37 +409,67 @@ export function ChecklistInlineAmountFields({
             <label className="block text-base font-medium text-gray-600 mb-1">
               {field.label}
             </label>
-            <div className="flex flex-wrap items-center gap-1.5">
-              <input
-                type="number"
-                min="0"
-                max={field.max}
-                step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
-                value={displayValue}
-                onChange={(e) => onInputChange?.(field.id, e.target.value)}
-                data-testid={`card-input-${itemId}-${field.id}`}
-                className={[
-                  'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',
-                  field.perUnitKey || field.splitPerUnitKeys ? '' : 'no-spin',
-                ].join(' ')}
-                placeholder={placeholder}
-              />
-              <span className="text-base text-gray-500">{field.unit}</span>
-              {(() => {
-                const formula = getPerUnitInlineFormula(field, inputValues[field.id] ?? '')
-                if (!formula) return null
-                return (
-                  <span className="text-base text-gray-700">
-                    × {formula.perUnit.toLocaleString('zh-TW')} 元 ＝ <strong>{formula.total.toLocaleString('zh-TW')} 元</strong>
-                  </span>
-                )
-              })()}
-            </div>
-            <InlineFeedback
-              field={field}
-              value={displayValue}
-              feedbackContext={feedbackContext}
-            />
+            {field.type === 'choice' ? (
+              <div
+                className="inline-flex flex-wrap gap-1 rounded-lg border border-gray-300 bg-white p-1"
+                data-testid={`card-choice-${itemId}-${field.id}`}
+              >
+                {(field.choices ?? []).map((choice) => {
+                  const selected = displayValue === choice.value
+                  return (
+                    <button
+                      key={choice.value}
+                      type="button"
+                      onClick={() => onInputChange?.(field.id, choice.value)}
+                      data-testid={`card-choice-${itemId}-${field.id}-${choice.value}`}
+                      className={[
+                        'rounded-md px-3 py-1 text-sm font-medium transition-colors',
+                        selected
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800',
+                      ].join(' ')}
+                      aria-pressed={selected}
+                    >
+                      {choice.label}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="0"
+                    max={field.max}
+                    step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
+                    value={displayValue}
+                    onChange={(e) => onInputChange?.(field.id, e.target.value)}
+                    data-testid={`card-input-${itemId}-${field.id}`}
+                    className={[
+                      'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',
+                      field.perUnitKey || field.splitPerUnitKeys ? '' : 'no-spin',
+                    ].join(' ')}
+                    placeholder={placeholder}
+                  />
+                  <span className="text-base text-gray-500">{field.unit}</span>
+                  {(() => {
+                    const formula = getPerUnitInlineFormula(field, inputValues[field.id] ?? '')
+                    if (!formula) return null
+                    return (
+                      <span className="text-base text-gray-700">
+                        × {formula.perUnit.toLocaleString('zh-TW')} 元 ＝ <strong>{formula.total.toLocaleString('zh-TW')} 元</strong>
+                      </span>
+                    )
+                  })()}
+                </div>
+                <InlineFeedback
+                  field={field}
+                  value={displayValue}
+                  feedbackContext={feedbackContext}
+                />
+              </>
+            )}
           </div>
         )
       })}
