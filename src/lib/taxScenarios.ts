@@ -83,6 +83,7 @@ export interface TaxScenarioResult {
   secondBestScenario: TaxScenario | null
   savings: number
   hasDividend: boolean
+  hasOverseasIncome: boolean
   hasAmt: boolean
 }
 
@@ -182,6 +183,16 @@ function buildAmtLines(
   overseasIncome: number,
   overseasTaxPaid: number,
 ): Pick<TaxScenario, 'basicIncome' | 'basicTax' | 'overseasTaxCredit' | 'amtSupplement'> & { lines: FormulaLine[] } {
+  if (overseasIncome <= 0) {
+    return {
+      basicIncome: taxableIncome + separateDividendAmount,
+      basicTax: 0,
+      overseasTaxCredit: 0,
+      amtSupplement: 0,
+      lines: [],
+    }
+  }
+
   if (overseasIncome < AMT_OVERSEAS_THRESHOLD) {
     return {
       basicIncome: taxableIncome + separateDividendAmount,
@@ -363,7 +374,9 @@ function buildScenario(
   formulas.push(...amt.lines)
   formulas.push({
     label: '應繳納稅額',
-    expression: `${money(regularTax)} + ${money(amt.amtSupplement)}`,
+    expression: amt.lines.length > 0
+      ? `${money(regularTax)} + ${money(amt.amtSupplement)}`
+      : `${money(regularTax)}`,
     amount: finalTax,
   })
 
@@ -397,6 +410,7 @@ export function calcTaxScenarios(inputs: TaxScenarioInputs): TaxScenarioResult {
   const normalizedInputs = { ...inputs, persons }
   const totalDividend = sumPersons(persons, (person) => person.dividendIncome)
   const hasDividend = totalDividend > 0
+  const hasOverseasIncome = Math.max(0, inputs.overseasIncome) > 0
   const coupleModes: CoupleScenarioMode[] = inputs.isMarried
     ? ['joint', 'self_salary_separate', 'spouse_salary_separate', 'self_all_income_separate', 'spouse_all_income_separate']
     : ['single']
@@ -415,6 +429,7 @@ export function calcTaxScenarios(inputs: TaxScenarioInputs): TaxScenarioResult {
     secondBestScenario,
     savings: secondBestScenario ? secondBestScenario.finalTax - bestScenario.finalTax : 0,
     hasDividend,
+    hasOverseasIncome,
     hasAmt: Math.max(0, inputs.overseasIncome) >= AMT_OVERSEAS_THRESHOLD,
   }
 }

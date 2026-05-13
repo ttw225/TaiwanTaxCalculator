@@ -249,6 +249,13 @@ function getGrossIncomeHeadingText() {
   return heading?.textContent ?? ''
 }
 
+function getLatestScenarioDialog() {
+  const dialogs = Array.from(
+    document.body.querySelectorAll<HTMLElement>('[data-testid="tax-scenario-combinations-dialog"]'),
+  )
+  return dialogs.at(-1) ?? null
+}
+
 describe('situation single-source flow', () => {
   it('goes to selecting from intro start button when a selection exists but checklist is not generated', () => {
     renderApp({ autoStart: false })
@@ -785,6 +792,36 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('合併計稅')
     expect(container.textContent).toContain('28% 分開計稅')
     expect(container.textContent).toContain('推薦：')
+  })
+
+  it('hides AMT wording in summary scenario details until overseas income is positive', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '100000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).not.toContain('AMT')
+  })
+
+  it('shows AMT wording in summary scenario details when overseas income is positive', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('海外所得')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('card-input-overseas-income-amt-overseas_income_amount', '500000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).toContain('AMT')
   })
 
   it('hides savings investment from selectors and derives it from interest income on the result page', () => {

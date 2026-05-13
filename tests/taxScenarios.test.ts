@@ -220,6 +220,20 @@ describe('calcTaxScenarios', () => {
     expect(above.bestScenario.finalTax).toBe(70_000)
   })
 
+  it('omits AMT formula lines when overseas income is zero', () => {
+    const result = calcTaxScenarios(baseSingle)
+    expect(result.hasOverseasIncome).toBe(false)
+    expect(result.bestScenario.formulas.some((line) => line.label.includes('AMT'))).toBe(false)
+    expect(result.bestScenario.formulas.at(-1)?.expression).toBe('3,600')
+  })
+
+  it('keeps AMT judgment lines when overseas income is positive but below threshold', () => {
+    const result = calcTaxScenarios({ ...baseSingle, overseasIncome: 500_000 })
+    expect(result.hasOverseasIncome).toBe(true)
+    expect(result.hasAmt).toBe(false)
+    expect(result.bestScenario.formulas.some((line) => line.label === 'AMT 判斷')).toBe(true)
+  })
+
   describe(`official couple filing — MOF strategy HTML (${SOURCE_MOF_STRATEGY_HTML})`, () => {
     it('picks spouse all-income separate with merged dividend (lowest regularTax)', () => {
       const result = calcTaxScenarios(mofStrategyHtml114Inputs)

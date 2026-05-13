@@ -154,8 +154,13 @@ function TaxFormulaDialog({
           {scenarioResult ? (
             <div className="space-y-4">
               <p className="text-base leading-relaxed text-gray-700">
-                以下列出本頁已填資料可展開的全部組合。海外所得 AMT 不是可選方案；
-                若基本稅額高於一般稅額，會加上 AMT 補稅後再排序。
+                以下列出本頁已填資料可展開的全部組合。
+                {scenarioResult.hasOverseasIncome && (
+                  <>
+                    海外所得 AMT 不是可選方案；
+                    若基本稅額高於一般稅額，會加上 AMT 補稅後再排序。
+                  </>
+                )}
               </p>
               {scenarioResult.scenarios.map((scenario) => {
                 const isBest = scenario.id === scenarioResult.bestScenario.id
@@ -328,13 +333,15 @@ function ChevronIcon({ open }: { open: boolean }) {
   )
 }
 
-function StructureHint() {
+function StructureHint({ includeAmt }: { includeAmt: boolean }) {
   return (
     <div className="mb-2 rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-base text-gray-600">
-      <div>
-        <span className="text-gray-400">最終稅額 =</span>{' '}
-        一般稅額 <span className="text-gray-400">+</span> AMT 補稅
-      </div>
+      {includeAmt && (
+        <div>
+          <span className="text-gray-400">最終稅額 =</span>{' '}
+          一般稅額 <span className="text-gray-400">+</span> AMT 補稅
+        </div>
+      )}
       <div className="pl-4">
         <span className="text-gray-400">一般稅額 =</span>{' '}
         所得稅額 <span className="text-gray-400">−</span>{' '}
@@ -426,7 +433,11 @@ function TaxScenarioCombinationsDialog({
             <h2 className="text-base font-semibold text-gray-900">稅額組合試算明細</h2>
             <p className="mt-1 text-base leading-relaxed text-gray-500">
               共 {scenarioResult.scenarios.length} 種組合，依最終稅額由低至高排序。
-              海外所得未達門檻時 AMT 不影響排序；否則補稅金額已計入最終稅額。
+              {scenarioResult.hasOverseasIncome && (
+                <>
+                  海外所得未達門檻時 AMT 不影響排序；否則補稅金額已計入最終稅額。
+                </>
+              )}
               {' '}
               <a
                 href="#tax-formula-detail"
@@ -534,7 +545,7 @@ function TaxScenarioCombinationsDialog({
                       {isOpen && (
                         <tr className={`relative z-0 border-gray-200 ${isBest ? 'bg-blue-50/30' : 'bg-gray-50/40'}`}>
                           <td colSpan={colCount} className="px-4 pb-4 pt-1.5">
-                            <StructureHint />
+                            <StructureHint includeAmt={scenarioResult.hasOverseasIncome} />
                             <FormulaTable scenario={scenario} />
                           </td>
                         </tr>
