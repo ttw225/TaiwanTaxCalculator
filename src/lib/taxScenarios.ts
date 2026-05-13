@@ -41,6 +41,7 @@ export interface TaxScenario {
   title: string
   dividendTitle: string | null
   grossIncome: number
+  basicLivingExpenseDifference: number
   taxableIncome: number
   regularIncomeTaxBeforeDividendCredit: number
   dividendCredit: number
@@ -61,11 +62,19 @@ export interface TaxScenarioInputs {
   exemptionAmount: number
   selfExemptionAmount: number
   spouseExemptionAmount: number
+  householdMemberCount: number
   generalDeductionAmount: number
   specialDeductionAmount: number
   savingsInvestmentDeductionAmount: number
   overseasIncome: number
   overseasTaxPaid: number
+}
+
+export interface BasicLivingExpenseInputs {
+  exemptionAmount: number
+  householdMemberCount: number
+  generalDeductionAmount: number
+  specialDeductionAmount: number
 }
 
 export interface TaxScenarioResult {
@@ -124,6 +133,18 @@ function calcSplitSavingsDeduction(
 
   if (totalInterest <= cap) return Math.min(splitInterest, savingsInvestmentDeductionAmount)
   return Math.min(splitInterest, savingsInvestmentDeductionAmount, Math.max(0, cap - otherInterest))
+}
+
+export function calcBasicLivingExpenseDifference(inputs: BasicLivingExpenseInputs): number {
+  const basicLivingExpenseTotal =
+    getNumber('basic_living_expense') * Math.max(0, Math.floor(inputs.householdMemberCount))
+  return Math.max(
+    0,
+    basicLivingExpenseTotal -
+      inputs.exemptionAmount -
+      inputs.generalDeductionAmount -
+      inputs.specialDeductionAmount,
+  )
 }
 
 function scenarioTitle(mode: CoupleScenarioMode): string {
@@ -214,6 +235,7 @@ function buildScenario(
   const includeDividend = dividendMode !== 'separate_28'
   const totalDividend = sumPersons(inputs.persons, (person) => person.dividendIncome)
   const grossIncome = sumPersons(inputs.persons, (person) => personIncome(person, includeDividend))
+  const basicLivingExpenseDifference = calcBasicLivingExpenseDifference(inputs)
   const assumptions = [
     '未能歸屬到特定個人的扣除額放在非分開計稅方。',
   ]
@@ -226,7 +248,8 @@ function buildScenario(
       grossIncome -
         inputs.exemptionAmount -
         inputs.generalDeductionAmount -
-        inputs.specialDeductionAmount,
+        inputs.specialDeductionAmount -
+        basicLivingExpenseDifference,
     )
     taxableParts = [{ label: '綜合所得淨額', taxableIncome, tax: calcTax(taxableIncome) }]
   } else if (coupleMode === 'self_salary_separate' || coupleMode === 'spouse_salary_separate') {
@@ -240,7 +263,8 @@ function buildScenario(
         splitPerson.salaryNetIncome -
         (inputs.exemptionAmount - splitExemption) -
         inputs.generalDeductionAmount -
-        inputs.specialDeductionAmount,
+        inputs.specialDeductionAmount -
+        basicLivingExpenseDifference,
     )
     taxableParts = [
       { label: `${splitPerson.label}薪資分開計稅淨額`, taxableIncome: splitTaxable, tax: calcTax(splitTaxable) },
@@ -264,7 +288,8 @@ function buildScenario(
         splitGross -
         (inputs.exemptionAmount - splitExemption) -
         inputs.generalDeductionAmount -
-        otherSpecialDeduction,
+        otherSpecialDeduction -
+        basicLivingExpenseDifference,
     )
     taxableParts = [
       { label: `${splitPerson.label}各類所得分開計稅淨額`, taxableIncome: splitTaxable, tax: calcTax(splitTaxable) },
@@ -296,6 +321,11 @@ function buildScenario(
       label: '綜合所得總額',
       expression: includeDividend ? '薪資淨額 + 股利 + 利息 + 其他收入' : '薪資淨額 + 利息 + 其他收入',
       amount: grossIncome,
+    },
+    {
+      label: '基本生活費差額',
+      expression: `max(0, ${money(getNumber('basic_living_expense'))} × ${Math.max(0, Math.floor(inputs.householdMemberCount))} - ${money(inputs.exemptionAmount)} - ${money(inputs.generalDeductionAmount)} - ${money(inputs.specialDeductionAmount)})`,
+      amount: -basicLivingExpenseDifference,
     },
     ...taxableParts.flatMap((part) => [
       {
@@ -344,6 +374,7 @@ function buildScenario(
     title: divTitle ? `${scenarioTitle(coupleMode)}，${divTitle}` : scenarioTitle(coupleMode),
     dividendTitle: divTitle,
     grossIncome,
+    basicLivingExpenseDifference,
     taxableIncome,
     regularIncomeTaxBeforeDividendCredit,
     dividendCredit,

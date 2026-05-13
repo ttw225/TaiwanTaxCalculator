@@ -31,6 +31,7 @@
 - **Situations**: count **15 public situations**; every public `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals public ids, no duplicates, fixed subgroup ordering tests. Hidden derived `savings_investment` is tested through interest-income linkage.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
 - **AMT**: threshold **1_000_000** inclusive boundary; summary scenario tests cover the 7,500,000 basic-income deduction, 20% basic-tax rate, overseas-tax credit, and supplement.
+- **Basic living expense difference**: tax scenario tests cover positive differences reducing taxable income; zero/negative differences remain floored at 0 by the existing baseline examples.
 - **Itemized dependencies**:
   - Donations: qualified donations are capped at 20% of `grossIncomeAmount`; if the qualified amount is filled but gross income is missing, itemized line is treated as unfilled (`null`). When positive dividend income is present, inline feedback shows both merged-tax and 28% separate-tax 20% caps.
   - Mortgage interest: when `savings-investment-deduction` is enabled, mortgage interest subtracts the capped savings-investment deduction first; that deduction is derived from total interest income.

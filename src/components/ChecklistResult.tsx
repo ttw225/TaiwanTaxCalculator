@@ -28,7 +28,11 @@ import {
   type IncomeCardId,
   type IncomeParticipant,
 } from '../lib/grossIncome'
-import { calcTaxScenarios, type TaxScenarioPerson } from '../lib/taxScenarios'
+import {
+  calcBasicLivingExpenseDifference,
+  calcTaxScenarios,
+  type TaxScenarioPerson,
+} from '../lib/taxScenarios'
 import { FormulaRow } from './checklist/FormulaRow'
 import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DeductionCard } from './DeductionCard'
@@ -688,6 +692,7 @@ export function ChecklistResult({
       amount: selfExemptionAmount + spouseExemptionAmount + dependentExemptionAmount,
       selfExemptionAmount,
       spouseExemptionAmount,
+      householdMemberCount: 1 + (isMarriedFiling ? 1 : 0) + dependentUnder70 + dependentOver70,
     }
   }, [cardInputMap, isMarriedFiling])
   const exemptionAmount = exemptionResolved?.amount ?? null
@@ -892,6 +897,28 @@ export function ChecklistResult({
             ? 'itemized'
             : 'standard')
 
+  const basicLivingExpenseDifference = useMemo(() => {
+    if (
+      !exemptionResolved ||
+      generalDeductionAmount === null ||
+      (hasSpecialDeductions && specialDeductionAmount === null)
+    ) {
+      return null
+    }
+
+    return calcBasicLivingExpenseDifference({
+      exemptionAmount: exemptionResolved.amount,
+      householdMemberCount: exemptionResolved.householdMemberCount,
+      generalDeductionAmount,
+      specialDeductionAmount: hasSpecialDeductions ? (specialDeductionAmount ?? 0) : 0,
+    })
+  }, [
+    exemptionResolved,
+    generalDeductionAmount,
+    hasSpecialDeductions,
+    specialDeductionAmount,
+  ])
+
   const taxScenarioResult = useMemo(() => {
     if (
       !allIncomeCardsComplete ||
@@ -908,6 +935,7 @@ export function ChecklistResult({
       exemptionAmount: exemptionResolved.amount,
       selfExemptionAmount: exemptionResolved.selfExemptionAmount,
       spouseExemptionAmount: exemptionResolved.spouseExemptionAmount,
+      householdMemberCount: exemptionResolved.householdMemberCount,
       generalDeductionAmount,
       specialDeductionAmount: hasSpecialDeductions ? (specialDeductionAmount ?? 0) : 0,
       savingsInvestmentDeductionAmount: savingsInvestmentDeductionAmount ?? 0,
@@ -1242,6 +1270,7 @@ export function ChecklistResult({
               generalDeductionAmount={generalDeductionAmount}
               generalDeductionMethod={generalDeductionMethod}
               specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
+              basicLivingExpenseDifference={basicLivingExpenseDifference}
               hasSpecialDeductions={hasSpecialDeductions}
               printMode
             />
@@ -1262,6 +1291,7 @@ export function ChecklistResult({
             generalDeductionAmount={generalDeductionAmount}
             generalDeductionMethod={generalDeductionMethod}
             specialDeductionAmount={hasSpecialDeductions ? specialDeductionAmount : null}
+            basicLivingExpenseDifference={basicLivingExpenseDifference}
             hasSpecialDeductions={hasSpecialDeductions}
             onScrollToSection={handleScrollToSection}
           />
