@@ -16,6 +16,7 @@ const baseSingle: TaxScenarioInputs = {
   exemptionAmount: 97_000,
   selfExemptionAmount: 97_000,
   spouseExemptionAmount: 0,
+  householdMemberCount: 1,
   generalDeductionAmount: 131_000,
   specialDeductionAmount: 0,
   savingsInvestmentDeductionAmount: 0,
@@ -46,6 +47,7 @@ const baseMarried: TaxScenarioInputs = {
   exemptionAmount: 194_000,
   selfExemptionAmount: 97_000,
   spouseExemptionAmount: 97_000,
+  householdMemberCount: 2,
   generalDeductionAmount: 262_000,
   specialDeductionAmount: 0,
   savingsInvestmentDeductionAmount: 0,
@@ -104,6 +106,19 @@ describe('calcTaxScenarios', () => {
     expect(result.bestScenario.regularTax).toBe(1_175)
   })
 
+  it('deducts a positive basic living expense difference from taxable income', () => {
+    const result = calcTaxScenarios({
+      ...baseSingle,
+      persons: [{ ...baseSingle.persons[0], salaryNetIncome: 1_000_000 }],
+      exemptionAmount: 194_000,
+      householdMemberCount: 2,
+    })
+
+    expect(result.bestScenario.basicLivingExpenseDifference).toBe(101_000)
+    expect(result.bestScenario.taxableIncome).toBe(574_000)
+    expect(result.bestScenario.regularTax).toBe(28_700)
+  })
+
   it('uses spouse senior exemption for spouse separate modes', () => {
     const result = calcTaxScenarios({
       ...baseMarried,
@@ -124,6 +139,7 @@ describe('calcTaxScenarios', () => {
       exemptionAmount: 97_000,
       selfExemptionAmount: 97_000,
       spouseExemptionAmount: 0,
+      householdMemberCount: 1,
       generalDeductionAmount: 131_000,
     })
     expect(result.bestScenario.dividendMode).toBe('separate_28')
@@ -178,6 +194,7 @@ describe('calcTaxScenarios', () => {
       exemptionAmount: 291_000,
       selfExemptionAmount: 97_000,
       spouseExemptionAmount: 97_000,
+      householdMemberCount: 3,
       generalDeductionAmount: 262_000,
       specialDeductionAmount: 270_000,
       savingsInvestmentDeductionAmount: 270_000,

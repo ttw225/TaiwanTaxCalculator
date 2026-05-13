@@ -157,6 +157,24 @@ Gross income semantics:
 - Overseas income remains an AMT-oriented card and is not included in regular gross income totals.
 - Exemption summary requires the filer age band, and spouse age band when married filing is selected. Dependent count inputs represent other dependents only, excluding the filer and spouse.
 
+## Tax scenario inputs
+
+[`src/lib/taxScenarios.ts`](../src/lib/taxScenarios.ts) expects `householdMemberCount` in addition to exemption/deduction totals. `ChecklistResult` derives it from the filer, optional spouse, and dependent count inputs.
+
+`basicLivingExpenseDifference` is computed as:
+
+```ts
+max(
+  0,
+  getNumber('basic_living_expense') * householdMemberCount
+    - exemptionAmount
+    - generalDeductionAmount
+    - specialDeductionAmount,
+)
+```
+
+This value is subtracted when calculating taxable income. Salary special deduction is not part of this comparison because salary cards already pass salary **net** income after salary special deduction.
+
 ## Related docs
 
 - Content instances: [`06-content-modules.md`](./06-content-modules.md)

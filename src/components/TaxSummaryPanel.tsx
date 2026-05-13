@@ -16,6 +16,7 @@ interface Props {
   generalDeductionAmount: number | null
   generalDeductionMethod?: 'standard' | 'itemized' | null
   specialDeductionAmount: number | null
+  basicLivingExpenseDifference: number | null
   hasSpecialDeductions: boolean
   onScrollToSection?: (categoryId: string) => void
   printMode?: boolean
@@ -109,7 +110,7 @@ function SummaryRow({
           <GoFill sectionId={sectionId} onScroll={onScroll} />
         ) : hasVal ? (
           <span className="text-base font-semibold leading-6 tabular-nums text-gray-800">
-            {isDeduction ? '−' : ''}{fmt(value!)} 元
+            {isDeduction && value! > 0 ? '−' : ''}{fmt(value!)} 元
           </span>
         ) : (
           <span className="text-base leading-6 text-gray-200">—</span>
@@ -193,9 +194,14 @@ function TaxFormulaDialog({
             </div>
           ) : (
             <>
-              <p className="text-base text-gray-700 mb-4">
-                公式：<span className="font-semibold text-gray-900">「綜合所得淨額」× 稅率 − 累進差額</span>
-              </p>
+              <div className="mb-4 space-y-1 text-base text-gray-700">
+                <p>
+                  所得淨額：<span className="font-semibold text-gray-900">綜合所得總額 − 免稅額 − 一般扣除額 − 特別扣除額 − 基本生活費差額</span>
+                </p>
+                <p>
+                  應納稅額：<span className="font-semibold text-gray-900">所得淨額 × 稅率 − 累進差額</span>
+                </p>
+              </div>
               <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
                 <table className="w-full border-collapse text-base">
                   <thead className="relative z-20">
@@ -567,6 +573,7 @@ interface SummaryBodyProps {
   generalDeductionAmount: number | null
   generalDeductionMethod?: 'standard' | 'itemized' | null
   specialDeductionAmount: number | null
+  basicLivingExpenseDifference: number | null
   hasSpecialDeductions: boolean
   grossIncomePendingCalculation?: boolean
   hasOverseasIncomeSection?: boolean
@@ -585,6 +592,7 @@ function TaxSummaryBody({
   generalDeductionAmount,
   generalDeductionMethod,
   specialDeductionAmount,
+  basicLivingExpenseDifference,
   hasSpecialDeductions,
   grossIncomePendingCalculation = false,
   hasOverseasIncomeSection = false,
@@ -600,6 +608,7 @@ function TaxSummaryBody({
   const exemptMissing = exemptionAmount === null
   const generalMissing = generalDeductionAmount === null
   const specialMissing = hasSpecialDeductions && specialDeductionAmount === null
+  const basicLivingMissing = basicLivingExpenseDifference === null
 
   return (
     <>
@@ -677,6 +686,13 @@ function TaxSummaryBody({
             onScroll={onScrollToSection}
           />
         )}
+        <SummaryRow
+          label="基本生活費差額"
+          value={basicLivingExpenseDifference}
+          isDeduction
+          pendingCalculation={basicLivingMissing}
+          sectionId="basic_living_expense"
+        />
 
         {/* Divider + net income */}
         <div className="border-t border-dashed border-gray-200 pt-2.5 space-y-1.5">
@@ -780,6 +796,7 @@ export function TaxSummaryPanel({
   generalDeductionAmount,
   generalDeductionMethod,
   specialDeductionAmount,
+  basicLivingExpenseDifference,
   hasSpecialDeductions,
   onScrollToSection,
   printMode = false,
@@ -798,13 +815,15 @@ export function TaxSummaryPanel({
     grossIncome !== null &&
     exemptionAmount !== null &&
     generalDeductionAmount !== null &&
+    basicLivingExpenseDifference !== null &&
     (!hasSpecialDeductions || specialDeductionAmount !== null)
       ? Math.max(
           0,
           grossIncome
             - exemptionAmount
             - generalDeductionAmount
-            - (hasSpecialDeductions ? (specialDeductionAmount ?? 0) : 0),
+            - (hasSpecialDeductions ? (specialDeductionAmount ?? 0) : 0)
+            - basicLivingExpenseDifference,
         )
       : null
   const netIncome = taxScenarioResult?.bestScenario.taxableIncome ?? baseNetIncome
@@ -848,6 +867,7 @@ export function TaxSummaryPanel({
           generalDeductionAmount={generalDeductionAmount}
           generalDeductionMethod={generalDeductionMethod}
           specialDeductionAmount={specialDeductionAmount}
+          basicLivingExpenseDifference={taxScenarioResult?.bestScenario.basicLivingExpenseDifference ?? basicLivingExpenseDifference}
           hasSpecialDeductions={hasSpecialDeductions}
           netIncome={netIncome}
           taxAmount={taxAmount}

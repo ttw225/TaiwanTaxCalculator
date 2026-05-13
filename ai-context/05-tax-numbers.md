@@ -76,6 +76,7 @@ Current rows (from file):
 ## Related code
 
 - Progressive tax on net income: [`calcTax`](../src/lib/numbers.ts) uses `getBrackets()` from `numbers_2026.json`.
+- Basic living expense difference uses `basic_living_expense × householdMemberCount − exemptions − general deductions − special deductions`, floored at 0, in [`calcBasicLivingExpenseDifference`](../src/lib/taxScenarios.ts).
 - Scenario comparison (filing mode, dividends, AMT) reads thresholds and caps via `getNumber` in [`taxScenarios.ts`](../src/lib/taxScenarios.ts) and related UI.
 
 ## Related docs
