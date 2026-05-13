@@ -822,6 +822,7 @@ describe('situation single-source flow', () => {
 
     clickBodyByTestId('scenario-row-single:merged')
     const mergedHint = document.body.querySelector<HTMLElement>('[data-testid="scenario-structure-hint-single:merged"]')
+    expect(mergedHint?.textContent).toContain('所得淨額 = 綜合所得總額 − 免稅額 − 一般扣除額 − 特別扣除額 − 基本生活費差額')
     expect(mergedHint?.textContent).toContain('一般稅額 = 應納稅額 − 股利可抵減稅額')
     expect(mergedHint?.textContent).not.toContain('股利分開計稅稅額')
   })

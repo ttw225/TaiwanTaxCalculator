@@ -363,6 +363,12 @@ function StructureHint({ scenario, includeAmt }: { scenario: TaxScenario; includ
         </div>
       )}
       <div className="pl-4">
+        <span className="text-gray-400">所得淨額 =</span>{' '}
+        綜合所得總額 <span className="text-gray-400">−</span> 免稅額 <span className="text-gray-400">−</span>{' '}
+        一般扣除額 <span className="text-gray-400">−</span> 特別扣除額 <span className="text-gray-400">−</span>{' '}
+        基本生活費差額
+      </div>
+      <div className="pl-4">
         <span className="text-gray-400">一般稅額 =</span>{' '}
         {regularTaxFormula}
       </div>
