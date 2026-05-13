@@ -7,6 +7,16 @@ import {
   type TaxScenario,
   type TaxScenarioInputs,
 } from '../src/lib/taxScenarios'
+import {
+  etaxFaqLe0k8lg114Goldens,
+  etaxFaqLe0k8lg114Inputs,
+  mofStrategyHtml114Goldens,
+  mofStrategyHtml114Inputs,
+  scenarioId,
+  SOURCE_ETAX_FAQ_LE0K8LG,
+  SOURCE_MOF_STRATEGY_HTML,
+} from './fixtures/officialCoupleFiling114'
+import { expectScenarioMatchesOfficialGolden } from './helpers/officialCoupleGoldenAssert'
 
 /** 114 年度綜所稅應納稅額懶人包範例表 — (二) 範例說明 */
 const EGov114_IIT_SOURCE =
@@ -210,52 +220,40 @@ describe('calcTaxScenarios', () => {
     expect(above.bestScenario.finalTax).toBe(70_000)
   })
 
-  it('matches the official couple filing example for the best merged-dividend mode before withholding', () => {
-    const result = calcTaxScenarios({
-      isMarried: true,
-      persons: [
-        {
-          id: 'self',
-          label: '本人',
-          salaryNetIncome: 1_800_000,
-          dividendIncome: 1_000_000,
-          interestIncome: 150_000,
-          otherIncome: 400_000,
-        },
-        {
-          id: 'spouse',
-          label: '配偶',
-          salaryNetIncome: 1_300_000,
-          dividendIncome: 600_000,
-          interestIncome: 100_000,
-          otherIncome: 200_000,
-        },
-        {
-          id: 'extra-0',
-          label: '扶養親屬',
-          salaryNetIncome: 0,
-          dividendIncome: 0,
-          interestIncome: 100_000,
-          otherIncome: 0,
-        },
-      ],
-      exemptionAmount: 291_000,
-      selfExemptionAmount: 97_000,
-      spouseExemptionAmount: 97_000,
-      householdMemberCount: 3,
-      generalDeductionAmount: 262_000,
-      specialDeductionAmount: 270_000,
-      savingsInvestmentDeductionAmount: 270_000,
-      overseasIncome: 0,
-      overseasTaxPaid: 0,
+  describe(`official couple filing — MOF strategy HTML (${SOURCE_MOF_STRATEGY_HTML})`, () => {
+    it('picks spouse all-income separate with merged dividend (lowest regularTax)', () => {
+      const result = calcTaxScenarios(mofStrategyHtml114Inputs)
+      expect(result.bestScenario.coupleMode).toBe('spouse_all_income_separate')
+      expect(result.bestScenario.dividendMode).toBe('merged')
+      expect(result.bestScenario.regularTax).toBe(598_400)
     })
 
-    const best = result.bestScenario
-    expect(best.coupleMode).toBe('spouse_all_income_separate')
-    expect(best.dividendMode).toBe('merged')
-    expect(best.regularIncomeTaxBeforeDividendCredit).toBe(678_400)
-    expect(best.dividendCredit).toBe(80_000)
-    expect(best.finalTax).toBe(598_400)
+    it.each(mofStrategyHtml114Goldens)('golden $coupleMode + $dividendMode', (golden) => {
+      const result = calcTaxScenarios(mofStrategyHtml114Inputs)
+      const scenario = result.scenarios.find(
+        (s) => s.coupleMode === golden.coupleMode && s.dividendMode === golden.dividendMode,
+      )
+      expect(scenario, scenarioId(golden)).toBeDefined()
+      expectScenarioMatchesOfficialGolden(scenario!, golden)
+    })
+  })
+
+  describe(`official couple filing — eTax FAQ LE0K8lg (${SOURCE_ETAX_FAQ_LE0K8LG})`, () => {
+    it('picks spouse all-income separate with merged dividend (lowest regularTax)', () => {
+      const result = calcTaxScenarios(etaxFaqLe0k8lg114Inputs)
+      expect(result.bestScenario.coupleMode).toBe('spouse_all_income_separate')
+      expect(result.bestScenario.dividendMode).toBe('merged')
+      expect(result.bestScenario.regularTax).toBe(589_400)
+    })
+
+    it.each(etaxFaqLe0k8lg114Goldens)('golden $coupleMode + $dividendMode', (golden) => {
+      const result = calcTaxScenarios(etaxFaqLe0k8lg114Inputs)
+      const scenario = result.scenarios.find(
+        (s) => s.coupleMode === golden.coupleMode && s.dividendMode === golden.dividendMode,
+      )
+      expect(scenario, scenarioId(golden)).toBeDefined()
+      expectScenarioMatchesOfficialGolden(scenario!, golden)
+    })
   })
 
   describe(`egov 114 merged examples (${EGov114_IIT_SOURCE})`, () => {
