@@ -774,7 +774,7 @@ function TaxSummaryBody({
         )}
         <div className="flex items-center justify-between gap-2">
           <span className={`text-base font-semibold ${taxAmount !== null ? 'text-blue-800' : 'text-muted'}`}>
-            {taxScenarioResult ? '最終比較稅額' : '應納稅額'}
+            {taxScenarioResult ? '應繳納稅額' : '應納稅額'}
           </span>
           {taxAmount !== null ? (
             <span className="text-base font-bold tabular-nums text-blue-700">{fmt(taxAmount)} 元</span>

@@ -362,7 +362,7 @@ function buildScenario(
   })
   formulas.push(...amt.lines)
   formulas.push({
-    label: '最終比較稅額',
+    label: '應繳納稅額',
     expression: `${money(regularTax)} + ${money(amt.amtSupplement)}`,
     amount: finalTax,
   })
