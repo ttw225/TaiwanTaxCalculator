@@ -771,7 +771,9 @@ function TaxSummaryBody({
       >
         {taxScenarioResult && onOpenScenarioDialog && (
           <div className="mb-1.5 text-base text-blue-800">
-            <span className="font-semibold">推薦：</span>
+            {taxScenarioResult.scenarios.length > 1 && (
+              <span className="font-semibold">推薦：</span>
+            )}
             <span className="font-semibold">{taxScenarioResult.bestScenario.title}</span>
             {' '}
             <a

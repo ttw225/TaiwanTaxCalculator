@@ -776,6 +776,18 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).toBeNull()
   })
 
+  it('shows filing mode without recommendation prefix when there is only one tax scenario', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+
+    expect(container.textContent).toContain('單身申報')
+    expect(container.textContent).not.toContain('推薦：單身申報')
+  })
+
   it('calculates summary scenarios when completed income cards include positive dividends', () => {
     renderApp()
     clickButtonByText('薪資收入')
