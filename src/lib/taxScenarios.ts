@@ -238,6 +238,23 @@ function buildAmtLines(
   }
 }
 
+function regularTaxExpression(
+  dividendMode: DividendScenarioMode,
+  regularIncomeTaxBeforeDividendCredit: number,
+  dividendCredit: number,
+  separateDividendTax: number,
+): string {
+  if (dividendMode === 'merged') {
+    return `${money(regularIncomeTaxBeforeDividendCredit)} - ${money(dividendCredit)}`
+  }
+
+  if (dividendMode === 'separate_28') {
+    return `${money(regularIncomeTaxBeforeDividendCredit)} + ${money(separateDividendTax)}`
+  }
+
+  return `${money(regularIncomeTaxBeforeDividendCredit)}`
+}
+
 function buildScenario(
   inputs: TaxScenarioInputs,
   coupleMode: CoupleScenarioMode,
@@ -368,7 +385,12 @@ function buildScenario(
 
   formulas.push({
     label: '一般稅額',
-    expression: `${money(regularIncomeTaxBeforeDividendCredit)} - ${money(dividendCredit)} + ${money(separateDividendTax)}`,
+    expression: regularTaxExpression(
+      dividendMode,
+      regularIncomeTaxBeforeDividendCredit,
+      dividendCredit,
+      separateDividendTax,
+    ),
     amount: regularTax,
   })
   formulas.push(...amt.lines)

@@ -130,6 +130,21 @@ describe('calcTaxScenarios', () => {
     expect(result.scenarios.map((s) => s.dividendMode)).toEqual(['merged', 'separate_28'])
   })
 
+  it('omits zero dividend terms from regular-tax formula expressions', () => {
+    const withoutDividend = calcTaxScenarios(baseSingle).bestScenario
+    expect(withoutDividend.formulas.find((line) => line.label === '一般稅額')?.expression).toBe('3,600')
+
+    const withDividend = calcTaxScenarios({
+      ...baseSingle,
+      persons: [{ ...baseSingle.persons[0], dividendIncome: 500_000 }],
+    })
+    const merged = withDividend.scenarios.find((scenario) => scenario.dividendMode === 'merged')
+    const separate = withDividend.scenarios.find((scenario) => scenario.dividendMode === 'separate_28')
+
+    expect(merged?.formulas.find((line) => line.label === '一般稅額')?.expression).toBe('28,600 - 42,500')
+    expect(separate?.formulas.find((line) => line.label === '一般稅額')?.expression).toBe('3,600 + 140,000')
+  })
+
   it('returns five couple scenarios without dividends', () => {
     const result = calcTaxScenarios(baseMarried)
     expect(result.scenarios).toHaveLength(5)
