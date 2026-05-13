@@ -170,9 +170,9 @@ function dividendTitle(mode: DividendScenarioMode): string | null {
     case 'none':
       return null
     case 'merged':
-      return '股利合併計稅並扣抵'
+      return '股利合併計稅'
     case 'separate_28':
-      return '股利 28% 分開計稅'
+      return '股利分開計稅'
   }
 }
 

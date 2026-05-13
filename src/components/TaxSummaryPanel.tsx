@@ -310,8 +310,8 @@ const COUPLE_LABEL_MAP: Record<string, string> = {
 
 const DIVIDEND_LABEL_MAP: Record<string, string | null> = {
   none: null,
-  merged: '股利合併計稅並扣抵',
-  separate_28: '股利 28% 分開計稅',
+  merged: '股利合併計稅',
+  separate_28: '股利分開計稅',
 }
 
 function ChevronIcon({ open }: { open: boolean }) {

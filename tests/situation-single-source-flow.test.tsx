@@ -802,8 +802,15 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('182,000 元')
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).not.toBeNull()
     expect(container.textContent).toContain('合併計稅')
-    expect(container.textContent).toContain('28% 分開計稅')
+    expect(container.textContent).toContain('股利合併計稅')
     expect(container.textContent).toContain('推薦：')
+
+    clickButtonByText('查看詳情')
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).toContain('股利合併計稅')
+    expect(dialog?.textContent).toContain('股利分開計稅')
+    expect(dialog?.textContent).not.toContain('股利合併計稅並扣抵')
+    expect(dialog?.textContent).not.toContain('股利 28% 分開計稅')
   })
 
   it('hides AMT wording in summary scenario details until overseas income is positive', () => {
