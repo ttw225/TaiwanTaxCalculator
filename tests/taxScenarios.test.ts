@@ -1,5 +1,53 @@
 import { describe, expect, it } from 'vitest'
-import { calcTaxScenarios, type TaxScenarioInputs } from '../src/lib/taxScenarios'
+import {
+  calcBasicLivingExpenseDifference,
+  calcTaxScenarios,
+  type BasicLivingExpenseInputs,
+  type CoupleScenarioMode,
+  type TaxScenario,
+  type TaxScenarioInputs,
+} from '../src/lib/taxScenarios'
+
+/** 114 年度綜所稅應納稅額懶人包範例表 — (二) 範例說明 */
+const EGov114_IIT_SOURCE =
+  'docs/references/egov-iit-tax-due-calculation-114.md（我的 E 政府／財政部稅務入口網範例；稅率級距與 src/data/numbers_2026.json 一致）'
+
+/**
+ * Asserts pipeline ①–⑦ on the merged path (single or joint) against the egov table.
+ * ②③④ come from inputs; ⑤ uses calcBasicLivingExpenseDifference (negative raw → 0).
+ */
+function assertEgov114MergedPipeline(
+  inputs: TaxScenarioInputs,
+  scenario: TaxScenario,
+  expected: {
+    grossIncome: number
+    exemptionAmount: number
+    generalDeduction: number
+    specialDeduction: number
+    /** ⑤ 實際從淨額減除之基本生活費差額；懶人包三例皆為 0 */
+    basicLivingExpenseApplied: number
+    netIncome: number
+    tax: number
+  },
+): void {
+  expect(scenario.grossIncome).toBe(expected.grossIncome)
+  expect(inputs.exemptionAmount).toBe(expected.exemptionAmount)
+  expect(inputs.generalDeductionAmount).toBe(expected.generalDeduction)
+  expect(inputs.specialDeductionAmount).toBe(expected.specialDeduction)
+
+  const blInputs: BasicLivingExpenseInputs = {
+    exemptionAmount: inputs.exemptionAmount,
+    householdMemberCount: inputs.householdMemberCount,
+    generalDeductionAmount: inputs.generalDeductionAmount,
+    specialDeductionAmount: inputs.specialDeductionAmount,
+  }
+  expect(calcBasicLivingExpenseDifference(blInputs)).toBe(expected.basicLivingExpenseApplied)
+  expect(scenario.basicLivingExpenseDifference).toBe(expected.basicLivingExpenseApplied)
+
+  expect(scenario.taxableIncome).toBe(expected.netIncome)
+  expect(scenario.regularIncomeTaxBeforeDividendCredit).toBe(expected.tax)
+  expect(scenario.regularTax).toBe(expected.tax)
+}
 
 const baseSingle: TaxScenarioInputs = {
   isMarried: false,
@@ -208,5 +256,144 @@ describe('calcTaxScenarios', () => {
     expect(best.regularIncomeTaxBeforeDividendCredit).toBe(678_400)
     expect(best.dividendCredit).toBe(80_000)
     expect(best.finalTax).toBe(598_400)
+  })
+
+  describe(`egov 114 merged examples (${EGov114_IIT_SOURCE})`, () => {
+    it('column 1 — single filer, standard deduction, zero net and tax', () => {
+      const inputs: TaxScenarioInputs = {
+        isMarried: false,
+        persons: [
+          {
+            id: 'self',
+            label: '本人',
+            salaryNetIncome: 228_000,
+            dividendIncome: 0,
+            interestIncome: 0,
+            otherIncome: 0,
+          },
+        ],
+        exemptionAmount: 97_000,
+        selfExemptionAmount: 97_000,
+        spouseExemptionAmount: 0,
+        householdMemberCount: 1,
+        generalDeductionAmount: 131_000,
+        specialDeductionAmount: 0,
+        savingsInvestmentDeductionAmount: 0,
+        overseasIncome: 0,
+        overseasTaxPaid: 0,
+      }
+      const result = calcTaxScenarios(inputs)
+      const merged = result.scenarios.find((s) => s.coupleMode === 'single' && s.dividendMode === 'none')
+      expect(merged).toBeDefined()
+      assertEgov114MergedPipeline(inputs, merged!, {
+        grossIncome: 228_000,
+        exemptionAmount: 97_000,
+        generalDeduction: 131_000,
+        specialDeduction: 0,
+        basicLivingExpenseApplied: 0,
+        netIncome: 0,
+        tax: 0,
+      })
+    })
+
+    it('column 2 — married, senior dependent, standard deduction, long-term care', () => {
+      const inputs: TaxScenarioInputs = {
+        isMarried: true,
+        persons: [
+          {
+            id: 'self',
+            label: '本人',
+            salaryNetIncome: 782_000,
+            dividendIncome: 0,
+            interestIncome: 0,
+            otherIncome: 0,
+          },
+          {
+            id: 'spouse',
+            label: '配偶',
+            salaryNetIncome: 0,
+            dividendIncome: 0,
+            interestIncome: 0,
+            otherIncome: 0,
+          },
+        ],
+        exemptionAmount: 339_500,
+        selfExemptionAmount: 97_000,
+        spouseExemptionAmount: 97_000,
+        householdMemberCount: 3,
+        generalDeductionAmount: 262_000,
+        specialDeductionAmount: 180_000,
+        savingsInvestmentDeductionAmount: 0,
+        overseasIncome: 0,
+        overseasTaxPaid: 0,
+      }
+      const result = calcTaxScenarios(inputs)
+      const merged = result.scenarios.find((s) => s.coupleMode === 'joint' && s.dividendMode === 'none')
+      expect(merged).toBeDefined()
+      assertEgov114MergedPipeline(inputs, merged!, {
+        grossIncome: 782_000,
+        exemptionAmount: 339_500,
+        generalDeduction: 262_000,
+        specialDeduction: 180_000,
+        basicLivingExpenseApplied: 0,
+        netIncome: 500,
+        tax: 25,
+      })
+    })
+
+    it('column 3 — dual income, toddler, itemized; merged pipeline + MOF split modes', () => {
+      const inputs: TaxScenarioInputs = {
+        isMarried: true,
+        persons: [
+          {
+            id: 'self',
+            label: '本人',
+            salaryNetIncome: 882_000,
+            dividendIncome: 0,
+            interestIncome: 0,
+            otherIncome: 0,
+          },
+          {
+            id: 'spouse',
+            label: '配偶',
+            salaryNetIncome: 482_000,
+            dividendIncome: 0,
+            interestIncome: 0,
+            otherIncome: 0,
+          },
+        ],
+        exemptionAmount: 291_000,
+        selfExemptionAmount: 97_000,
+        spouseExemptionAmount: 97_000,
+        householdMemberCount: 3,
+        generalDeductionAmount: 282_000,
+        specialDeductionAmount: 150_000,
+        savingsInvestmentDeductionAmount: 0,
+        overseasIncome: 0,
+        overseasTaxPaid: 0,
+      }
+      const result = calcTaxScenarios(inputs)
+      const merged = result.scenarios.find((s) => s.coupleMode === 'joint' && s.dividendMode === 'none')
+      expect(merged).toBeDefined()
+      assertEgov114MergedPipeline(inputs, merged!, {
+        grossIncome: 1_364_000,
+        exemptionAmount: 291_000,
+        generalDeduction: 282_000,
+        specialDeduction: 150_000,
+        basicLivingExpenseApplied: 0,
+        netIncome: 641_000,
+        tax: 35_620,
+      })
+
+      const byMode = (mode: CoupleScenarioMode) =>
+        result.scenarios.find((s) => s.coupleMode === mode && s.dividendMode === 'none')
+
+      expect(byMode('self_salary_separate')?.regularTax).toBe(52_900)
+      expect(byMode('spouse_salary_separate')?.regularTax).toBe(32_050)
+      expect(byMode('self_all_income_separate')?.regularTax).toBe(52_900)
+      expect(byMode('spouse_all_income_separate')?.regularTax).toBe(32_050)
+      expect(result.bestScenario.finalTax).toBe(32_050)
+      expect(result.bestScenario.coupleMode).toBe('spouse_salary_separate')
+    })
   })
 })
