@@ -213,6 +213,14 @@ function clickByTestId(testId: string) {
   })
 }
 
+function clickBodyByTestId(testId: string) {
+  const element = document.body.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
+  if (!element) throw new Error(`Missing body element with data-testid "${testId}"`)
+  act(() => {
+    element.click()
+  })
+}
+
 function clickSummarySectionLink(sectionId: string) {
   const sidebar = container.querySelector<HTMLElement>('aside.no-print')
   const row = sidebar?.querySelector<HTMLElement>(`[data-testid="summary-row-${sectionId}"]`)
@@ -811,6 +819,11 @@ describe('situation single-source flow', () => {
     expect(dialog?.textContent).toContain('股利分開計稅')
     expect(dialog?.textContent).not.toContain('股利合併計稅並扣抵')
     expect(dialog?.textContent).not.toContain('股利 28% 分開計稅')
+
+    clickBodyByTestId('scenario-row-single:merged')
+    const mergedHint = document.body.querySelector<HTMLElement>('[data-testid="scenario-structure-hint-single:merged"]')
+    expect(mergedHint?.textContent).toContain('一般稅額 = 應納稅額 − 股利可抵減稅額')
+    expect(mergedHint?.textContent).not.toContain('股利分開計稅稅額')
   })
 
   it('hides AMT wording in summary scenario details until overseas income is positive', () => {

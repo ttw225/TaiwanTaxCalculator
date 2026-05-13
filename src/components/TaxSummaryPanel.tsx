@@ -335,9 +335,27 @@ function ChevronIcon({ open }: { open: boolean }) {
   )
 }
 
-function StructureHint({ includeAmt }: { includeAmt: boolean }) {
+function StructureHint({ scenario, includeAmt }: { scenario: TaxScenario; includeAmt: boolean }) {
+  const regularTaxFormula =
+    scenario.dividendMode === 'merged'
+      ? (
+          <>
+            應納稅額 <span className="text-gray-400">−</span> 股利可抵減稅額
+          </>
+        )
+      : scenario.dividendMode === 'separate_28'
+        ? (
+            <>
+              應納稅額 <span className="text-gray-400">+</span> 股利分開計稅稅額
+            </>
+          )
+        : '應納稅額'
+
   return (
-    <div className="mb-2 rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-base text-gray-600">
+    <div
+      data-testid={`scenario-structure-hint-${scenario.id}`}
+      className="mb-2 rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-base text-gray-600"
+    >
       {includeAmt && (
         <div>
           <span className="text-gray-400">最終稅額 =</span>{' '}
@@ -346,8 +364,7 @@ function StructureHint({ includeAmt }: { includeAmt: boolean }) {
       )}
       <div className="pl-4">
         <span className="text-gray-400">一般稅額 =</span>{' '}
-        所得稅額 <span className="text-gray-400">−</span>{' '}
-        股利可抵減稅額 <span className="text-gray-400">+</span> 股利分開計稅稅額
+        {regularTaxFormula}
       </div>
     </div>
   )
@@ -508,6 +525,7 @@ function TaxScenarioCombinationsDialog({
                   return (
                     <Fragment key={scenario.id}>
                       <tr
+                        data-testid={`scenario-row-${scenario.id}`}
                         onClick={() => toggleRow(scenario.id)}
                         className={`relative z-0 cursor-pointer border-gray-200 transition-colors ${
                           isBest ? 'bg-blue-50/60 hover:bg-blue-50' : 'bg-white hover:bg-gray-50'
@@ -549,7 +567,7 @@ function TaxScenarioCombinationsDialog({
                       {isOpen && (
                         <tr className={`relative z-0 border-gray-200 ${isBest ? 'bg-blue-50/30' : 'bg-gray-50/40'}`}>
                           <td colSpan={colCount} className="px-4 pb-4 pt-1.5">
-                            <StructureHint includeAmt={scenarioResult.hasOverseasIncome} />
+                            <StructureHint scenario={scenario} includeAmt={scenarioResult.hasOverseasIncome} />
                             <FormulaTable scenario={scenario} />
                           </td>
                         </tr>
