@@ -4,8 +4,8 @@ Source: [`src/App.tsx`](../src/App.tsx).
 
 ## Top-level layout
 
-- `SiteHeader` with `currentFeatureId="tax-checklist"`.
-- `main`: either `SituationSelector` or `ChecklistResult`.
+- `SiteHeader` with `currentFeatureId="tax-checklist"` — `onHome` → `navigateToIntro`, `onNavClick` → `navigateToChecklistFlow`.
+- `main`: `IntroPage`, `SituationSelector`, or `ChecklistResult` depending on `appState`.
 - `SiteFooter`, `BackToTopButton`.
 
 ## State machine
@@ -20,13 +20,18 @@ type AppState = 'intro' | 'selecting' | 'results'
 | `selecting` | [`SituationSelector`](../src/components/SituationSelector.tsx) |
 | `results` | [`ChecklistResult`](../src/components/ChecklistResult.tsx) |
 
-Switch to `results` on **generate** when `selected.length > 0`; scroll window to top.
+- **`navigateToChecklistFlow`**: if `hasGeneratedChecklist && selected.length > 0` → `results`; else → `selecting`.
+- **`navigateToIntro`**: `intro`.
+
+Initial `appState` prefers persisted checklist view state when the key exists (see [`11-storage-and-persistence.md`](./11-storage-and-persistence.md)); otherwise non-empty saved selection → `selecting`, else `intro`.
 
 ## Core state
 
 | State | Type / role |
 |-------|-------------|
 | `selected` | `SituationId[]` — source of truth for first-page situation selection and persistence |
+| `hasGeneratedChecklist` | `boolean` — user has pressed「產生節稅清單」at least once this session path; persisted (see [`11-storage-and-persistence.md`](./11-storage-and-persistence.md)) |
+| `appState` | `AppState` — which top-level screen is shown |
 | `cardInputMap` | `CardInputMap` — per-card field strings (updated synchronously on input) |
 | `pendingRemovalEffect` | removal confirm dialog payload or `null` |
 | `scrollToItemId` | checklist item id to scroll into view after add; cleared via `onScrollHandled` |
@@ -35,7 +40,7 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 
 - `CHECKLIST_ITEMS` is the source list for filtering and grouping.
 - `ITEM_BY_ID`, `SITUATION_LABEL_BY_ID`
-- Helpers: `getAddableSituationGroups`, `getGroupedItemsBySelection`, `getScrollTargetItemIdAfterAdd`, `getItemSourceSituationLabelsById`
+- Helpers: `getAddableSituationGroups`, `getGroupedItemsBySelection`, **`getScrollTargetAfterAdd`**, `getItemSourceSituationLabelsById`
 
 ## Situation toggle
 
@@ -44,10 +49,15 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 
 ## Generate / clear / add situations
 
-- **`handleGenerate`**: if selection non-empty → `results`, clear scroll token, `window.scrollTo(0, 0)`.
-- **`handleClearSelections`**: empty selection, reset `cardInputMap`, clear storage, remove legacy key (see [`11-storage-and-persistence.md`](./11-storage-and-persistence.md)).
-- **`handleAddSituations(ids)`**: merge ids into `selected`, normalize the interest/savings link, then set `scrollToItemId` from the before/after `filterBySituations` diff (first newly visible card in render order).
+- **`handleGenerate`**: if selection non-empty → `results`, `setHasGeneratedChecklist(true)`, clear scroll token, `window.scrollTo(0, 0)`.
+- **`handleClearSelections`** / **`handleResetCalculation`**: both call **`resetChecklistState()`** (full wipe: selection, inputs, view state, generated flag, legacy key; see below).
+- **`handleAddSituations(ids)`**: merge ids into `selected`, normalize the interest/savings link, then set `scrollToItemId` from **`getScrollTargetAfterAdd`** (first newly visible card in render order, with married-only section targets when no new card).
 - Add modal lists public situations not currently present in `selected`; `savings_investment` is intentionally absent and appears only as a derived result card when interest income is active.
+
+## View state and full reset
+
+- **`skipNextChecklistViewStateSave`** (`useRef<boolean>`): set `true` inside **`resetChecklistState`**. On the next `appState` commit, the effect that normally **`saveChecklistViewState(appState)`** instead clears the ref, calls **`clearSavedChecklistViewState()`**, and returns without writing. This prevents briefly setting `appState` to `'selecting'` from persisting a stale `'selecting'` page when the user intended a full reset (including removing the last removable situation-driven card).
+- **`resetChecklistState`**: clears `selected`, `hasGeneratedChecklist`, sets `appState` to `'selecting'`, resets `cardInputMap`, pending removal, scroll token; **`clearSavedSituationSelection`**, **`clearSavedChecklistInputMap`**, **`clearSavedChecklistViewState`**, persists generated `false`, removes legacy manual-overrides key, `window.scrollTo(0, 0)`.
 
 ## Remove checklist item (independent per card)
 
@@ -55,9 +65,8 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 - **`createRemovalEffect(itemId)`**: builds a preview and checks that card for input-loss; `interest-income` also checks its linked savings-investment card.
 - **`requiresConfirm`**: `true` only when the target card already has input data.
 - **`handleRemoveItem`**: apply immediately or set `pendingRemovalEffect`.
-- **`applyRemovalEffect`**: removes the target card's `situations` from `selected` and clears that card's entry from `cardInputMap`.
+- **`applyRemovalEffect`**: removes the target card's `situations` from `selected` and clears that card's entries from `cardInputMap` (and linked interest/savings cards when applicable). If **`nextSelected` is empty**, calls **`resetChecklistState()`** instead of partial updates so storage and generated flag stay consistent.
 - Removing `interest-income` also removes `savings_investment` and clears both linked entries.
-- If removal empties `selected`, the app returns to the selecting page.
 
 ## Card input
 
@@ -67,8 +76,11 @@ Switch to `results` on **generate** when `selected.length > 0`; scroll window to
 ## Effects
 
 1. **`saveSituationSelection(selected)`** on `[selected]` — empty selection clears storage.
-2. **Legacy cleanup** on mount: `localStorage.removeItem('tax.checklist.manualOverrides.v1')`.
-3. **`storage` listener** for `SITUATION_SELECTION_STORAGE_KEY`: `parseSavedSituationSelection` → `setSelected`; if empty, `appState` → `selecting`.
+2. **`saveChecklistInputMap(cardInputMap)`** on `[cardInputMap]`.
+3. **`saveChecklistViewState(appState)`** on `[appState]` unless skipped via ref (see View state and full reset); otherwise **`clearSavedChecklistViewState()`** once.
+4. **`saveChecklistGeneratedFlag(hasGeneratedChecklist)`** on `[hasGeneratedChecklist]`.
+5. **Legacy cleanup** on mount: `localStorage.removeItem('tax.checklist.manualOverrides.v1')`.
+6. **`storage` listener** for `SITUATION_SELECTION_STORAGE_KEY`: `parseSavedSituationSelection` → `setSelected`; if empty → `setHasGeneratedChecklist(false)` and `appState` → `'selecting'`.
 
 ## Related docs
 

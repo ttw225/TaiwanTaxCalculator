@@ -93,6 +93,7 @@ interface Props {
 ```
 
 - Composes [`ChecklistCardShell`](../src/components/checklist/ChecklistCardShell.tsx); **`children`** = [`ChecklistInlineAmountFields`](../src/components/checklist/ChecklistInlineAmountFields.tsx) when `inlineFields` non-empty (optional amounts + `capKey` feedback via `getNumber`).
+- Exemption age bands (`exemption-general`): each choice row uses a native **`<input type="radio">`** inside **`<fieldset>`** / **`<legend class="sr-only">`**, paired **`<label>`**, and a visible circular indicator (focus ring via `peer-focus-visible:*`). `data-testid` values remain on the inputs (e.g. `card-choice-exemption-general-{fieldId}-{value}`); `name` groups radios per field (`exemption-general-self_age_band`, etc.).
 - `feedbackContext` is forwarded to `ChecklistInlineAmountFields` for contextual rule rendering. Current contextual hooks include:
   - `qualified-donation` without gross income: inline prompt `請先填寫 綜合所得總額` with clickable jump to the same `gross_income` section target used by summary "Go fill".
   - `qualified-donation` with gross income but empty value: hint is plain cap copy (`可申報上限為 X 元`) without trailing `20%` suffix text.
@@ -147,7 +148,13 @@ interface Props {
 - Sticky right-sidebar panel in `ChecklistResult` (desktop, `lg:sticky lg:top-6`, `no-print`).
 - Rows: 綜合所得總額、（選）海外所得連結至 `#overseas_income`、免稅額、一般扣除額、（選）特別扣除額；所得淨額與應納稅額試算。
 - `exemptionAmount === null` means the required filer/spouse age band is missing, so the row shows「前往填寫」and tax scenarios stay pending.
-- When `taxScenarioResult` is present, shows recommended filing/dividend combination and payable tax. AMT wording/formula rows appear only when overseas income is positive; 「了解更多」 opens all scenario formulas and highlights the lowest result.
+- When `taxScenarioResult` is present, shows the best filing/dividend combination, payable tax, and **「推薦：…」only when `taxScenarioResult.scenarios.length > 1`** (single-scenario cases omit the recommendation prefix). Sidebar AMT helper copy appears only when overseas income is positive (domain: `taxScenarioResult.hasOverseasIncome` from [`taxScenarios.ts`](../src/lib/taxScenarios.ts)).
+- **Dialogs** (internal; `createPortal` to `document.body`):
+  - **`TaxFormulaDialog`** (`data-testid="tax-formula-dialog"`): title **「所得稅應納稅額」公式** — static copy for 所得淨額 / 應納稅額 definitions plus the progressive **bracket table** from `getBrackets()`. Does **not** list per-scenario formulas.
+  - **`ScenarioRulesDialog`** (`scenario-rules-dialog`): title **試算規則** — prose sections (夫妻申報組合、五種計稅方式、扣除額分配、股利與 AMT、排序與推薦免責).
+  - **`TaxScenarioCombinationsDialog`** (`tax-scenario-combinations-dialog`): title **稅額組合試算明細** — sortable table of all scenarios from `calcTaxScenarios`; expandable rows show **`FormulaTable`** per scenario. Intro copy mentions AMT ordering only when **`taxScenarioResult.hasOverseasIncome`** is true. Links inside open **試算規則** or the **bracket formula** dialog. Best row is highlighted; expanded rows show **`StructureHint`**: 所得淨額 includes **基本生活費差額**; **一般稅額** line reflects dividend mode (merged: 應納稅額 − 股利可抵減稅額; separate: 應納稅額 + 股利分開計稅稅額; none: 應納稅額). **「最終稅額 = 一般稅額 + AMT 補稅」** appears in the hint only when **`includeAmt`** is true (combinations dialog passes **`taxScenarioResult.hasOverseasIncome`**). Scenario **假設** footer renders only when `scenario.assumptions.length > 0`.
+- **「了解更多」** (print mode off): with **no** `taxScenarioResult`, opens **`TaxFormulaDialog`** only. With `taxScenarioResult`, the primary link opens **`TaxScenarioCombinationsDialog`** (not the bracket dialog).
+- **Dividend labels** in UI align with `taxScenarios` titles, e.g. **股利合併計稅**, **股利分開計稅** (no separate "28%" in the short label string).
 - `generalDeductionAmount === null` → that row shows「前往填寫」捲動至 `general_deductions`，且所得淨額／應納稅額為「待計算」（與其他必填列一致）。
 - Effective general deduction logic: [`src/lib/generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) (`resolveGeneralDeduction`) using an itemized calc context derived in [`ChecklistResult.tsx`](../src/components/ChecklistResult.tsx) (e.g. `grossIncomeAmount`, dividend merged/separate gross totals for qualified-donation feedback, `savingsInvestmentDeductionAmount`).
 

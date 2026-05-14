@@ -175,6 +175,14 @@ max(
 
 This value is subtracted when calculating taxable income. Salary special deduction is not part of this comparison because salary cards already pass salary **net** income after salary special deduction.
 
+## Tax scenario result (`calcTaxScenarios`)
+
+[`calcTaxScenarios`](../src/lib/taxScenarios.ts) returns **`TaxScenarioResult`**, including:
+
+- **`hasOverseasIncome`**: `true` when declared overseas income is positive — drives summary copy (e.g. AMT ordering sentence in the combinations dialog) separate from the AMT threshold flag.
+- **`hasAmt`**: `true` when overseas income reaches the AMT threshold (see numbers / `taxScenarios` constants).
+- Each **`TaxScenario.formulas`**: omits AMT lines when overseas income is zero; last line label **應繳納稅額** with `expression` derived from dividend mode (`regularTaxExpression`). **假設** lines are omitted in the UI when a scenario's `assumptions` array is empty.
+
 ## Related docs
 
 - Content instances: [`06-content-modules.md`](./06-content-modules.md)

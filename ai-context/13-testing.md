@@ -12,25 +12,26 @@
 | [`tests/foundation.test.ts`](../tests/foundation.test.ts) | `numbers_2026.json`, `getNumber`, `getBrackets`, `readLocal` / `writeLocal` / `removeLocal` |
 | [`tests/grossIncome.test.ts`](../tests/grossIncome.test.ts) | [`grossIncome.ts`](../src/lib/grossIncome.ts): cap, per-person deduction/net, legacy salary parsing, shared income participants, explicit salary vs default-zero non-salary income |
 | [`tests/generalDeductionEffective.test.ts`](../tests/generalDeductionEffective.test.ts) | `resolveGeneralDeduction` + `getItemizedItemAmount` (includes itemized calc context: donation cap vs gross income, mortgage vs savings-investment dependency) |
-| [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` |
+| [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` (including exemption native radios) |
 | [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, App clear integration |
-| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: add modal, scroll target, selection-driven add/remove, non-removable cards, remove dialog, legacy key removal |
+| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: intro vs selecting when selection exists but not generated, add modal, scroll target, selection-driven add/remove, non-removable cards, remove dialog, full reset after last removable card (selection + inputs + view state), tax summary dialogs (formula / rules / combinations), recommendation prefix only when multiple scenarios, AMT copy gated on overseas income, legacy key removal |
+| [`tests/taxScenarios.test.ts`](../tests/taxScenarios.test.ts) | [`taxScenarios.ts`](../src/lib/taxScenarios.ts): `calcTaxScenarios`, `hasOverseasIncome` / `hasAmt`, AMT formula lines vs zero overseas income, official couple goldens |
 | [`tests/back-to-top-button.test.tsx`](../tests/back-to-top-button.test.tsx) | `BackToTopButton` threshold, scroll animation vs reduced motion |
 | [`tests/schema-fixture.ts`](../tests/schema-fixture.ts) | **Compile-only** `ChecklistItem` fixture for `pnpm typecheck`; **not** picked up by Vitest `include` |
 
 ## Representative invariants
 
 - **Baseline items**: every non-empty selection includes `exemption-general` plus the correct standard deduction card.
-- **Exemption inputs**: single filing shows only filer age; married filing shows filer and spouse age. Required age bands must be selected before the exemption summary and tax scenarios calculate.
+- **Exemption inputs**: single filing shows only filer age; married filing shows filer and spouse age. Required age bands must be selected before the exemption summary and tax scenarios calculate. Static markup expects native **`<input type="radio">`**, **`name="exemption-general-{fieldId}"`**, `checked`, and focus-ring classes (`peer-focus-visible:ring-2`), not `role="radiogroup"` / `role="radio"`.
 - **Married selection**: `standard-deduction-single` excluded when `married` selected.
-- **Card removal**: remove action deletes only the target active card (non-removable cards excluded) and clears that card input data; removing interest income also removes linked savings-investment.
+- **Card removal**: remove action deletes only the target active card (non-removable cards excluded) and clears that card input data; removing interest income also removes linked savings-investment. Removing the **last** situation-driven removable card triggers a **full** `resetChecklistState`-class wipe: situation selection, card inputs, and checklist **view state** storage are cleared so a fresh checklist does not reuse prior exemption or other field values.
 - **Add modal**: selected situations are omitted; after removing a related card, that situation becomes addable again.
 - **Non-removable cards**: exemption, standard deduction, and savings-investment cards never render remove buttons.
 - **Remove dialog copy**: title includes the item title (`確認移除此項目：...`); body uses item-aware copy (`將清除「{itemTitle}」已填寫的資料。`) and follow-up hint (`您可以隨時加回此項目`).
 - **Categories**: order `gross_income` → `overseas_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → interest → other order.
 - **Situations**: count **15 public situations**; every public `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals public ids, no duplicates, fixed subgroup ordering tests. Hidden derived `savings_investment` is tested through interest-income linkage.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
-- **AMT**: threshold **1_000_000** inclusive boundary; summary scenario tests cover the 7,500,000 basic-income deduction, 20% basic-tax rate, overseas-tax credit, and supplement.
+- **AMT**: threshold **1_000_000** inclusive boundary; summary scenario tests cover the 7,500,000 basic-income deduction, 20% basic-tax rate, overseas-tax credit, and supplement. **Combinations dialog** omits AMT wording until overseas income is positive; `taxScenarios` tests assert `hasOverseasIncome` / `hasAmt` and absence of AMT formula rows when overseas income is zero.
 - **Basic living expense difference**: tax scenario tests cover positive differences reducing taxable income; zero/negative differences remain floored at 0 by the existing baseline examples.
 - **Itemized dependencies**:
   - Donations: qualified donations are capped at 20% of `grossIncomeAmount`; if the qualified amount is filled but gross income is missing, itemized line is treated as unfilled (`null`). When positive dividend income is present, inline feedback shows both merged-tax and 28% separate-tax 20% caps.
@@ -39,7 +40,7 @@
   - Selector and add modal do not show savings-investment; selecting interest income auto-selects hidden savings-investment and shows the derived result card.
   - Salary requires explicit input for each participant; dividend/interest/other default blank to 0.
   - Clearing a non-self salary amount removes that row's filled marker and returns salary to an unfilled state.
-  - With dividend income active, gross income display shows both merged-tax and 28% separate-tax totals, and summary scenarios pick the best dividend/couple/AMT result.
+  - With dividend income active, gross income display shows both merged-tax and 28% separate-tax totals, and summary scenarios pick the best dividend/couple/AMT result. Short dividend labels in the summary UI use **股利合併計稅** / **股利分開計稅** (not legacy「並扣抵」/「28%」button copy). **「推薦：」** prefix appears only when there is more than one tax scenario; single-scenario cases still show the filing label without that prefix.
   - Scenario income reads only currently active income cards; stale hidden dividend or overseas inputs do not affect the summary after the related card is removed.
 - **Inline cap copy contracts** (rendered via `DeductionCard` static markup tests):
   - Cap overflow copy is unified as `已達可申報上限 X 元` for all shared capped-field feedback paths.
