@@ -153,7 +153,7 @@ function scenarioTitle(mode: CoupleScenarioMode): string {
     case 'single':
       return '單身申報'
     case 'joint':
-      return '夫妻所得合併計稅'
+      return '配偶所得合併計稅'
     case 'self_salary_separate':
       return '本人薪資所得分開計稅'
     case 'spouse_salary_separate':

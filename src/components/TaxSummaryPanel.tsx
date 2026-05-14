@@ -230,37 +230,58 @@ function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
           <div className="space-y-4 text-base leading-relaxed text-gray-700">
             <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">夫妻申報組合</h3>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">配偶申報組合</h3>
               <p>
-                有配偶且雙方均有所得時，仍是在合併申報框架下比較不同計稅方式。本頁會依已填資料比較合併計稅、薪資所得分開計稅、各類所得分開計稅三大類方式。
+                配偶合併申報時，稅法允許選擇不同的計稅方式。有人合併計算稅額較低，有人讓某一方的薪資或全部所得分開計算更有利。本頁根據您的資料，自動試算所有合法組合，並標示稅額最低的推薦方案。
+              </p>
+              <div className="mt-3 space-y-3 border-l-2 border-gray-100 pl-3">
+                <div>
+                  <h4 className="mb-1 text-sm font-semibold text-gray-800">五種計稅方式</h4>
+                  <ol className="mt-1 list-decimal list-inside space-y-1 text-sm">
+                    <li>合併計稅：兩人所得全部合在一起計算</li>
+                    <li>本人薪資分開：本人薪資單獨計稅，其餘所得合併</li>
+                    <li>配偶薪資分開：配偶薪資單獨計稅，其餘所得合併</li>
+                    <li>本人所得分開：本人全部所得單獨計稅</li>
+                    <li>配偶所得分開：配偶全部所得單獨計稅</li>
+                  </ol>
+                </div>
+                <div>
+                  <h4 className="mb-1 text-sm font-semibold text-gray-800">扣除額分配</h4>
+                  <p>
+                    選擇分開計稅的那一方，只能列報自己的免稅額（薪資分開），或免稅額加特定扣除項目（全部所得分開）；其餘扣除額由另一方統一列報。這是各組合稅額有差異的原因之一。
+                  </p>
+                </div>
+              </div>
+            </section>
+            <section>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">股利所得</h3>
+              <p>
+                有股利所得時，可選擇「合併入所得計稅」或「以 28% 稅率分開計稅」兩種方式。哪種較划算取決於整體所得結構，系統會兩種都試算，一併納入組合比較。
               </p>
             </section>
             <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">五種計稅方式</h3>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">海外所得 AMT</h3>
               <p>
-                夫妻情境會細分為五種：夫妻各類所得合併計稅、本人薪資所得分開計稅、配偶薪資所得分開計稅、本人各類所得分開計稅、配偶各類所得分開計稅。
-              </p>
-            </section>
-            <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">扣除額分配</h3>
-              <p>
-                薪資分開計稅者主要只減除自己的免稅額；各類所得分開計稅者可減除自己的免稅額與部分特定扣除額，其餘免稅額及扣除額由另一方申報減除。
-              </p>
-            </section>
-            <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">股利與 AMT</h3>
-              <p>
-                有股利所得時，會再比較股利合併計稅與 28% 分開計稅。海外所得 AMT 不是可選方案，而是在符合條件時另行檢查；若基本稅額高於一般稅額，補稅金額會計入最終稅額。
+                全年海外所得合計達 100 萬元以上時，須一併納入「基本所得額」計算。若基本所得額超過 750 萬元，可能需繳最低稅負（AMT）——系統會自動判斷，並將差額計入試算稅額。
               </p>
             </section>
             <section>
               <h3 className="mb-1 text-sm font-semibold text-gray-900">排序與推薦</h3>
               <p>
-                組合依最終稅額由低至高排序。推薦代表本頁已填資料試算出的最低稅額組合，不等於正式申報建議；正式申報仍應以財政部申報系統與個人實際資料為準。
+                所有組合依試算稅額由低到高排列，最上方標示「推薦」的組合，是根據目前填入資料試算出稅額最低的選項。正式申報請以財政部申報系統及您的實際資料為準。
               </p>
             </section>
             <p className="border-t border-gray-100 pt-3 text-sm leading-relaxed text-gray-500">
-              夫妻計稅方式說明參考財政部稅務入口網資料整理。
+              配偶計稅方式說明整理自
+              <a
+                href="https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/ZJGegL6"
+                target="_blank"
+                rel="noreferrer"
+                className="text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
+              >
+                財政部稅務入口網
+              </a>
+              。
             </p>
           </div>
         </div>
@@ -319,7 +340,7 @@ function SortIndicator({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortC
 
 const COUPLE_LABEL_MAP: Record<string, string> = {
   single: '單身申報',
-  joint: '夫妻所得合併計稅',
+  joint: '配偶所得合併計稅',
   self_salary_separate: '本人薪資所得分開計稅',
   spouse_salary_separate: '配偶薪資所得分開計稅',
   self_all_income_separate: '本人各類所得分開計稅',
