@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CardInputMap,
   ChecklistItem,
@@ -207,6 +207,7 @@ function saveChecklistGeneratedFlag(generated: boolean): void {
 }
 
 function App() {
+  const skipNextChecklistViewStateSave = useRef(false)
   const [selected, setSelected] = useState<SituationId[]>(() =>
     normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS)),
   )
@@ -241,6 +242,11 @@ function App() {
   }, [cardInputMap])
 
   useEffect(() => {
+    if (skipNextChecklistViewStateSave.current) {
+      skipNextChecklistViewStateSave.current = false
+      clearSavedChecklistViewState()
+      return
+    }
     saveChecklistViewState(appState)
   }, [appState])
 
@@ -304,6 +310,7 @@ function App() {
   }
 
   function resetChecklistState() {
+    skipNextChecklistViewStateSave.current = true
     setSelected([])
     setHasGeneratedChecklist(false)
     setAppState('selecting')
@@ -367,6 +374,10 @@ function App() {
     const nextSelected = normalizeLinkedSituations(
       selected.filter((situationId) => !removedSituationIds.has(situationId)),
     )
+    if (nextSelected.length === 0) {
+      resetChecklistState()
+      return
+    }
     setSelected(nextSelected)
     setCardInputMap((prev) => {
       const removedIds = effect.itemId === 'interest-income'
@@ -378,12 +389,6 @@ function App() {
       }
       return next
     })
-    if (nextSelected.length === 0) {
-      setScrollToItemId(null)
-      setHasGeneratedChecklist(false)
-      setAppState('selecting')
-      window.scrollTo(0, 0)
-    }
   }
 
   function handleRemoveItem(itemId: string) {

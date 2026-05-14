@@ -633,6 +633,32 @@ describe('situation single-source flow', () => {
     expect(savedInputs).not.toContain('rent-deduction')
   })
 
+  it('clears fixed card inputs when removing the last removable card returns to selecting', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
+
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toContain('self_age_band')
+
+    clickByTestId('remove-item-rent-deduction')
+    clickByTestId('confirm-remove-item-btn')
+
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
+
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    const selfUnder70Choice = container.querySelector<HTMLInputElement>(
+      '[data-testid="card-choice-exemption-general-self_age_band-under_70"]',
+    )
+    expect(selfUnder70Choice?.checked).toBe(false)
+  })
+
   it('can re-add a removed card from add modal', () => {
     renderApp()
     clickButtonByText('薪資收入')
