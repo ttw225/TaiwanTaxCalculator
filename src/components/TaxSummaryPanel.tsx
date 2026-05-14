@@ -438,6 +438,7 @@ function TaxScenarioCombinationsDialog({
   }
 
   const bestId = scenarioResult.bestScenario.id
+  const hasMultipleScenarios = scenarioResult.scenarios.length > 1
   // 申報組合 + 計稅方式 (always) + 股利申報方式 (conditional) + 最終稅額 + chevron
   const colCount = scenarioResult.hasDividend ? 5 : 4
 
@@ -541,7 +542,7 @@ function TaxScenarioCombinationsDialog({
                           <div>
                             <div className={`flex items-center gap-1.5 font-medium leading-snug ${isBest ? 'text-blue-900' : 'text-gray-900'}`}>
                               {coupleLabel}
-                              {isBest && (
+                              {isBest && hasMultipleScenarios && (
                                 <span className="inline-flex shrink-0 items-center rounded-full bg-blue-600 px-2 py-0.5 text-sm font-semibold text-white">
                                   推薦
                                 </span>

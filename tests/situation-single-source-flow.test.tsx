@@ -794,6 +794,11 @@ describe('situation single-source flow', () => {
 
     expect(container.textContent).toContain('單身申報')
     expect(container.textContent).not.toContain('推薦：單身申報')
+
+    clickButtonByText('查看詳情')
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).toContain('單身申報')
+    expect(dialog?.textContent).not.toContain('推薦')
   })
 
   it('calculates summary scenarios when completed income cards include positive dividends', () => {
