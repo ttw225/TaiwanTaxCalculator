@@ -120,13 +120,7 @@ function SummaryRow({
   )
 }
 
-function TaxFormulaDialog({
-  scenarioResult,
-  onClose,
-}: {
-  scenarioResult?: TaxScenarioResult | null
-  onClose: () => void
-}) {
+function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
 
   const dialog = (
     <div
@@ -139,7 +133,7 @@ function TaxFormulaDialog({
       >
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">
-            {scenarioResult ? '稅額組合試算明細' : '「所得稅應納稅額」公式'}
+            「所得稅應納稅額」公式
           </h2>
           <button
             type="button"
@@ -151,102 +145,124 @@ function TaxFormulaDialog({
           </button>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
-          {scenarioResult ? (
-            <div className="space-y-4">
-              <p className="text-base leading-relaxed text-gray-700">
-                以下列出本頁已填資料可展開的全部組合。
-                {scenarioResult.hasOverseasIncome && (
-                  <>
-                    海外所得 AMT 不是可選方案；
-                    若基本稅額高於一般稅額，會加上 AMT 補稅後再排序。
-                  </>
-                )}
-              </p>
-              {scenarioResult.scenarios.map((scenario) => {
-                const isBest = scenario.id === scenarioResult.bestScenario.id
-                return (
-                  <section
-                    key={scenario.id}
-                    className={`rounded-lg border px-3 py-3 ${isBest ? 'border-blue-300 bg-blue-50/60' : 'border-gray-200 bg-white'}`}
-                  >
-                    <div className="mb-2 flex items-start justify-between gap-3">
-                      <h3 className={`text-sm font-semibold ${isBest ? 'text-blue-900' : 'text-gray-900'}`}>
-                        {scenario.title}
-                      </h3>
-                      {isBest && (
-                        <span className="shrink-0 rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
-                          最低
+          <div className="mb-4 space-y-1 text-base text-gray-700">
+            <p>
+              所得淨額：<span className="font-semibold text-gray-900">綜合所得總額 − 免稅額 − 一般扣除額 − 特別扣除額 − 基本生活費差額</span>
+            </p>
+            <p>
+              應納稅額：<span className="font-semibold text-gray-900">所得淨額 × 稅率 − 累進差額</span>
+            </p>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <table className="w-full border-collapse text-base">
+              <thead className="relative z-20">
+                <tr className="bg-gray-50 text-sm uppercase tracking-wide text-gray-500">
+                  <th className="sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium first:rounded-tl-xl last:rounded-tr-xl">綜合所得淨額區間</th>
+                  <th className="sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium first:rounded-tl-xl last:rounded-tr-xl">稅率</th>
+                  <th className="sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium first:rounded-tl-xl last:rounded-tr-xl">累進差額</th>
+                </tr>
+              </thead>
+              <tbody className="relative z-0 [&_tr+tr_td]:border-t [&_tr+tr_td]:border-gray-200">
+                {getBrackets().map((b, i) => {
+                  const prev = getBrackets()[i - 1]
+                  const from = i === 0 ? '0' : fmt((prev.up_to ?? 0) + 1)
+                  const fromLabel = from
+                  const toLabel = b.up_to ? `${fmt(b.up_to)} 元` : '元以上'
+                  return (
+                    <tr key={i} className="bg-white">
+                      <td className="px-4 py-3 align-middle font-medium text-gray-700">
+                        <span className="inline-grid grid-cols-[9ch_auto_11ch] items-baseline gap-x-2 tabular-nums">
+                          <span className="text-right">{fromLabel}</span>
+                          <span className="text-center">{b.up_to ? '–' : ''}</span>
+                          <span className={b.up_to ? 'text-right' : 'text-left'}>{toLabel}</span>
                         </span>
-                      )}
-                    </div>
-                    <div className="space-y-1.5">
-                      {scenario.formulas.map((line, index) => (
-                        <div key={`${scenario.id}-${index}`} className="grid grid-cols-[6.5rem_1fr_auto] gap-2 text-sm">
-                          <span className="text-gray-500">{line.label}</span>
-                          <span className="text-gray-600">{line.expression}</span>
-                          <span className={`tabular-nums font-semibold ${line.amount < 0 ? 'text-green-700' : 'text-gray-900'}`}>
-                            {fmt(line.amount)} 元
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {scenario.assumptions.length > 0 && (
-                      <p className="mt-2 text-xs leading-relaxed text-gray-500">
-                        假設：{scenario.assumptions.join('；')}
-                      </p>
-                    )}
-                  </section>
-                )
-              })}
-            </div>
-          ) : (
-            <>
-              <div className="mb-4 space-y-1 text-base text-gray-700">
-                <p>
-                  所得淨額：<span className="font-semibold text-gray-900">綜合所得總額 − 免稅額 − 一般扣除額 − 特別扣除額 − 基本生活費差額</span>
-                </p>
-                <p>
-                  應納稅額：<span className="font-semibold text-gray-900">所得淨額 × 稅率 − 累進差額</span>
-                </p>
-              </div>
-              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                <table className="w-full border-collapse text-base">
-                  <thead className="relative z-20">
-                    <tr className="bg-gray-50 text-sm uppercase tracking-wide text-gray-500">
-                      <th className="sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium first:rounded-tl-xl last:rounded-tr-xl">綜合所得淨額區間</th>
-                      <th className="sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium first:rounded-tl-xl last:rounded-tr-xl">稅率</th>
-                      <th className="sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium first:rounded-tl-xl last:rounded-tr-xl">累進差額</th>
+                      </td>
+                      <td className="px-4 py-3 align-middle text-left font-semibold text-gray-900">
+                        {(b.rate * 100).toFixed(0)}%
+                      </td>
+                      <td className="px-4 py-3 align-middle text-left font-semibold text-red-700 tabular-nums">
+                        {fmt(b.quick_deduction)} 元
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="relative z-0 [&_tr+tr_td]:border-t [&_tr+tr_td]:border-gray-200">
-                    {getBrackets().map((b, i) => {
-                      const prev = getBrackets()[i - 1]
-                      const from = i === 0 ? '0' : fmt((prev.up_to ?? 0) + 1)
-                      const fromLabel = from
-                      const toLabel = b.up_to ? `${fmt(b.up_to)} 元` : '元以上'
-                      return (
-                        <tr key={i} className="bg-white">
-                          <td className="px-4 py-3 align-middle font-medium text-gray-700">
-                            <span className="inline-grid grid-cols-[9ch_auto_11ch] items-baseline gap-x-2 tabular-nums">
-                              <span className="text-right">{fromLabel}</span>
-                              <span className="text-center">{b.up_to ? '–' : ''}</span>
-                              <span className={b.up_to ? 'text-right' : 'text-left'}>{toLabel}</span>
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 align-middle text-left font-semibold text-gray-900">
-                            {(b.rate * 100).toFixed(0)}%
-                          </td>
-                          <td className="px-4 py-3 align-middle text-left font-semibold text-red-700 tabular-nums">
-                            {fmt(b.quick_deduction)} 元
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            關閉
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  return createPortal(dialog, document.body)
+}
+
+function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
+  const dialog = (
+    <div
+      data-testid="scenario-rules-dialog-overlay"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/40 p-4 no-print"
+    >
+      <div
+        data-testid="scenario-rules-dialog"
+        className="w-full max-w-2xl flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl"
+      >
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+          <h2 className="text-base font-semibold text-gray-900">試算規則</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="關閉"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-100"
+          >
+            ×
+          </button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
+          <div className="space-y-4 text-base leading-relaxed text-gray-700">
+            <section>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">夫妻申報組合</h3>
+              <p>
+                有配偶且雙方均有所得時，仍是在合併申報框架下比較不同計稅方式。本頁會依已填資料比較合併計稅、薪資所得分開計稅、各類所得分開計稅三大類方式。
+              </p>
+            </section>
+            <section>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">五種計稅方式</h3>
+              <p>
+                夫妻情境會細分為五種：夫妻各類所得合併計稅、本人薪資所得分開計稅、配偶薪資所得分開計稅、本人各類所得分開計稅、配偶各類所得分開計稅。
+              </p>
+            </section>
+            <section>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">扣除額分配</h3>
+              <p>
+                薪資分開計稅者主要只減除自己的免稅額；各類所得分開計稅者可減除自己的免稅額與部分特定扣除額，其餘免稅額及扣除額由另一方申報減除。
+              </p>
+            </section>
+            <section>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">股利與 AMT</h3>
+              <p>
+                有股利所得時，會再比較股利合併計稅與 28% 分開計稅。海外所得 AMT 不是可選方案，而是在符合條件時另行檢查；若基本稅額高於一般稅額，補稅金額會計入最終稅額。
+              </p>
+            </section>
+            <section>
+              <h3 className="mb-1 text-sm font-semibold text-gray-900">排序與推薦</h3>
+              <p>
+                組合依最終稅額由低至高排序。推薦代表本頁已填資料試算出的最低稅額組合，不等於正式申報建議；正式申報仍應以財政部申報系統與個人實際資料為準。
+              </p>
+            </section>
+            <p className="border-t border-gray-100 pt-3 text-sm leading-relaxed text-gray-500">
+              夫妻計稅方式說明參考財政部稅務入口網資料整理。
+            </p>
+          </div>
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">
           <button
@@ -403,10 +419,12 @@ function TaxScenarioCombinationsDialog({
   scenarioResult,
   onClose,
   onOpenFormula,
+  onOpenRules,
 }: {
   scenarioResult: TaxScenarioResult
   onClose: () => void
   onOpenFormula: () => void
+  onOpenRules: () => void
 }) {
   const [openRows, setOpenRows] = useState<Record<string, boolean>>({})
   const [sortCol, setSortCol] = useState<SortCol>('finalTax')
@@ -466,13 +484,23 @@ function TaxScenarioCombinationsDialog({
                   海外所得未達門檻時 AMT 不影響排序；否則補稅金額已計入最終稅額。
                 </>
               )}
-              {' '}
+            </p>
+            <p className="mt-1 text-base leading-relaxed text-gray-500">
+              <span className="text-gray-500">瞭解更多：</span>
+              <a
+                href="#tax-scenario-rules"
+                onClick={(e) => { e.preventDefault(); onOpenRules() }}
+                className="inline text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
+              >
+                試算規則
+              </a>
+              <span aria-hidden className="text-gray-300">｜</span>
               <a
                 href="#tax-formula-detail"
                 onClick={(e) => { e.preventDefault(); onOpenFormula() }}
                 className="inline text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
               >
-                了解更多
+                稅率級距
               </a>
             </p>
           </div>
@@ -843,7 +871,7 @@ export function TaxSummaryPanel({
   onScrollToSection,
   printMode = false,
 }: Props) {
-  const [dialogState, setDialogState] = useState<null | 'scenario' | 'formula'>(null)
+  const [dialogState, setDialogState] = useState<null | 'scenario' | 'formula' | 'rules'>(null)
 
   useEffect(() => {
     if (dialogState !== null) {
@@ -878,16 +906,21 @@ export function TaxSummaryPanel({
 
   return (
     <div>
-      {!printMode && (dialogState === 'scenario' || dialogState === 'formula') && taxScenarioResult && (
+      {!printMode && (dialogState === 'scenario' || dialogState === 'formula' || dialogState === 'rules') && taxScenarioResult && (
         <TaxScenarioCombinationsDialog
           scenarioResult={taxScenarioResult}
           onClose={() => setDialogState(null)}
           onOpenFormula={() => setDialogState('formula')}
+          onOpenRules={() => setDialogState('rules')}
         />
       )}
       {!printMode && dialogState === 'formula' && (
         <TaxFormulaDialog
-          scenarioResult={null}
+          onClose={() => setDialogState(taxScenarioResult ? 'scenario' : null)}
+        />
+      )}
+      {!printMode && dialogState === 'rules' && (
+        <ScenarioRulesDialog
           onClose={() => setDialogState('scenario')}
         />
       )}

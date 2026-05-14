@@ -264,6 +264,31 @@ function getLatestScenarioDialog() {
   return dialogs.at(-1) ?? null
 }
 
+function getLatestFormulaDialog() {
+  const dialogs = Array.from(
+    document.body.querySelectorAll<HTMLElement>('[data-testid="tax-formula-dialog"]'),
+  )
+  return dialogs.at(-1) ?? null
+}
+
+function getLatestRulesDialog() {
+  const dialogs = Array.from(
+    document.body.querySelectorAll<HTMLElement>('[data-testid="scenario-rules-dialog"]'),
+  )
+  return dialogs.at(-1) ?? null
+}
+
+function clickLatestScenarioDialogLinkByText(text: string) {
+  const dialog = getLatestScenarioDialog()
+  const clickable = Array.from(dialog?.querySelectorAll<HTMLElement>('button, a') ?? []).find((el) =>
+    el.textContent?.includes(text),
+  )
+  if (!clickable) throw new Error(`Missing scenario dialog clickable element with text "${text}"`)
+  act(() => {
+    clickable.click()
+  })
+}
+
 describe('situation single-source flow', () => {
   it('goes to selecting from intro start button when a selection exists but checklist is not generated', () => {
     renderApp({ autoStart: false })
@@ -462,6 +487,7 @@ describe('situation single-source flow', () => {
 
     expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
     expect(document.querySelector('[data-testid="tax-formula-dialog"]')).toBeNull()
+    expect(document.body.style.overflow).toBe('')
   })
 
   it('does not show remove button for non-removable cards', () => {
@@ -860,6 +886,50 @@ describe('situation single-source flow', () => {
 
     const dialog = getLatestScenarioDialog()
     expect(dialog?.textContent).toContain('AMT')
+  })
+
+  it('opens tax bracket reference from summary scenario dialog', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('海外所得')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('card-input-overseas-income-amt-overseas_income_amount', '500000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+    clickLatestScenarioDialogLinkByText('稅率級距')
+
+    const dialog = getLatestFormulaDialog()
+    expect(dialog?.textContent).toContain('「所得稅應納稅額」公式')
+    expect(dialog?.textContent).toContain('綜合所得淨額區間')
+    expect(dialog?.textContent).toContain('累進差額')
+    expect(dialog?.textContent).not.toContain('以下列出本頁已填資料可展開的全部組合。')
+  })
+
+  it('opens scenario rules from summary scenario dialog without duplicating scenario formulas', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('海外所得')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '100000')
+    changeInputByTestId('card-input-overseas-income-amt-overseas_income_amount', '500000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+    clickLatestScenarioDialogLinkByText('試算規則')
+
+    const dialog = getLatestRulesDialog()
+    expect(dialog?.textContent).toContain('試算規則')
+    expect(dialog?.textContent).toContain('五種計稅方式')
+    expect(dialog?.textContent).toContain('夫妻各類所得合併計稅')
+    expect(dialog?.textContent).toContain('股利合併計稅與 28% 分開計稅')
+    expect(dialog?.textContent).toContain('海外所得 AMT 不是可選方案')
+    expect(dialog?.textContent).toContain('推薦代表本頁已填資料試算出的最低稅額組合')
+    expect(dialog?.textContent).toContain('夫妻計稅方式說明參考財政部稅務入口網資料整理')
+    expect(dialog?.textContent).not.toContain('AMT 判斷')
   })
 
   it('hides savings investment from selectors and derives it from interest income on the result page', () => {
