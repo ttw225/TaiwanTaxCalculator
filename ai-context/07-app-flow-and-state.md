@@ -62,8 +62,8 @@ Initial `appState` prefers persisted checklist view state when the key exists (s
 ## Remove checklist item (independent per card)
 
 - Non-removable guard ids: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`, `savings-investment-deduction`.
-- **`createRemovalEffect(itemId)`**: builds a preview and checks that card for input-loss; `interest-income` also checks its linked savings-investment card.
-- **`requiresConfirm`**: `true` only when the target card already has input data.
+- **`createRemovalEffect(itemId)`**: builds a preview and checks that card for input-loss; `interest-income` also checks its linked savings-investment card. It simulates **`nextSelected`** after removal; when that would be **empty** (last situation-driven removable card → full reset), it sets **`resetClearedItemTitles`** via **`getResetClearedItemTitles`**: currently **`['免稅額']`** when `exemption-general` already has any non-empty field in `cardInputMap`, else **`[]`**.
+- **`requiresConfirm`**: `true` when **`hasInputLoss`** (target ± linked savings cards have input) **or** when **`resetClearedItemTitles.length > 0`** (full reset would clear baseline exemption data the user already filled). If neither applies on the last-card path, removal runs **immediately** without the dialog.
 - **`handleRemoveItem`**: apply immediately or set `pendingRemovalEffect`.
 - **`applyRemovalEffect`**: removes the target card's `situations` from `selected` and clears that card's entries from `cardInputMap` (and linked interest/savings cards when applicable). If **`nextSelected` is empty**, calls **`resetChecklistState()`** instead of partial updates so storage and generated flag stay consistent.
 - Removing `interest-income` also removes `savings_investment` and clears both linked entries.

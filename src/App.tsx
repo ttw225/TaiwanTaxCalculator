@@ -95,6 +95,10 @@ function hasCardData(
   return Object.values(cardInputMap[itemId] ?? {}).some((value) => value !== '')
 }
 
+function getResetClearedItemTitles(cardInputMap: CardInputMap): string[] {
+  return hasCardData('exemption-general', cardInputMap) ? ['免稅額'] : []
+}
+
 function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInputMap {
   const next = { ...map }
   for (const itemId of itemIds) {
@@ -348,6 +352,16 @@ function App() {
     const targetItem = ITEM_BY_ID.get(itemId)
     if (!targetItem) return null
 
+    const removedSituationIds = new Set(targetItem.situations)
+    if (itemId === 'interest-income') {
+      removedSituationIds.add('savings_investment')
+    }
+    const nextSelected = normalizeLinkedSituations(
+      selected.filter((situationId) => !removedSituationIds.has(situationId)),
+    )
+    const resetClearedItemTitles = nextSelected.length === 0
+      ? getResetClearedItemTitles(cardInputMap)
+      : []
     const linkedItemIds = itemId === 'interest-income'
       ? [itemId, 'savings-investment-deduction']
       : [itemId]
@@ -359,8 +373,9 @@ function App() {
         itemId,
         itemTitle: targetItem.title,
         hasInputLoss,
+        resetClearedItemTitles,
       },
-      requiresConfirm: hasInputLoss,
+      requiresConfirm: hasInputLoss || resetClearedItemTitles.length > 0,
     }
   }
 

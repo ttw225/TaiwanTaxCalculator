@@ -37,6 +37,13 @@ interface Props {
 Exported types: `RemovalImpactPreview`, `AddableSituationGroup`.
 
 ```ts
+interface RemovalImpactPreview {
+  itemId: string
+  itemTitle: string
+  hasInputLoss: boolean
+  resetClearedItemTitles?: string[]
+}
+
 interface Props {
   groups: CategoryGroup[]
   totalSelected: number
@@ -63,11 +70,10 @@ interface Props {
 - Card routing: regular income card ids (`gross-income`, `dividend-income`, `interest-income`, `other-income`) → `IncomeCard`; `savings-investment-deduction` → derived read-only card; all others → `DeductionCard`.
 - Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`, `savings-investment-deduction` (no `×` button).
 - Result cards are derived from `filterBySituations(CHECKLIST_ITEMS, selected)`.
-- Remove dialog is single-card scoped. Copy contract:
-  - Title: `確認移除此項目：{itemTitle}`
-  - Body:
-    - `將清除「{itemTitle}」已填寫的資料。`
-    - `您可以隨時加回此項目`
+- **Remove dialog** (`RemoveImpactDialog`, `pendingRemovalImpact`): single-card scoped; preview shape **`RemovalImpactPreview`** (see code block above). Optional **`resetClearedItemTitles`** lists human-readable baseline cards whose saved input would be cleared by a **full reset** when this removal empties `selected` (today only **`免稅額`** when `exemption-general` has any non-empty field).
+  - Title: **`移除 {itemTitle}`**
+  - Body line 1: **`已填寫的資料將一併清除。`** plus, for `interest-income` only, **`儲蓄投資特別扣除額卡片會一同移除。`**
+  - When **`resetClearedItemTitles`** is non-empty: second paragraph **`因為這是最後一張項目，回到選擇頁時也會清除：`** then titles joined with **`、`**, ending **`。`** (e.g. **`免稅額`** when exemption age bands were filled).
 - Computes income totals from shared income participants and active regular income cards. Salary uses net salary after modeled 薪資所得特別扣除額; dividend/interest/other use raw amounts.
 - When dividends are active, the gross section renders both merged-tax and 28% separate-tax totals and passes `null` to `TaxSummaryPanel` for gross income.
 - **`onReset`**: wired to the "重新計算" confirmation dialog.

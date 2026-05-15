@@ -624,6 +624,7 @@ describe('situation single-source flow', () => {
     clickByTestId('remove-item-rent-deduction')
     expect(container.textContent).toContain('移除 房屋租金支出')
     expect(container.textContent).toContain('已填寫的資料將一併清除。')
+    expect(container.textContent).not.toContain('回到選擇頁時也會清除')
     clickByTestId('confirm-remove-item-btn')
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
     expect(container.querySelector('[data-testid="checklist-item-rent-deduction"]')).toBeNull()
@@ -631,6 +632,36 @@ describe('situation single-source flow', () => {
     expect(savedSelectionAfterConfirmRemove).not.toContain('rent')
     const savedInputs = localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY) ?? ''
     expect(savedInputs).not.toContain('rent-deduction')
+  })
+
+  it('removes the last removable card directly when neither it nor exemption has input', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    clickByTestId('remove-item-rent-deduction')
+
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(container.textContent).not.toContain('移除 房屋租金支出')
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
+  })
+
+  it('shows confirmation when removing the last removable card would clear exemption input', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+
+    clickByTestId('remove-item-rent-deduction')
+
+    expect(container.textContent).toContain('移除 房屋租金支出')
+    expect(container.textContent).toContain('已填寫的資料將一併清除。')
+    expect(container.textContent).toContain('因為這是最後一張項目，回到選擇頁時也會清除：免稅額。')
+    clickByTestId('confirm-remove-item-btn')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
   })
 
   it('clears fixed card inputs when removing the last removable card returns to selecting', () => {
@@ -643,6 +674,10 @@ describe('situation single-source flow', () => {
     expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toContain('self_age_band')
 
     clickByTestId('remove-item-rent-deduction')
+
+    expect(container.textContent).toContain('移除 房屋租金支出')
+    expect(container.textContent).toContain('已填寫的資料將一併清除。')
+    expect(container.textContent).toContain('因為這是最後一張項目，回到選擇頁時也會清除：免稅額。')
     clickByTestId('confirm-remove-item-btn')
 
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
