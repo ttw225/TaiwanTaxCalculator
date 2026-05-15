@@ -606,7 +606,7 @@ function TaxScenarioCombinationsDialog({
       <div
         data-testid="tax-scenario-combinations-dialog"
         className="w-full flex flex-col
-          h-[calc(100dvh-2rem)] sm:h-[min(560px,calc(100dvh-2rem))] md:h-[min(640px,calc(100dvh-2rem))] lg:h-[min(720px,calc(100dvh-2rem))]
+          h-[calc(100dvh-2rem)] sm:h-[min(680px,calc(100dvh-2rem))] md:h-[min(780px,calc(100dvh-2rem))] lg:h-[min(860px,calc(100dvh-2rem))]
           rounded-t-xl sm:rounded-xl
           sm:max-w-2xl md:max-w-3xl lg:max-w-5xl
           border border-gray-200 bg-white shadow-xl"
