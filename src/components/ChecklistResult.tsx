@@ -46,6 +46,7 @@ export interface RemovalImpactPreview {
   itemId: string
   itemTitle: string
   hasInputLoss: boolean
+  resetClearedItemTitles?: string[]
 }
 
 export interface AddableSituationGroup {
@@ -311,6 +312,11 @@ function RemoveImpactDialog({
 
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 text-base text-gray-600">
           <p>已填寫的資料將一併清除。{impact.itemId === 'interest-income' && '儲蓄投資特別扣除額卡片會一同移除。'}</p>
+          {impact.resetClearedItemTitles && impact.resetClearedItemTitles.length > 0 && (
+            <p className="mt-2">
+              因為這是最後一張項目，回到選擇頁時也會清除：{impact.resetClearedItemTitles.join('、')}。
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-4 py-3">

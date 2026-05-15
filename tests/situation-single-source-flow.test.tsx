@@ -213,6 +213,14 @@ function clickByTestId(testId: string) {
   })
 }
 
+function clickBodyByTestId(testId: string) {
+  const element = document.body.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
+  if (!element) throw new Error(`Missing body element with data-testid "${testId}"`)
+  act(() => {
+    element.click()
+  })
+}
+
 function clickSummarySectionLink(sectionId: string) {
   const sidebar = container.querySelector<HTMLElement>('aside.no-print')
   const row = sidebar?.querySelector<HTMLElement>(`[data-testid="summary-row-${sectionId}"]`)
@@ -247,6 +255,38 @@ function getGrossIncomeHeadingText() {
   const section = container.querySelector<HTMLElement>('[data-testid="checklist-section-gross_income"]')
   const heading = section?.querySelector('h2')
   return heading?.textContent ?? ''
+}
+
+function getLatestScenarioDialog() {
+  const dialogs = Array.from(
+    document.body.querySelectorAll<HTMLElement>('[data-testid="tax-scenario-combinations-dialog"]'),
+  )
+  return dialogs.at(-1) ?? null
+}
+
+function getLatestFormulaDialog() {
+  const dialogs = Array.from(
+    document.body.querySelectorAll<HTMLElement>('[data-testid="tax-formula-dialog"]'),
+  )
+  return dialogs.at(-1) ?? null
+}
+
+function getLatestRulesDialog() {
+  const dialogs = Array.from(
+    document.body.querySelectorAll<HTMLElement>('[data-testid="scenario-rules-dialog"]'),
+  )
+  return dialogs.at(-1) ?? null
+}
+
+function clickLatestScenarioDialogLinkByText(text: string) {
+  const dialog = getLatestScenarioDialog()
+  const clickable = Array.from(dialog?.querySelectorAll<HTMLElement>('button, a') ?? []).find((el) =>
+    el.textContent?.includes(text),
+  )
+  if (!clickable) throw new Error(`Missing scenario dialog clickable element with text "${text}"`)
+  act(() => {
+    clickable.click()
+  })
 }
 
 describe('situation single-source flow', () => {
@@ -447,6 +487,7 @@ describe('situation single-source flow', () => {
 
     expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
     expect(document.querySelector('[data-testid="tax-formula-dialog"]')).toBeNull()
+    expect(document.body.style.overflow).toBe('')
   })
 
   it('does not show remove button for non-removable cards', () => {
@@ -583,6 +624,7 @@ describe('situation single-source flow', () => {
     clickByTestId('remove-item-rent-deduction')
     expect(container.textContent).toContain('移除 房屋租金支出')
     expect(container.textContent).toContain('已填寫的資料將一併清除。')
+    expect(container.textContent).not.toContain('回到選擇頁時也會清除')
     clickByTestId('confirm-remove-item-btn')
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
     expect(container.querySelector('[data-testid="checklist-item-rent-deduction"]')).toBeNull()
@@ -590,6 +632,66 @@ describe('situation single-source flow', () => {
     expect(savedSelectionAfterConfirmRemove).not.toContain('rent')
     const savedInputs = localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY) ?? ''
     expect(savedInputs).not.toContain('rent-deduction')
+  })
+
+  it('removes the last removable card directly when neither it nor exemption has input', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    clickByTestId('remove-item-rent-deduction')
+
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(container.textContent).not.toContain('移除 房屋租金支出')
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
+  })
+
+  it('shows confirmation when removing the last removable card would clear exemption input', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+
+    clickByTestId('remove-item-rent-deduction')
+
+    expect(container.textContent).toContain('移除 房屋租金支出')
+    expect(container.textContent).toContain('已填寫的資料將一併清除。')
+    expect(container.textContent).toContain('因為這是最後一張項目，回到選擇頁時也會清除：免稅額。')
+    clickByTestId('confirm-remove-item-btn')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
+  })
+
+  it('clears fixed card inputs when removing the last removable card returns to selecting', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
+
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toContain('self_age_band')
+
+    clickByTestId('remove-item-rent-deduction')
+
+    expect(container.textContent).toContain('移除 房屋租金支出')
+    expect(container.textContent).toContain('已填寫的資料將一併清除。')
+    expect(container.textContent).toContain('因為這是最後一張項目，回到選擇頁時也會清除：免稅額。')
+    clickByTestId('confirm-remove-item-btn')
+
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_INPUT_STORAGE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
+
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+
+    const selfUnder70Choice = container.querySelector<HTMLInputElement>(
+      '[data-testid="card-choice-exemption-general-self_age_band-under_70"]',
+    )
+    expect(selfUnder70Choice?.checked).toBe(false)
   })
 
   it('can re-add a removed card from add modal', () => {
@@ -769,6 +871,23 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).toBeNull()
   })
 
+  it('shows filing mode without recommendation prefix when there is only one tax scenario', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+
+    expect(container.textContent).toContain('單身申報')
+    expect(container.textContent).not.toContain('推薦：單身申報')
+
+    clickButtonByText('查看詳情')
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).toContain('單身申報')
+    expect(dialog?.textContent).not.toContain('推薦')
+  })
+
   it('calculates summary scenarios when completed income cards include positive dividends', () => {
     renderApp()
     clickButtonByText('薪資收入')
@@ -783,8 +902,99 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('182,000 元')
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).not.toBeNull()
     expect(container.textContent).toContain('合併計稅')
-    expect(container.textContent).toContain('28% 分開計稅')
+    expect(container.textContent).toContain('股利合併計稅')
     expect(container.textContent).toContain('推薦：')
+
+    clickButtonByText('查看詳情')
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).toContain('股利合併計稅')
+    expect(dialog?.textContent).toContain('股利分開計稅')
+    expect(dialog?.textContent).not.toContain('股利合併計稅並扣抵')
+    expect(dialog?.textContent).not.toContain('股利 28% 分開計稅')
+
+    clickBodyByTestId('scenario-row-single:merged')
+    const mergedHint = document.body.querySelector<HTMLElement>('[data-testid="scenario-structure-hint-single:merged"]')
+    expect(mergedHint?.textContent).toContain('所得淨額 = 綜合所得總額 − 免稅額 − 一般扣除額 − 特別扣除額 − 基本生活費差額')
+    expect(mergedHint?.textContent).toContain('一般稅額 = 應納稅額 − 股利可抵減稅額')
+    expect(mergedHint?.textContent).not.toContain('股利分開計稅稅額')
+  })
+
+  it('hides AMT wording in summary scenario details until overseas income is positive', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '100000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).not.toContain('AMT')
+  })
+
+  it('shows AMT wording in summary scenario details when overseas income is positive', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('海外所得')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('card-input-overseas-income-amt-overseas_income_amount', '500000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+
+    const dialog = getLatestScenarioDialog()
+    expect(dialog?.textContent).toContain('AMT')
+  })
+
+  it('opens tax bracket reference from summary scenario dialog', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('海外所得')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('card-input-overseas-income-amt-overseas_income_amount', '500000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+    clickLatestScenarioDialogLinkByText('稅率級距')
+
+    const dialog = getLatestFormulaDialog()
+    expect(dialog?.textContent).toContain('「所得稅應納稅額」公式')
+    expect(dialog?.textContent).toContain('綜合所得淨額區間')
+    expect(dialog?.textContent).toContain('累進差額')
+    const quickDeductionCell = Array.from(dialog?.querySelectorAll('td') ?? [])
+      .find((cell) => cell.textContent?.trim() === '41,300 元')
+    expect(quickDeductionCell?.className).toContain('text-gray-900')
+    expect(dialog?.textContent).not.toContain('以下列出本頁已填資料可展開的全部組合。')
+  })
+
+  it('opens scenario rules from summary scenario dialog without duplicating scenario formulas', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('股利收入')
+    clickButtonByText('海外所得')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    changeInputByTestId('income-input-dividend-income-self', '100000')
+    changeInputByTestId('card-input-overseas-income-amt-overseas_income_amount', '500000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+    clickLatestScenarioDialogLinkByText('試算規則')
+
+    const dialog = getLatestRulesDialog()
+    expect(dialog?.textContent).toContain('試算規則')
+    expect(dialog?.textContent).toContain('五種計稅方式')
+    expect(dialog?.textContent).toContain('合併計稅：兩人所得全部合在一起計算')
+    expect(dialog?.textContent).toContain('以 28% 稅率分開計稅')
+    expect(dialog?.textContent).toContain('系統會自動判斷，並將差額計入試算稅額')
+    expect(dialog?.textContent).toContain('最上方標示「推薦」的組合')
+    expect(dialog?.textContent).toContain('配偶計稅方式說明整理自財政部稅務入口網')
+    expect(dialog?.querySelector<HTMLAnchorElement>('a[href*="tax-saving-manual"]')?.textContent).toBe('財政部稅務入口網')
+    expect(dialog?.textContent).not.toContain('AMT 判斷')
   })
 
   it('hides savings investment from selectors and derives it from interest income on the result page', () => {

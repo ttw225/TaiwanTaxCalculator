@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   CardInputMap,
   ChecklistItem,
@@ -93,6 +93,10 @@ function hasCardData(
   cardInputMap: CardInputMap,
 ): boolean {
   return Object.values(cardInputMap[itemId] ?? {}).some((value) => value !== '')
+}
+
+function getResetClearedItemTitles(cardInputMap: CardInputMap): string[] {
+  return hasCardData('exemption-general', cardInputMap) ? ['免稅額'] : []
 }
 
 function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInputMap {
@@ -207,6 +211,7 @@ function saveChecklistGeneratedFlag(generated: boolean): void {
 }
 
 function App() {
+  const skipNextChecklistViewStateSave = useRef(false)
   const [selected, setSelected] = useState<SituationId[]>(() =>
     normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS)),
   )
@@ -241,6 +246,11 @@ function App() {
   }, [cardInputMap])
 
   useEffect(() => {
+    if (skipNextChecklistViewStateSave.current) {
+      skipNextChecklistViewStateSave.current = false
+      clearSavedChecklistViewState()
+      return
+    }
     saveChecklistViewState(appState)
   }, [appState])
 
@@ -304,6 +314,7 @@ function App() {
   }
 
   function resetChecklistState() {
+    skipNextChecklistViewStateSave.current = true
     setSelected([])
     setHasGeneratedChecklist(false)
     setAppState('selecting')
@@ -341,6 +352,16 @@ function App() {
     const targetItem = ITEM_BY_ID.get(itemId)
     if (!targetItem) return null
 
+    const removedSituationIds = new Set(targetItem.situations)
+    if (itemId === 'interest-income') {
+      removedSituationIds.add('savings_investment')
+    }
+    const nextSelected = normalizeLinkedSituations(
+      selected.filter((situationId) => !removedSituationIds.has(situationId)),
+    )
+    const resetClearedItemTitles = nextSelected.length === 0
+      ? getResetClearedItemTitles(cardInputMap)
+      : []
     const linkedItemIds = itemId === 'interest-income'
       ? [itemId, 'savings-investment-deduction']
       : [itemId]
@@ -352,8 +373,9 @@ function App() {
         itemId,
         itemTitle: targetItem.title,
         hasInputLoss,
+        resetClearedItemTitles,
       },
-      requiresConfirm: hasInputLoss,
+      requiresConfirm: hasInputLoss || resetClearedItemTitles.length > 0,
     }
   }
 
@@ -367,6 +389,10 @@ function App() {
     const nextSelected = normalizeLinkedSituations(
       selected.filter((situationId) => !removedSituationIds.has(situationId)),
     )
+    if (nextSelected.length === 0) {
+      resetChecklistState()
+      return
+    }
     setSelected(nextSelected)
     setCardInputMap((prev) => {
       const removedIds = effect.itemId === 'interest-income'
@@ -378,12 +404,6 @@ function App() {
       }
       return next
     })
-    if (nextSelected.length === 0) {
-      setScrollToItemId(null)
-      setHasGeneratedChecklist(false)
-      setAppState('selecting')
-      window.scrollTo(0, 0)
-    }
   }
 
   function handleRemoveItem(itemId: string) {

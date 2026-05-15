@@ -249,46 +249,46 @@ function ExemptionAgeRow({
   onInputChange?: (fieldId: string, value: string) => void
 }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-[6rem_1fr] sm:items-center">
-      <div className="text-base font-medium text-gray-700">{field.label}</div>
-      <div
-        className="grid grid-cols-2 gap-2"
-        role="radiogroup"
-        aria-label={field.label}
-        data-testid={`card-choice-exemption-general-${field.id}`}
-      >
-        {(field.choices ?? []).map((choice) => {
-          const selected = value === choice.value
-          return (
-            <button
-              key={choice.value}
-              type="button"
-              role="radio"
-              aria-checked={selected}
-              onClick={() => onInputChange?.(field.id, choice.value)}
-              data-testid={`card-choice-exemption-general-${field.id}-${choice.value}`}
-              className={[
-                'flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-left text-base transition-colors',
-                selected
-                  ? 'border-blue-400 bg-blue-50 text-gray-900'
-                  : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300',
-              ].join(' ')}
-            >
-              <span
-                className={[
-                  'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors',
-                  selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
-                ].join(' ')}
-                aria-hidden="true"
+    <fieldset className="border-0 p-0">
+      <legend className="sr-only">{field.label}</legend>
+      <div className="grid gap-2 sm:grid-cols-[6rem_1fr] sm:items-center">
+        <div className="text-base font-medium text-gray-700" aria-hidden="true">{field.label}</div>
+        <div
+          className="flex flex-wrap gap-x-5 gap-y-2"
+          data-testid={`card-choice-exemption-general-${field.id}`}
+        >
+          {(field.choices ?? []).map((choice) => {
+            const selected = value === choice.value
+            return (
+              <label
+                key={choice.value}
+                className="flex min-h-10 cursor-pointer items-center gap-2 text-base text-gray-800"
               >
-                {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-              </span>
-              <span className="font-medium">{choice.label}</span>
-            </button>
-          )
-        })}
+                <input
+                  type="radio"
+                  name={`exemption-general-${field.id}`}
+                  value={choice.value}
+                  checked={selected}
+                  onChange={() => onInputChange?.(field.id, choice.value)}
+                  data-testid={`card-choice-exemption-general-${field.id}-${choice.value}`}
+                  className="peer sr-only"
+                />
+                <span
+                  className={[
+                    'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2',
+                    selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
+                  ].join(' ')}
+                  aria-hidden="true"
+                >
+                  {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                </span>
+                <span className="font-medium">{choice.label}</span>
+              </label>
+            )
+          })}
+        </div>
       </div>
-    </div>
+    </fieldset>
   )
 }
 

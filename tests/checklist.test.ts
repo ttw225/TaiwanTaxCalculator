@@ -1017,7 +1017,7 @@ describe('DeductionCard inline input fields', () => {
     expect(html).toContain('aria-pressed="true"')
   })
 
-  it('renders exemption inputs as four compact rows with custom radio controls', () => {
+  it('renders exemption inputs as four compact rows with native radio controls', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem({ id: 'exemption-general' }),
@@ -1030,9 +1030,11 @@ describe('DeductionCard inline input fields', () => {
         },
       }),
     )
-    expect(html).toContain('role="radiogroup"')
-    expect(html).toContain('role="radio"')
-    expect(html).toContain('aria-checked="true"')
+    expect(html).toContain('type="radio"')
+    expect(html).toContain('name="exemption-general-self_age_band"')
+    expect(html).toContain('name="exemption-general-spouse_age_band"')
+    expect(html).toContain('checked=""')
+    expect(html).toContain('peer-focus-visible:ring-2')
     expect(html).toContain('本人年齡')
     expect(html).toContain('配偶年齡')
     expect(html).toContain('其他親屬')

@@ -40,5 +40,5 @@ export function expectScenarioMatchesOfficialGolden(
   }
 
   expect(formulaAmount(scenario, '一般稅額')).toBe(golden.regularTax)
-  expect(formulaAmount(scenario, '最終比較稅額')).toBe(scenario.finalTax)
+  expect(formulaAmount(scenario, '應繳納稅額')).toBe(scenario.finalTax)
 }

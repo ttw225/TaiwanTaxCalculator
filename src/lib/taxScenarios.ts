@@ -83,6 +83,7 @@ export interface TaxScenarioResult {
   secondBestScenario: TaxScenario | null
   savings: number
   hasDividend: boolean
+  hasOverseasIncome: boolean
   hasAmt: boolean
 }
 
@@ -152,7 +153,7 @@ function scenarioTitle(mode: CoupleScenarioMode): string {
     case 'single':
       return '單身申報'
     case 'joint':
-      return '夫妻所得合併計稅'
+      return '配偶所得合併計稅'
     case 'self_salary_separate':
       return '本人薪資所得分開計稅'
     case 'spouse_salary_separate':
@@ -169,9 +170,9 @@ function dividendTitle(mode: DividendScenarioMode): string | null {
     case 'none':
       return null
     case 'merged':
-      return '股利合併計稅並扣抵'
+      return '股利合併計稅'
     case 'separate_28':
-      return '股利 28% 分開計稅'
+      return '股利分開計稅'
   }
 }
 
@@ -182,6 +183,16 @@ function buildAmtLines(
   overseasIncome: number,
   overseasTaxPaid: number,
 ): Pick<TaxScenario, 'basicIncome' | 'basicTax' | 'overseasTaxCredit' | 'amtSupplement'> & { lines: FormulaLine[] } {
+  if (overseasIncome <= 0) {
+    return {
+      basicIncome: taxableIncome + separateDividendAmount,
+      basicTax: 0,
+      overseasTaxCredit: 0,
+      amtSupplement: 0,
+      lines: [],
+    }
+  }
+
   if (overseasIncome < AMT_OVERSEAS_THRESHOLD) {
     return {
       basicIncome: taxableIncome + separateDividendAmount,
@@ -227,6 +238,23 @@ function buildAmtLines(
   }
 }
 
+function regularTaxExpression(
+  dividendMode: DividendScenarioMode,
+  regularIncomeTaxBeforeDividendCredit: number,
+  dividendCredit: number,
+  separateDividendTax: number,
+): string {
+  if (dividendMode === 'merged') {
+    return `${money(regularIncomeTaxBeforeDividendCredit)} - ${money(dividendCredit)}`
+  }
+
+  if (dividendMode === 'separate_28') {
+    return `${money(regularIncomeTaxBeforeDividendCredit)} + ${money(separateDividendTax)}`
+  }
+
+  return `${money(regularIncomeTaxBeforeDividendCredit)}`
+}
+
 function buildScenario(
   inputs: TaxScenarioInputs,
   coupleMode: CoupleScenarioMode,
@@ -236,9 +264,7 @@ function buildScenario(
   const totalDividend = sumPersons(inputs.persons, (person) => person.dividendIncome)
   const grossIncome = sumPersons(inputs.persons, (person) => personIncome(person, includeDividend))
   const basicLivingExpenseDifference = calcBasicLivingExpenseDifference(inputs)
-  const assumptions = [
-    '未能歸屬到特定個人的扣除額放在非分開計稅方。',
-  ]
+  const assumptions: string[] = []
 
   let taxableParts: { label: string; taxableIncome: number; tax: number }[]
 
@@ -256,6 +282,7 @@ function buildScenario(
     const splitPersonId = coupleMode === 'self_salary_separate' ? 'self' : 'spouse'
     const splitPerson = getPerson(inputs.persons, splitPersonId)
     const splitExemption = getPersonExemption(inputs, splitPersonId)
+    assumptions.push('未能歸屬到特定個人的扣除額放在非分開計稅方。')
     const splitTaxable = Math.max(0, splitPerson.salaryNetIncome - splitExemption)
     const otherTaxable = Math.max(
       0,
@@ -275,6 +302,7 @@ function buildScenario(
     const splitPerson = getPerson(inputs.persons, splitPersonId)
     const splitExemption = getPersonExemption(inputs, splitPersonId)
     const splitGross = personIncome(splitPerson, includeDividend)
+    assumptions.push('未能歸屬到特定個人的扣除額放在非分開計稅方。')
     const splitSavingsDeduction = calcSplitSavingsDeduction(
       splitPerson,
       inputs.persons,
@@ -357,13 +385,20 @@ function buildScenario(
 
   formulas.push({
     label: '一般稅額',
-    expression: `${money(regularIncomeTaxBeforeDividendCredit)} - ${money(dividendCredit)} + ${money(separateDividendTax)}`,
+    expression: regularTaxExpression(
+      dividendMode,
+      regularIncomeTaxBeforeDividendCredit,
+      dividendCredit,
+      separateDividendTax,
+    ),
     amount: regularTax,
   })
   formulas.push(...amt.lines)
   formulas.push({
-    label: '最終比較稅額',
-    expression: `${money(regularTax)} + ${money(amt.amtSupplement)}`,
+    label: '應繳納稅額',
+    expression: amt.lines.length > 0
+      ? `${money(regularTax)} + ${money(amt.amtSupplement)}`
+      : `${money(regularTax)}`,
     amount: finalTax,
   })
 
@@ -397,6 +432,7 @@ export function calcTaxScenarios(inputs: TaxScenarioInputs): TaxScenarioResult {
   const normalizedInputs = { ...inputs, persons }
   const totalDividend = sumPersons(persons, (person) => person.dividendIncome)
   const hasDividend = totalDividend > 0
+  const hasOverseasIncome = Math.max(0, inputs.overseasIncome) > 0
   const coupleModes: CoupleScenarioMode[] = inputs.isMarried
     ? ['joint', 'self_salary_separate', 'spouse_salary_separate', 'self_all_income_separate', 'spouse_all_income_separate']
     : ['single']
@@ -415,6 +451,7 @@ export function calcTaxScenarios(inputs: TaxScenarioInputs): TaxScenarioResult {
     secondBestScenario,
     savings: secondBestScenario ? secondBestScenario.finalTax - bestScenario.finalTax : 0,
     hasDividend,
+    hasOverseasIncome,
     hasAmt: Math.max(0, inputs.overseasIncome) >= AMT_OVERSEAS_THRESHOLD,
   }
 }

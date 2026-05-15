@@ -130,6 +130,21 @@ describe('calcTaxScenarios', () => {
     expect(result.scenarios.map((s) => s.dividendMode)).toEqual(['merged', 'separate_28'])
   })
 
+  it('omits zero dividend terms from regular-tax formula expressions', () => {
+    const withoutDividend = calcTaxScenarios(baseSingle).bestScenario
+    expect(withoutDividend.formulas.find((line) => line.label === '一般稅額')?.expression).toBe('3,600')
+
+    const withDividend = calcTaxScenarios({
+      ...baseSingle,
+      persons: [{ ...baseSingle.persons[0], dividendIncome: 500_000 }],
+    })
+    const merged = withDividend.scenarios.find((scenario) => scenario.dividendMode === 'merged')
+    const separate = withDividend.scenarios.find((scenario) => scenario.dividendMode === 'separate_28')
+
+    expect(merged?.formulas.find((line) => line.label === '一般稅額')?.expression).toBe('28,600 - 42,500')
+    expect(separate?.formulas.find((line) => line.label === '一般稅額')?.expression).toBe('3,600 + 140,000')
+  })
+
   it('returns five couple scenarios without dividends', () => {
     const result = calcTaxScenarios(baseMarried)
     expect(result.scenarios).toHaveLength(5)
@@ -140,6 +155,18 @@ describe('calcTaxScenarios', () => {
       'self_all_income_separate',
       'spouse_all_income_separate',
     ])
+  })
+
+  it('adds unassigned-deduction assumption only for split-tax scenarios', () => {
+    const result = calcTaxScenarios(baseMarried)
+    const scenariosByMode = new Map(result.scenarios.map((scenario) => [scenario.coupleMode, scenario]))
+    const assumption = '未能歸屬到特定個人的扣除額放在非分開計稅方。'
+
+    expect(scenariosByMode.get('joint')?.assumptions).toEqual([])
+    expect(scenariosByMode.get('self_salary_separate')?.assumptions).toEqual([assumption])
+    expect(scenariosByMode.get('spouse_salary_separate')?.assumptions).toEqual([assumption])
+    expect(scenariosByMode.get('self_all_income_separate')?.assumptions).toEqual([assumption])
+    expect(scenariosByMode.get('spouse_all_income_separate')?.assumptions).toEqual([assumption])
   })
 
   it('returns ten couple scenarios with dividends', () => {
@@ -218,6 +245,20 @@ describe('calcTaxScenarios', () => {
     expect(above.bestScenario.overseasTaxCredit).toBe(30_000)
     expect(above.bestScenario.amtSupplement).toBe(70_000)
     expect(above.bestScenario.finalTax).toBe(70_000)
+  })
+
+  it('omits AMT formula lines when overseas income is zero', () => {
+    const result = calcTaxScenarios(baseSingle)
+    expect(result.hasOverseasIncome).toBe(false)
+    expect(result.bestScenario.formulas.some((line) => line.label.includes('AMT'))).toBe(false)
+    expect(result.bestScenario.formulas.at(-1)?.expression).toBe('3,600')
+  })
+
+  it('keeps AMT judgment lines when overseas income is positive but below threshold', () => {
+    const result = calcTaxScenarios({ ...baseSingle, overseasIncome: 500_000 })
+    expect(result.hasOverseasIncome).toBe(true)
+    expect(result.hasAmt).toBe(false)
+    expect(result.bestScenario.formulas.some((line) => line.label === 'AMT 判斷')).toBe(true)
   })
 
   describe(`official couple filing — MOF strategy HTML (${SOURCE_MOF_STRATEGY_HTML})`, () => {
