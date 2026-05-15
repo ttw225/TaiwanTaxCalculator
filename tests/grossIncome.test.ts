@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   defaultExtraDependentLabel,
   getSalaryDeductionCap,
+  getVisibleIncomeCardPersons,
   calcPersonDeduction,
   calcPersonNetIncome,
   parseGrossIncomePersons,
@@ -218,7 +219,7 @@ describe('parseIncomeCardPersons', () => {
     { id: 'extra-0', label: '父親' },
   ]
 
-  it('marks salary rows as incomplete until each participant has explicit input', () => {
+  it('marks only visible salary rows as required for completion', () => {
     const persons = parseIncomeCardPersons({ self_income: '300000' }, participants)
     expect(persons.map((p) => [p.id, p.hasInput])).toEqual([
       ['self', true],
@@ -226,6 +227,21 @@ describe('parseIncomeCardPersons', () => {
       ['extra-0', false],
     ])
     expect(incomeCardIsComplete(INCOME_CARD_CONFIGS['gross-income'], persons)).toBe(false)
+    expect(incomeCardIsComplete(
+      INCOME_CARD_CONFIGS['gross-income'],
+      getVisibleIncomeCardPersons(persons),
+    )).toBe(false)
+  })
+
+  it('does not require an extra participant absent from the salary card', () => {
+    const persons = parseIncomeCardPersons({ self_income: '300000' }, [
+      { id: 'self', label: '本人' },
+      { id: 'extra-0', label: '父親' },
+    ])
+    const visiblePersons = getVisibleIncomeCardPersons(persons)
+
+    expect(visiblePersons.map((p) => p.id)).toEqual(['self'])
+    expect(incomeCardIsComplete(INCOME_CARD_CONFIGS['gross-income'], visiblePersons)).toBe(true)
   })
 
   it('treats explicit 0 salary as filled', () => {

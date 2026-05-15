@@ -6,6 +6,7 @@ import {
   calcRawIncomeTotal,
   defaultExtraDependentLabel,
   getSalaryDeductionCap,
+  getVisibleIncomeCardPersons,
   incomeCardIsComplete,
   parseIncome,
   parseIncomeCardPersons,
@@ -45,7 +46,8 @@ function getInputRaw(
   }
   if (!person.hasInput && !config.requiresExplicitInput) return ''
   if (!person.hasInput) return ''
-  // Extra relatives (extra-N) treat income=0 same as empty — both are valid "no income" states
+  if (config.requiresExplicitInput) return String(person.income)
+  // Optional extra rows treat income=0 same as empty; both mean no income.
   if (person.id.startsWith('extra-') && person.income === 0) return ''
   return String(person.income)
 }
@@ -290,7 +292,7 @@ export function IncomeCard({
   const menuAnchorRef = useRef<HTMLDivElement>(null)
 
   const persons = parseIncomeCardPersons(inputValues, participants)
-  const visiblePersons = persons.filter((p) => p.id === 'self' || p.id === 'spouse' || p.hasInput)
+  const visiblePersons = getVisibleIncomeCardPersons(persons)
 
   const amountPersons = visiblePersons.map(({ id, label, income }) => ({ id, label, income }))
   const total = config.kind === 'salary'

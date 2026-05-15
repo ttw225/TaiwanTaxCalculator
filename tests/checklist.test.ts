@@ -9,11 +9,16 @@ import {
   CATEGORY_LABELS,
 } from '../src/lib/checklist'
 import { formatChecklistMarkdown } from '../src/lib/exportChecklist'
+import {
+  INCOME_PARTICIPANTS_ITEM_ID,
+  serializeIncomeAmounts,
+  serializeIncomeParticipants,
+} from '../src/lib/grossIncome'
 import { ChecklistResult } from '../src/components/ChecklistResult'
 import { DeductionCard } from '../src/components/DeductionCard'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS, WEALTH_CLAUSE_NOTICE } from '../src/lib/checklistCardCopy'
 import { ITEM_INLINE_FIELDS } from '../src/content/inlineFields'
-import type { CardInlineField, ChecklistItem } from '../src/types/content'
+import type { CardInlineField, CardInputMap, ChecklistItem } from '../src/types/content'
 
 function makeItem(overrides: Partial<ChecklistItem> = {}): ChecklistItem {
   return {
@@ -348,14 +353,17 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     return html.slice(rowIndex, nextRowIndex === -1 ? undefined : nextRowIndex)
   }
 
-  function renderResult(selectedSituations: Parameters<typeof filterBySituations>[1]) {
+  function renderResult(
+    selectedSituations: Parameters<typeof filterBySituations>[1],
+    cardInputMap: CardInputMap = {},
+  ) {
     const groups = groupByCategory(filterBySituations(published, selectedSituations))
     return renderToStaticMarkup(
       createElement(ChecklistResult, {
         groups,
         totalSelected: selectedSituations.length,
         selectedSituations,
-        cardInputMap: {},
+        cardInputMap,
         onCardInputChange: () => undefined,
         onReset: () => undefined,
       }),
@@ -428,6 +436,41 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     const grossSummaryRow = summaryRowMarkup(html, 'summary-row-gross_income')
     expect(grossSummaryRow).toContain('82,000 元')
     expect(grossSummaryRow).not.toContain('182,000 元')
+  })
+
+  it('treats a participant absent from the salary card as 0 salary, not pending', () => {
+    const html = renderResult(['salary_income', 'dividends'], {
+      [INCOME_PARTICIPANTS_ITEM_ID]: {
+        persons_json: serializeIncomeParticipants([{ id: 'extra-0', label: '母親' }]),
+      },
+      'exemption-general': { self_age_band: 'under_70' },
+      'gross-income': { self_income: '300000' },
+      'dividend-income': {
+        self_income: '100000',
+        persons_json: serializeIncomeAmounts([{ id: 'extra-0', label: '母親', income: 50000 }]),
+      },
+    })
+
+    const grossSummaryRow = summaryRowMarkup(html, 'summary-row-gross_income')
+    expect(grossSummaryRow).toContain('232,000 元')
+    expect(grossSummaryRow).not.toContain('前往填寫')
+    expect(html).toContain('推薦：')
+  })
+
+  it('preserves explicit 0 salary for an extra participant shown on the salary card', () => {
+    const html = renderResult(['salary_income'], {
+      [INCOME_PARTICIPANTS_ITEM_ID]: {
+        persons_json: serializeIncomeParticipants([{ id: 'extra-0', label: '父親' }]),
+      },
+      'gross-income': {
+        self_income: '300000',
+        persons_json: serializeIncomeAmounts([{ id: 'extra-0', label: '父親', income: 0 }]),
+      },
+    })
+
+    expect(html).toContain('data-testid="income-input-gross-income-extra-0"')
+    expect(html).toContain('value="0"')
+    expect(summaryRowMarkup(html, 'summary-row-gross_income')).toContain('82,000 元')
   })
 
   it('renders the standard vs itemized panel inside the general deductions section', () => {
