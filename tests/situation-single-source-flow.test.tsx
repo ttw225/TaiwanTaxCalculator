@@ -16,7 +16,7 @@ let requestAnimationFrameSpy: ReturnType<typeof vi.fn>
 
 const DONATION_TARGET_TOP = 900
 const DONATION_TARGET_HEIGHT = 120
-const STANDARD_DEDUCTION_MARRIED_TARGET_TOP = 1220
+const STANDARD_DEDUCTION_MARRIED_CARD_TOP = 1220
 const STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT = 420
 const GROSS_SECTION_TARGET_TOP = 540
 const GROSS_SECTION_TARGET_HEIGHT = 360
@@ -117,10 +117,10 @@ beforeEach(() => {
       if (testId === 'checklist-item-standard-deduction-married') {
         return {
           x: 0,
-          y: STANDARD_DEDUCTION_MARRIED_TARGET_TOP,
-          top: STANDARD_DEDUCTION_MARRIED_TARGET_TOP,
+          y: STANDARD_DEDUCTION_MARRIED_CARD_TOP,
+          top: STANDARD_DEDUCTION_MARRIED_CARD_TOP,
           left: 0,
-          bottom: STANDARD_DEDUCTION_MARRIED_TARGET_TOP + STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
+          bottom: STANDARD_DEDUCTION_MARRIED_CARD_TOP + STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
           right: 640,
           width: 640,
           height: STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
@@ -570,7 +570,7 @@ describe('situation single-source flow', () => {
     expect(container.textContent).not.toContain('標準扣除額（單身）')
     expect(scrollToSpy).toHaveBeenLastCalledWith(
       0,
-      STANDARD_DEDUCTION_MARRIED_TARGET_TOP - SECTION_SCROLL_OFFSET,
+      GROSS_SECTION_TARGET_TOP - SECTION_SCROLL_OFFSET,
     )
   })
 

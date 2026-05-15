@@ -518,13 +518,16 @@ function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
                         if (part.type === 'capAt') {
                           return part.isHit ? <CapAtTag key={partIndex} amount={part.amount} /> : null
                         }
-                        return (
+                        if (part.type === 'operand') {
+                          return (
                           <FormulaOperandView
                             key={partIndex}
                             label={part.operand.label}
                             value={part.operand.displayValue ?? `${fmt(part.operand.amount)} 元`}
                           />
-                        )
+                          )
+                        }
+                        return null
                       })}
                       <span className="select-none pb-[2px] text-sm text-gray-400">＝</span>
                       <FormulaOperandView
