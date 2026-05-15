@@ -965,6 +965,9 @@ describe('situation single-source flow', () => {
     expect(dialog?.textContent).toContain('「所得稅應納稅額」公式')
     expect(dialog?.textContent).toContain('綜合所得淨額區間')
     expect(dialog?.textContent).toContain('累進差額')
+    const quickDeductionCell = Array.from(dialog?.querySelectorAll('td') ?? [])
+      .find((cell) => cell.textContent?.trim() === '41,300 元')
+    expect(quickDeductionCell?.className).toContain('text-gray-900')
     expect(dialog?.textContent).not.toContain('以下列出本頁已填資料可展開的全部組合。')
   })
 

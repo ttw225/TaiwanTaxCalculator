@@ -180,7 +180,7 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
                       <td className="px-4 py-3 align-middle text-left font-semibold text-gray-900">
                         {(b.rate * 100).toFixed(0)}%
                       </td>
-                      <td className="px-4 py-3 align-middle text-left font-semibold text-red-700 tabular-nums">
+                      <td className="px-4 py-3 align-middle text-left font-semibold text-gray-900 tabular-nums">
                         {fmt(b.quick_deduction)} 元
                       </td>
                     </tr>
