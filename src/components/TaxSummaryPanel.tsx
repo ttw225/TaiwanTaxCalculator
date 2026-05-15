@@ -501,11 +501,6 @@ function TaxScenarioCombinationsDialog({
             <h2 className="text-base font-semibold text-gray-900">稅額組合試算明細</h2>
             <p className="mt-1 text-base leading-relaxed text-gray-500">
               共 {scenarioResult.scenarios.length} 種組合，依最終稅額由低至高排序。
-              {scenarioResult.hasOverseasIncome && (
-                <>
-                  海外所得未達門檻時 AMT 不影響排序；否則補稅金額已計入最終稅額。
-                </>
-              )}
             </p>
             <p className="mt-1 text-base leading-relaxed text-gray-500">
               <span className="text-gray-500">瞭解更多：</span>

@@ -221,6 +221,15 @@ function clickBodyByTestId(testId: string) {
   })
 }
 
+function clickLatestScenarioDialogByTestId(testId: string) {
+  const dialog = getLatestScenarioDialog()
+  const element = dialog?.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
+  if (!element) throw new Error(`Missing latest scenario dialog element with data-testid "${testId}"`)
+  act(() => {
+    element.click()
+  })
+}
+
 function clickSummarySectionLink(sectionId: string) {
   const sidebar = container.querySelector<HTMLElement>('aside.no-print')
   const row = sidebar?.querySelector<HTMLElement>(`[data-testid="summary-row-${sectionId}"]`)
@@ -979,7 +988,11 @@ describe('situation single-source flow', () => {
     clickButtonByText('查看詳情')
 
     const dialog = getLatestScenarioDialog()
-    expect(dialog?.textContent).toContain('AMT')
+    expect(dialog?.textContent).not.toContain('AMT')
+
+    clickLatestScenarioDialogByTestId('scenario-row-single:none')
+    const expandedDialog = getLatestScenarioDialog()
+    expect(expandedDialog?.textContent).toContain('AMT')
   })
 
   it('opens tax bracket reference from summary scenario dialog', () => {
