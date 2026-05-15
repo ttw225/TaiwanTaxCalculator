@@ -467,12 +467,15 @@ describe('situation single-source flow', () => {
 
     expect(scrollToSpy).toHaveBeenLastCalledWith(0, DONATION_TARGET_TOP - SECTION_SCROLL_OFFSET)
   })
-  it('opens and closes tax formula dialog with shared modal overlay classes', () => {
+  it('opens and closes tax formula dialog from scenario details with shared modal overlay classes', () => {
     renderApp()
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
-    clickButtonByText('了解更多')
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+    clickLatestScenarioDialogLinkByText('稅率級距')
 
     const overlay = document.querySelector<HTMLElement>('[data-testid="tax-formula-dialog-overlay"]')
     expect(overlay).not.toBeNull()
@@ -491,7 +494,16 @@ describe('situation single-source flow', () => {
     })
 
     expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
-    expect(document.querySelector('[data-testid="tax-formula-dialog"]')).toBeNull()
+    const scenarioDialog = getLatestScenarioDialog()
+    expect(scenarioDialog).not.toBeNull()
+    expect(document.body.style.overflow).toBe('hidden')
+
+    const scenarioCloseButton = scenarioDialog?.querySelector<HTMLButtonElement>('button[aria-label="關閉"]')
+    act(() => {
+      scenarioCloseButton?.click()
+    })
+
+    expect(document.querySelector('[data-testid="tax-scenario-combinations-dialog-overlay"]')).toBeNull()
     expect(document.body.style.overflow).toBe('')
   })
 

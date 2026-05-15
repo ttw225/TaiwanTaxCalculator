@@ -673,10 +673,8 @@ interface SummaryBodyProps {
   hasOverseasIncomeSection?: boolean
   netIncome: number | null
   taxAmount: number | null
-  bracket: ReturnType<typeof getBrackets>[number] | null
   taxScenarioResult?: TaxScenarioResult | null
   onScrollToSection?: (categoryId: string) => void
-  onOpenDialog?: () => void
   onOpenScenarioDialog?: () => void
 }
 
@@ -692,10 +690,8 @@ function TaxSummaryBody({
   hasOverseasIncomeSection = false,
   netIncome,
   taxAmount,
-  bracket,
   taxScenarioResult,
   onScrollToSection,
-  onOpenDialog,
   onOpenScenarioDialog,
 }: SummaryBodyProps) {
   const grossMissing = grossIncome === null && !grossIncomePendingCalculation
@@ -800,47 +796,6 @@ function TaxSummaryBody({
               <span className="text-base text-muted">待計算</span>
             )}
           </div>
-
-          {!taxScenarioResult && (
-            /* Tax label + detail dialog */
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-base text-gray-500 shrink-0">所得稅應納稅額</span>
-              {onOpenDialog && (
-                <span className="shrink-0 text-sm text-muted">
-                  <span aria-hidden>(</span>
-                  <a
-                    href="#tax-formula-detail"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      onOpenDialog()
-                    }}
-                    className="inline p-0 m-0 border-0 bg-transparent font-inherit text-sm text-gray-600 hover:text-gray-800 hover:underline underline-offset-2 transition-colors leading-none align-baseline"
-                  >
-                    了解更多
-                  </a>
-                  <span aria-hidden>)</span>
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Bracket formula */}
-          {!taxScenarioResult && (
-            <div className="pl-2 space-y-0.5 border-l-2 border-gray-100">
-              <div className="flex items-baseline justify-between gap-1">
-                <span className="text-base text-gray-400">× 稅率</span>
-                <span className="text-base font-semibold text-gray-500 tabular-nums">
-                  {bracket ? `${(bracket.rate * 100).toFixed(0)}%` : '—'}
-                </span>
-              </div>
-              <div className="flex items-baseline justify-between gap-1">
-                <span className="text-base text-gray-400">− 累進差額</span>
-                <span className="text-base font-semibold text-gray-500 tabular-nums">
-                  {bracket ? `${fmt(bracket.quick_deduction)} 元` : '—'}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </CardBody>
 
@@ -925,10 +880,6 @@ export function TaxSummaryPanel({
   const netIncome = taxScenarioResult?.bestScenario.taxableIncome ?? baseNetIncome
 
   const taxAmount = taxScenarioResult?.bestScenario.finalTax ?? (netIncome !== null ? calcTax(netIncome) : null)
-  const bracket =
-    netIncome !== null
-      ? (getBrackets().find((b) => b.up_to === null || netIncome <= b.up_to) ?? null)
-      : null
 
   return (
     <div>
@@ -972,10 +923,8 @@ export function TaxSummaryPanel({
           hasSpecialDeductions={hasSpecialDeductions}
           netIncome={netIncome}
           taxAmount={taxAmount}
-          bracket={bracket}
           taxScenarioResult={taxScenarioResult}
           onScrollToSection={onScrollToSection}
-          onOpenDialog={printMode || !!taxScenarioResult ? undefined : () => setDialogState('formula')}
           onOpenScenarioDialog={printMode ? undefined : () => setDialogState('scenario')}
         />
       </Card>
