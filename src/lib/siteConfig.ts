@@ -3,7 +3,7 @@
 
 export const SITE_CONFIG = {
   name: '台灣節稅資訊平台',
-  nameEn: 'Taiwan Tax Credit',
+  nameEn: 'Taiwan Tax Calculator',
   tagline: '114 年度綜合所得稅，節稅方向一站查清楚',
   taxYear: '114',
   dataYear: '2026',

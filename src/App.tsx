@@ -144,11 +144,11 @@ function getScrollTargetAfterAdd(
     id === 'overseas_income'
   ))
 
-  if (firstAddedItem) return firstAddedItem.id
-
   if (addedSituationSet.has('married')) {
     return hasGrossIncomeSituations ? 'section:gross_income' : 'section:general_deductions'
   }
+
+  if (firstAddedItem) return firstAddedItem.id
 
   return null
 }

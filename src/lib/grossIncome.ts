@@ -229,6 +229,10 @@ export function parseIncomeCardPersons(
   }))
 }
 
+export function getVisibleIncomeCardPersons(persons: IncomeInputPerson[]): IncomeInputPerson[] {
+  return persons.filter((p) => p.id === 'self' || p.id === 'spouse' || p.hasInput)
+}
+
 // Build the full persons list from CardInputMap fields
 export function parseGrossIncomePersons(
   inputValues: Record<string, string>,

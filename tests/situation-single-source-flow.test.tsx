@@ -16,7 +16,7 @@ let requestAnimationFrameSpy: ReturnType<typeof vi.fn>
 
 const DONATION_TARGET_TOP = 900
 const DONATION_TARGET_HEIGHT = 120
-const STANDARD_DEDUCTION_MARRIED_TARGET_TOP = 1220
+const STANDARD_DEDUCTION_MARRIED_CARD_TOP = 1220
 const STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT = 420
 const GROSS_SECTION_TARGET_TOP = 540
 const GROSS_SECTION_TARGET_HEIGHT = 360
@@ -117,10 +117,10 @@ beforeEach(() => {
       if (testId === 'checklist-item-standard-deduction-married') {
         return {
           x: 0,
-          y: STANDARD_DEDUCTION_MARRIED_TARGET_TOP,
-          top: STANDARD_DEDUCTION_MARRIED_TARGET_TOP,
+          y: STANDARD_DEDUCTION_MARRIED_CARD_TOP,
+          top: STANDARD_DEDUCTION_MARRIED_CARD_TOP,
           left: 0,
-          bottom: STANDARD_DEDUCTION_MARRIED_TARGET_TOP + STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
+          bottom: STANDARD_DEDUCTION_MARRIED_CARD_TOP + STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
           right: 640,
           width: 640,
           height: STANDARD_DEDUCTION_MARRIED_TARGET_HEIGHT,
@@ -213,9 +213,10 @@ function clickByTestId(testId: string) {
   })
 }
 
-function clickBodyByTestId(testId: string) {
-  const element = document.body.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
-  if (!element) throw new Error(`Missing body element with data-testid "${testId}"`)
+function clickLatestScenarioDialogByTestId(testId: string) {
+  const dialog = getLatestScenarioDialog()
+  const element = dialog?.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
+  if (!element) throw new Error(`Missing latest scenario dialog element with data-testid "${testId}"`)
   act(() => {
     element.click()
   })
@@ -262,6 +263,11 @@ function getLatestScenarioDialog() {
     document.body.querySelectorAll<HTMLElement>('[data-testid="tax-scenario-combinations-dialog"]'),
   )
   return dialogs.at(-1) ?? null
+}
+
+function getScenarioDialogHeaders() {
+  const dialog = getLatestScenarioDialog()
+  return Array.from(dialog?.querySelectorAll('th') ?? []).map((th) => th.textContent?.trim() ?? '')
 }
 
 function getLatestFormulaDialog() {
@@ -462,12 +468,15 @@ describe('situation single-source flow', () => {
 
     expect(scrollToSpy).toHaveBeenLastCalledWith(0, DONATION_TARGET_TOP - SECTION_SCROLL_OFFSET)
   })
-  it('opens and closes tax formula dialog with shared modal overlay classes', () => {
+  it('opens and closes tax formula dialog from scenario details with shared modal overlay classes', () => {
     renderApp()
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
 
-    clickButtonByText('了解更多')
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickButtonByText('查看詳情')
+    clickLatestScenarioDialogLinkByText('稅率級距')
 
     const overlay = document.querySelector<HTMLElement>('[data-testid="tax-formula-dialog-overlay"]')
     expect(overlay).not.toBeNull()
@@ -486,7 +495,16 @@ describe('situation single-source flow', () => {
     })
 
     expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
-    expect(document.querySelector('[data-testid="tax-formula-dialog"]')).toBeNull()
+    const scenarioDialog = getLatestScenarioDialog()
+    expect(scenarioDialog).not.toBeNull()
+    expect(document.body.style.overflow).toBe('hidden')
+
+    const scenarioCloseButton = scenarioDialog?.querySelector<HTMLButtonElement>('button[aria-label="關閉"]')
+    act(() => {
+      scenarioCloseButton?.click()
+    })
+
+    expect(document.querySelector('[data-testid="tax-scenario-combinations-dialog-overlay"]')).toBeNull()
     expect(document.body.style.overflow).toBe('')
   })
 
@@ -552,7 +570,7 @@ describe('situation single-source flow', () => {
     expect(container.textContent).not.toContain('標準扣除額（單身）')
     expect(scrollToSpy).toHaveBeenLastCalledWith(
       0,
-      STANDARD_DEDUCTION_MARRIED_TARGET_TOP - SECTION_SCROLL_OFFSET,
+      GROSS_SECTION_TARGET_TOP - SECTION_SCROLL_OFFSET,
     )
   })
 
@@ -886,6 +904,34 @@ describe('situation single-source flow', () => {
     const dialog = getLatestScenarioDialog()
     expect(dialog?.textContent).toContain('單身申報')
     expect(dialog?.textContent).not.toContain('推薦')
+    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '最終稅額', ''])
+
+    clickLatestScenarioDialogByTestId('scenario-row-single:none')
+    const expandedDialog = getLatestScenarioDialog()
+    expect(expandedDialog?.textContent).toContain('所得計算')
+    expect(expandedDialog?.textContent).toContain('基本生活費差額')
+    expect(expandedDialog?.textContent).not.toContain('股利')
+  })
+
+  it('shows spouse tax-method column only for married scenario details', () => {
+    renderApp()
+    clickButtonByText('配偶合併申報')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '800000')
+    changeInputByTestId('income-input-gross-income-spouse', '600000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickByTestId('card-choice-exemption-general-spouse_age_band-under_70')
+    clickButtonByText('查看詳情')
+
+    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '配偶計稅方式', '最終稅額', ''])
+
+    clickLatestScenarioDialogByTestId('scenario-row-spouse_salary_separate:none')
+    const splitSections = document.body.querySelector<HTMLElement>('[data-testid="scenario-formula-sections-spouse_salary_separate:none"]')
+    expect(splitSections?.textContent).toContain('配偶薪資所得分開計稅')
+    expect(splitSections?.textContent).toContain('不含薪資分開計稅部分')
+    expect(splitSections?.textContent).toContain('加總')
   })
 
   it('calculates summary scenarios when completed income cards include positive dividends', () => {
@@ -912,11 +958,15 @@ describe('situation single-source flow', () => {
     expect(dialog?.textContent).not.toContain('股利合併計稅並扣抵')
     expect(dialog?.textContent).not.toContain('股利 28% 分開計稅')
 
-    clickBodyByTestId('scenario-row-single:merged')
-    const mergedHint = document.body.querySelector<HTMLElement>('[data-testid="scenario-structure-hint-single:merged"]')
-    expect(mergedHint?.textContent).toContain('所得淨額 = 綜合所得總額 − 免稅額 − 一般扣除額 − 特別扣除額 − 基本生活費差額')
-    expect(mergedHint?.textContent).toContain('一般稅額 = 應納稅額 − 股利可抵減稅額')
-    expect(mergedHint?.textContent).not.toContain('股利分開計稅稅額')
+    clickLatestScenarioDialogByTestId('scenario-row-single:merged')
+    const mergedSections = document.body.querySelector<HTMLElement>('[data-testid="scenario-formula-sections-single:merged"]')
+    expect(mergedSections?.textContent).toContain('所得計算')
+    expect(mergedSections?.textContent).toContain('基本生活費差額')
+    expect(mergedSections?.textContent).toContain('股利處理')
+    expect(mergedSections?.textContent).toContain('股利可抵減稅額')
+    expect(mergedSections?.textContent).toContain('一般所得稅額')
+    expect(mergedSections?.textContent).not.toContain('股利分開計稅稅額')
+    expect(document.body.querySelector('[data-testid="scenario-structure-hint-single:merged"]')).toBeNull()
   })
 
   it('hides AMT wording in summary scenario details until overseas income is positive', () => {
@@ -946,7 +996,11 @@ describe('situation single-source flow', () => {
     clickButtonByText('查看詳情')
 
     const dialog = getLatestScenarioDialog()
-    expect(dialog?.textContent).toContain('AMT')
+    expect(dialog?.textContent).not.toContain('AMT')
+
+    clickLatestScenarioDialogByTestId('scenario-row-single:none')
+    const expandedDialog = getLatestScenarioDialog()
+    expect(expandedDialog?.textContent).toContain('AMT')
   })
 
   it('opens tax bracket reference from summary scenario dialog', () => {

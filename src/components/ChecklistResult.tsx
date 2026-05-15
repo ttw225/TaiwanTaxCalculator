@@ -19,6 +19,7 @@ import {
   INCOME_PARTICIPANTS_ITEM_ID,
   calcPersonNetIncome,
   calcRawIncomeTotal,
+  getVisibleIncomeCardPersons,
   incomeCardIsComplete,
   parseIncomeCardPersons,
   parseIncomeParticipantsFromMap,
@@ -732,6 +733,7 @@ export function ChecklistResult({
         .map((id) => {
           const config = INCOME_CARD_CONFIGS[id]
           const persons = parseIncomeCardPersons(cardInputMap[id] ?? {}, incomeParticipants)
+          const visiblePersons = getVisibleIncomeCardPersons(persons)
           const amount = config.kind === 'salary'
             ? persons.reduce((sum, p) => sum + calcPersonNetIncome(p.income), 0)
             : calcRawIncomeTotal(persons.map(({ id: personId, label, income }) => ({ id: personId, label, income })))
@@ -739,7 +741,7 @@ export function ChecklistResult({
             id,
             label: config.formulaLabel,
             amount,
-            complete: incomeCardIsComplete(config, persons),
+            complete: incomeCardIsComplete(config, visiblePersons),
           }
         }),
     [cardInputMap, incomeParticipants, presentIncomeCardIds],

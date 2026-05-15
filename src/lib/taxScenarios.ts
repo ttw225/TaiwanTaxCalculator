@@ -1,4 +1,4 @@
-import { calcTax, getNumber } from './numbers'
+import { calcTax, getBrackets, getNumber } from './numbers'
 
 const DIVIDEND_CREDIT_RATE = 0.085
 const DIVIDEND_CREDIT_CAP = 80_000
@@ -34,6 +34,43 @@ export interface FormulaLine {
   amount: number
 }
 
+export interface ScenarioFormulaOperand {
+  label: string
+  amount: number
+  displayValue?: string
+}
+
+export type ScenarioFormulaOperator = '+' | '−' | '×'
+
+export type TakeMinSubPart =
+  | { type: 'operand'; operand: ScenarioFormulaOperand }
+  | { type: 'operator'; operator: ScenarioFormulaOperator }
+
+export interface TakeMinCandidate {
+  label: string
+  amount: number
+  subParts?: TakeMinSubPart[]
+}
+
+export type ScenarioFormulaPart =
+  | { type: 'operand'; operand: ScenarioFormulaOperand }
+  | { type: 'operator'; operator: ScenarioFormulaOperator }
+  | { type: 'text'; text: string }
+  | { type: 'floorZero'; isApplied: boolean }
+  | { type: 'capAt'; amount: number; isHit: boolean }
+  | { type: 'takeMin'; candidates: TakeMinCandidate[]; winner: number }
+
+export interface ScenarioFormulaEquation {
+  label: string
+  parts: ScenarioFormulaPart[]
+  result: ScenarioFormulaOperand
+}
+
+export interface ScenarioFormulaSection {
+  title: string
+  equations: ScenarioFormulaEquation[]
+}
+
 export interface TaxScenario {
   id: string
   coupleMode: CoupleScenarioMode
@@ -53,6 +90,7 @@ export interface TaxScenario {
   amtSupplement: number
   finalTax: number
   formulas: FormulaLine[]
+  formulaSections: ScenarioFormulaSection[]
   assumptions: string[]
 }
 
@@ -93,6 +131,60 @@ function roundTax(value: number): number {
 
 function money(value: number): string {
   return roundTax(value).toLocaleString('zh-TW')
+}
+
+function twd(value: number): string {
+  return `${money(value)} 元`
+}
+
+function percent(value: number): string {
+  return `${(value * 100).toFixed(1).replace(/\.0$/, '')}%`
+}
+
+function operand(label: string, amount: number, displayValue = twd(amount)): ScenarioFormulaPart {
+  return { type: 'operand', operand: { label, amount, displayValue } }
+}
+
+function result(label: string, amount: number, displayValue = twd(amount)): ScenarioFormulaOperand {
+  return { label, amount, displayValue }
+}
+
+function op(operator: ScenarioFormulaOperator): ScenarioFormulaPart {
+  return { type: 'operator', operator }
+}
+
+function text(value: string): ScenarioFormulaPart {
+  return { type: 'text', text: value }
+}
+
+function floorZero(isApplied: boolean): ScenarioFormulaPart {
+  return { type: 'floorZero', isApplied }
+}
+
+function capAt(amount: number, isHit: boolean): ScenarioFormulaPart {
+  return { type: 'capAt', amount, isHit }
+}
+
+function takeMin(candidates: TakeMinCandidate[], winner: number): ScenarioFormulaPart {
+  return { type: 'takeMin', candidates, winner }
+}
+
+function equation(
+  label: string,
+  parts: ScenarioFormulaPart[],
+  resultLabel: string,
+  resultAmount: number,
+  resultDisplayValue = twd(resultAmount),
+): ScenarioFormulaEquation {
+  return {
+    label,
+    parts,
+    result: result(resultLabel, resultAmount, resultDisplayValue),
+  }
+}
+
+function bracketFor(netIncome: number): ReturnType<typeof getBrackets>[number] {
+  return getBrackets().find((b) => b.up_to === null || netIncome <= b.up_to) ?? getBrackets()[0]
 }
 
 function sumPersons(persons: TaxScenarioPerson[], selector: (person: TaxScenarioPerson) => number): number {
@@ -255,16 +347,274 @@ function regularTaxExpression(
   return `${money(regularIncomeTaxBeforeDividendCredit)}`
 }
 
+function buildBasicLivingEquation(
+  inputs: TaxScenarioInputs,
+  basicLivingExpenseDifference: number,
+): ScenarioFormulaEquation {
+  const householdMemberCount = Math.max(0, Math.floor(inputs.householdMemberCount))
+  return equation(
+    '基本生活費差額',
+    [
+      operand('基本生活費', getNumber('basic_living_expense')),
+      op('×'),
+      operand('人數', householdMemberCount, `${householdMemberCount} 人`),
+      op('−'),
+      operand('免稅額', inputs.exemptionAmount),
+      op('−'),
+      operand('一般扣除額', inputs.generalDeductionAmount),
+      op('−'),
+      operand('特別扣除額', inputs.specialDeductionAmount),
+      floorZero(basicLivingExpenseDifference === 0),
+    ],
+    '基本生活費差額',
+    basicLivingExpenseDifference,
+  )
+}
+
+function buildTaxEquation(
+  label: string,
+  taxableLabel: string,
+  taxableIncome: number,
+  resultLabel: string,
+  tax: number,
+): ScenarioFormulaEquation {
+  const bracket = bracketFor(taxableIncome)
+  return equation(
+    label,
+    [
+      operand(taxableLabel, taxableIncome),
+      op('×'),
+      operand('稅率', bracket.rate, percent(bracket.rate)),
+      op('−'),
+      operand('累進差額', bracket.quick_deduction),
+    ],
+    resultLabel,
+    tax,
+  )
+}
+
+function buildGrossIncomeEquation(
+  includeDividend: boolean,
+  salaryNetIncome: number,
+  dividendIncome: number,
+  interestIncome: number,
+  otherIncome: number,
+  grossIncome: number,
+): ScenarioFormulaEquation {
+  const parts: ScenarioFormulaPart[] = [
+    operand('薪資淨額', salaryNetIncome),
+  ]
+  if (includeDividend) {
+    parts.push(op('+'), operand('股利', dividendIncome))
+  }
+  parts.push(
+    op('+'),
+    operand('利息', interestIncome),
+    op('+'),
+    operand('其他收入', otherIncome),
+  )
+  return equation('綜合所得總額', parts, '綜合所得總額', grossIncome)
+}
+
+function buildDividendSection(
+  dividendMode: DividendScenarioMode,
+  totalDividend: number,
+  regularIncomeTaxBeforeDividendCredit: number,
+  dividendCredit: number,
+  separateDividendTax: number,
+  regularTax: number,
+): ScenarioFormulaSection | null {
+  if (dividendMode === 'none') return null
+
+  if (dividendMode === 'merged') {
+    return {
+      title: '股利處理',
+      equations: [
+        equation(
+          '股利可抵減稅額',
+          [
+            operand('股利所得', totalDividend),
+            op('×'),
+            operand('扣抵率', DIVIDEND_CREDIT_RATE, percent(DIVIDEND_CREDIT_RATE)),
+            capAt(DIVIDEND_CREDIT_CAP, dividendCredit >= DIVIDEND_CREDIT_CAP),
+          ],
+          '股利可抵減稅額',
+          dividendCredit,
+        ),
+        equation(
+          '一般所得稅額',
+          [
+            operand('應納稅額', regularIncomeTaxBeforeDividendCredit),
+            op('−'),
+            operand('股利可抵減稅額', dividendCredit),
+          ],
+          '一般所得稅額',
+          regularTax,
+        ),
+      ],
+    }
+  }
+
+  return {
+    title: '股利處理',
+    equations: [
+      equation(
+        '股利分開計稅稅額',
+        [
+          operand('股利所得', totalDividend),
+          op('×'),
+          operand('稅率', DIVIDEND_FLAT_RATE, percent(DIVIDEND_FLAT_RATE)),
+        ],
+        '股利分開計稅稅額',
+        separateDividendTax,
+      ),
+      equation(
+        '一般所得稅額',
+        [
+          operand('應納稅額', regularIncomeTaxBeforeDividendCredit),
+          op('+'),
+          operand('股利分開計稅稅額', separateDividendTax),
+        ],
+        '一般所得稅額',
+        regularTax,
+      ),
+    ],
+  }
+}
+
+function buildAmtSection(
+  taxableIncome: number,
+  separateDividendAmount: number,
+  regularTax: number,
+  overseasIncome: number,
+  overseasTaxPaid: number,
+  basicIncome: number,
+  basicTax: number,
+  overseasTaxCredit: number,
+  amtSupplement: number,
+): ScenarioFormulaSection | null {
+  if (overseasIncome <= 0) return null
+
+  if (overseasIncome < AMT_OVERSEAS_THRESHOLD) {
+    return {
+      title: 'AMT 計算',
+      equations: [
+        equation(
+          'AMT 判斷',
+          [
+            operand('海外所得', overseasIncome),
+            text('未達 1,000,000 元，不計入核心 AMT 試算'),
+          ],
+          'AMT 補稅',
+          0,
+        ),
+      ],
+    }
+  }
+
+  const amtGap = Math.max(0, basicTax - regularTax)
+
+  const basicIncomeParts: ScenarioFormulaPart[] = [
+    operand('綜合所得淨額', taxableIncome),
+  ]
+  if (separateDividendAmount > 0) {
+    basicIncomeParts.push(op('+'), operand('股利分開計稅所得', separateDividendAmount))
+  }
+  basicIncomeParts.push(op('+'), operand('海外所得', overseasIncome))
+
+  return {
+    title: 'AMT 計算',
+    equations: [
+      equation(
+        '基本所得額',
+        basicIncomeParts,
+        '基本所得額',
+        basicIncome,
+      ),
+      equation(
+        '基本稅額',
+        [
+          operand('基本所得額', basicIncome),
+          op('−'),
+          operand('基本所得額扣除額', AMT_BASIC_INCOME_DEDUCTION),
+          floorZero(basicIncome < AMT_BASIC_INCOME_DEDUCTION),
+          op('×'),
+          operand('稅率', AMT_RATE, percent(AMT_RATE)),
+        ],
+        '基本稅額',
+        basicTax,
+      ),
+      equation(
+        '海外稅額扣抵',
+        [
+          takeMin(
+            [
+              { label: '海外已納所得稅', amount: Math.max(0, overseasTaxPaid) },
+              {
+                label: 'AMT 可扣抵額',
+                amount: amtGap,
+                subParts: [
+                  { type: 'operand', operand: { label: '基本稅額', amount: basicTax, displayValue: twd(basicTax) } },
+                  { type: 'operator', operator: '−' },
+                  { type: 'operand', operand: { label: '一般所得稅額', amount: regularTax, displayValue: twd(regularTax) } },
+                ],
+              },
+            ],
+            Math.max(0, overseasTaxPaid) <= amtGap ? 0 : 1,
+          ),
+        ],
+        '海外稅額扣抵',
+        overseasTaxCredit,
+      ),
+      equation(
+        'AMT 補稅',
+        [
+          operand('基本稅額', basicTax),
+          op('−'),
+          operand('一般所得稅額', regularTax),
+          op('−'),
+          operand('海外稅額扣抵', overseasTaxCredit),
+          floorZero(basicTax - regularTax - overseasTaxCredit < 0),
+        ],
+        'AMT 補稅',
+        amtSupplement,
+      ),
+    ],
+  }
+}
+
+function buildFinalTaxSection(
+  regularTax: number,
+  amtSupplement: number,
+  finalTax: number,
+  includeAmt: boolean,
+): ScenarioFormulaSection {
+  const parts: ScenarioFormulaPart[] = [operand('一般所得稅額', regularTax)]
+  if (includeAmt) {
+    parts.push(op('+'), operand('AMT 補稅', amtSupplement))
+  }
+  return {
+    title: '應繳納稅額',
+    equations: [
+      equation('應繳納稅額', parts, '應繳納稅額', finalTax),
+    ],
+  }
+}
+
 function buildScenario(
   inputs: TaxScenarioInputs,
   coupleMode: CoupleScenarioMode,
   dividendMode: DividendScenarioMode,
 ): TaxScenario {
-  const includeDividend = dividendMode !== 'separate_28'
+  const includeDividend = dividendMode === 'merged'
   const totalDividend = sumPersons(inputs.persons, (person) => person.dividendIncome)
+  const salaryNetIncome = sumPersons(inputs.persons, (person) => person.salaryNetIncome)
+  const interestIncome = sumPersons(inputs.persons, (person) => person.interestIncome)
+  const otherIncome = sumPersons(inputs.persons, (person) => person.otherIncome)
   const grossIncome = sumPersons(inputs.persons, (person) => personIncome(person, includeDividend))
   const basicLivingExpenseDifference = calcBasicLivingExpenseDifference(inputs)
   const assumptions: string[] = []
+  const incomeSections: ScenarioFormulaSection[] = []
 
   let taxableParts: { label: string; taxableIncome: number; tax: number }[]
 
@@ -277,26 +627,118 @@ function buildScenario(
         inputs.specialDeductionAmount -
         basicLivingExpenseDifference,
     )
-    taxableParts = [{ label: '綜合所得淨額', taxableIncome, tax: calcTax(taxableIncome) }]
+    const tax = calcTax(taxableIncome)
+    taxableParts = [{ label: '綜合所得淨額', taxableIncome, tax }]
+    incomeSections.push({
+      title: '所得計算',
+      equations: [
+        buildGrossIncomeEquation(includeDividend, salaryNetIncome, totalDividend, interestIncome, otherIncome, grossIncome),
+        buildBasicLivingEquation(inputs, basicLivingExpenseDifference),
+        equation(
+          '綜合所得淨額',
+          [
+            operand('綜合所得總額', grossIncome),
+            op('−'),
+            operand('免稅額', inputs.exemptionAmount),
+            op('−'),
+            operand('一般扣除額', inputs.generalDeductionAmount),
+            op('−'),
+            operand('特別扣除額', inputs.specialDeductionAmount),
+            op('−'),
+            operand('基本生活費差額', basicLivingExpenseDifference),
+          ],
+          '綜合所得淨額',
+          taxableIncome,
+        ),
+        buildTaxEquation('應納稅額', '綜合所得淨額', taxableIncome, '應納稅額', tax),
+      ],
+    })
   } else if (coupleMode === 'self_salary_separate' || coupleMode === 'spouse_salary_separate') {
     const splitPersonId = coupleMode === 'self_salary_separate' ? 'self' : 'spouse'
     const splitPerson = getPerson(inputs.persons, splitPersonId)
     const splitExemption = getPersonExemption(inputs, splitPersonId)
     assumptions.push('未能歸屬到特定個人的扣除額放在非分開計稅方。')
     const splitTaxable = Math.max(0, splitPerson.salaryNetIncome - splitExemption)
+    const splitTax = calcTax(splitTaxable)
+    const otherExemption = inputs.exemptionAmount - splitExemption
     const otherTaxable = Math.max(
       0,
       grossIncome -
         splitPerson.salaryNetIncome -
-        (inputs.exemptionAmount - splitExemption) -
+        otherExemption -
         inputs.generalDeductionAmount -
         inputs.specialDeductionAmount -
         basicLivingExpenseDifference,
     )
+    const otherTax = calcTax(otherTaxable)
     taxableParts = [
-      { label: `${splitPerson.label}薪資分開計稅淨額`, taxableIncome: splitTaxable, tax: calcTax(splitTaxable) },
-      { label: '不含薪資分開計稅部分所得淨額', taxableIncome: otherTaxable, tax: calcTax(otherTaxable) },
+      { label: `${splitPerson.label}薪資分開計稅淨額`, taxableIncome: splitTaxable, tax: splitTax },
+      { label: '不含薪資分開計稅部分所得淨額', taxableIncome: otherTaxable, tax: otherTax },
     ]
+    incomeSections.push(
+      {
+        title: `${splitPerson.label}薪資所得分開計稅`,
+        equations: [
+          equation(
+            `${splitPerson.label}薪資分開計稅淨額`,
+            [
+              operand(`${splitPerson.label}薪資淨額`, splitPerson.salaryNetIncome),
+              op('−'),
+              operand(`${splitPerson.label}免稅額`, splitExemption),
+            ],
+            `${splitPerson.label}薪資分開計稅淨額`,
+            splitTaxable,
+          ),
+          buildTaxEquation(
+            `${splitPerson.label}薪資分開應納稅額`,
+            `${splitPerson.label}薪資分開計稅淨額`,
+            splitTaxable,
+            `${splitPerson.label}薪資分開應納稅額`,
+            splitTax,
+          ),
+        ],
+      },
+      {
+        title: '不含薪資分開計稅部分',
+        equations: [
+          buildBasicLivingEquation(inputs, basicLivingExpenseDifference),
+          equation(
+            '剩餘所得淨額',
+            [
+              operand('綜合所得總額', grossIncome),
+              op('−'),
+              operand(`${splitPerson.label}薪資淨額`, splitPerson.salaryNetIncome),
+              op('−'),
+              operand('其餘免稅額', otherExemption),
+              op('−'),
+              operand('一般扣除額', inputs.generalDeductionAmount),
+              op('−'),
+              operand('特別扣除額', inputs.specialDeductionAmount),
+              op('−'),
+              operand('基本生活費差額', basicLivingExpenseDifference),
+            ],
+            '剩餘所得淨額',
+            otherTaxable,
+          ),
+          buildTaxEquation('剩餘部分應納稅額', '剩餘所得淨額', otherTaxable, '剩餘部分應納稅額', otherTax),
+        ],
+      },
+      {
+        title: '加總',
+        equations: [
+          equation(
+            '應納稅額',
+            [
+              operand(`${splitPerson.label}薪資分開應納稅額`, splitTax),
+              op('+'),
+              operand('剩餘部分應納稅額', otherTax),
+            ],
+            '應納稅額',
+            splitTax + otherTax,
+          ),
+        ],
+      },
+    )
   } else {
     const splitPersonId = coupleMode === 'self_all_income_separate' ? 'self' : 'spouse'
     const splitPerson = getPerson(inputs.persons, splitPersonId)
@@ -310,19 +752,88 @@ function buildScenario(
     )
     const otherSpecialDeduction = Math.max(0, inputs.specialDeductionAmount - splitSavingsDeduction)
     const splitTaxable = Math.max(0, splitGross - splitExemption - splitSavingsDeduction)
+    const splitTax = calcTax(splitTaxable)
+    const otherExemption = inputs.exemptionAmount - splitExemption
     const otherTaxable = Math.max(
       0,
       grossIncome -
         splitGross -
-        (inputs.exemptionAmount - splitExemption) -
+        otherExemption -
         inputs.generalDeductionAmount -
         otherSpecialDeduction -
         basicLivingExpenseDifference,
     )
+    const otherTax = calcTax(otherTaxable)
     taxableParts = [
-      { label: `${splitPerson.label}各類所得分開計稅淨額`, taxableIncome: splitTaxable, tax: calcTax(splitTaxable) },
-      { label: '不含各類所得分開計稅部分所得淨額', taxableIncome: otherTaxable, tax: calcTax(otherTaxable) },
+      { label: `${splitPerson.label}各類所得分開計稅淨額`, taxableIncome: splitTaxable, tax: splitTax },
+      { label: '不含各類所得分開計稅部分所得淨額', taxableIncome: otherTaxable, tax: otherTax },
     ]
+    incomeSections.push(
+      {
+        title: `${splitPerson.label}各類所得分開計稅`,
+        equations: [
+          equation(
+            `${splitPerson.label}各類所得分開計稅淨額`,
+            [
+              operand(`${splitPerson.label}各類所得總額`, splitGross),
+              op('−'),
+              operand(`${splitPerson.label}免稅額`, splitExemption),
+              op('−'),
+              operand('分開方儲蓄投資特別扣除額', splitSavingsDeduction),
+            ],
+            `${splitPerson.label}各類所得分開計稅淨額`,
+            splitTaxable,
+          ),
+          buildTaxEquation(
+            `${splitPerson.label}各類所得分開應納稅額`,
+            `${splitPerson.label}各類所得分開計稅淨額`,
+            splitTaxable,
+            `${splitPerson.label}各類所得分開應納稅額`,
+            splitTax,
+          ),
+        ],
+      },
+      {
+        title: '不含各類所得分開計稅部分',
+        equations: [
+          buildBasicLivingEquation(inputs, basicLivingExpenseDifference),
+          equation(
+            '剩餘所得淨額',
+            [
+              operand('綜合所得總額', grossIncome),
+              op('−'),
+              operand(`${splitPerson.label}各類所得總額`, splitGross),
+              op('−'),
+              operand('其餘免稅額', otherExemption),
+              op('−'),
+              operand('一般扣除額', inputs.generalDeductionAmount),
+              op('−'),
+              operand('其餘特別扣除額', otherSpecialDeduction),
+              op('−'),
+              operand('基本生活費差額', basicLivingExpenseDifference),
+            ],
+            '剩餘所得淨額',
+            otherTaxable,
+          ),
+          buildTaxEquation('剩餘部分應納稅額', '剩餘所得淨額', otherTaxable, '剩餘部分應納稅額', otherTax),
+        ],
+      },
+      {
+        title: '加總',
+        equations: [
+          equation(
+            '應納稅額',
+            [
+              operand(`${splitPerson.label}各類所得分開應納稅額`, splitTax),
+              op('+'),
+              operand('剩餘部分應納稅額', otherTax),
+            ],
+            '應納稅額',
+            splitTax + otherTax,
+          ),
+        ],
+      },
+    )
   }
 
   const taxableIncome = taxableParts.reduce((sum, part) => sum + part.taxableIncome, 0)
@@ -334,15 +845,43 @@ function buildScenario(
     ? roundTax(totalDividend * DIVIDEND_FLAT_RATE)
     : 0
   const regularTax = regularIncomeTaxBeforeDividendCredit - dividendCredit + separateDividendTax
+  const overseasIncome = Math.max(0, inputs.overseasIncome)
+  const overseasTaxPaid = Math.max(0, inputs.overseasTaxPaid)
+  const separateDividendAmount = dividendMode === 'separate_28' ? totalDividend : 0
   const amt = buildAmtLines(
     taxableIncome,
-    dividendMode === 'separate_28' ? totalDividend : 0,
+    separateDividendAmount,
     regularTax,
-    Math.max(0, inputs.overseasIncome),
-    Math.max(0, inputs.overseasTaxPaid),
+    overseasIncome,
+    overseasTaxPaid,
   )
   const finalTax = regularTax + amt.amtSupplement
   const divTitle = dividendTitle(dividendMode)
+  const dividendSection = buildDividendSection(
+    dividendMode,
+    totalDividend,
+    regularIncomeTaxBeforeDividendCredit,
+    dividendCredit,
+    separateDividendTax,
+    regularTax,
+  )
+  const amtSection = buildAmtSection(
+    taxableIncome,
+    separateDividendAmount,
+    regularTax,
+    overseasIncome,
+    overseasTaxPaid,
+    amt.basicIncome,
+    amt.basicTax,
+    amt.overseasTaxCredit,
+    amt.amtSupplement,
+  )
+  const formulaSections = [
+    ...incomeSections,
+    ...(dividendSection ? [dividendSection] : []),
+    ...(amtSection ? [amtSection] : []),
+    buildFinalTaxSection(regularTax, amt.amtSupplement, finalTax, overseasIncome > 0),
+  ]
 
   const formulas: FormulaLine[] = [
     {
@@ -421,6 +960,7 @@ function buildScenario(
     amtSupplement: amt.amtSupplement,
     finalTax,
     formulas,
+    formulaSections,
     assumptions,
   }
 }
