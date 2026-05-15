@@ -155,3 +155,8 @@ http://localhost:4173/TaiwanTaxCalculator/pr-preview/pr-123/
 - `src/lib/` — 邏輯、設定（如 `siteConfig.ts`）  
 - `src/data/` — 站內年度數值等 JSON  
 - `tests/` — Vitest 測試  
+
+## Authors
+
+- **[Peter](https://github.com/ttw225)** — 專案建立人，主導功能開發 / Project creator & lead developer
+- **[Jessica](https://github.com/jessicaips)** — UI/UX 設計主導，規劃介面設計與互動流程，並共同參與功能開發 / UX lead — shaped the interface design and interaction flows; co-developer
