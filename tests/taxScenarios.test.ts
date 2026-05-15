@@ -121,6 +121,17 @@ describe('calcTaxScenarios', () => {
     expect(result.bestScenario.dividendMode).toBe('none')
   })
 
+  it('builds sectioned formulas without dividend wording when no dividend exists', () => {
+    const scenario = calcTaxScenarios(baseSingle).bestScenario
+    const serializedSections = JSON.stringify(scenario.formulaSections)
+    const basicLivingEquation = scenario.formulaSections[0]?.equations.find((eq) => eq.label === '基本生活費差額')
+
+    expect(scenario.formulaSections.map((section) => section.title)).toEqual(['所得計算', '應繳納稅額'])
+    expect(serializedSections).not.toContain('股利')
+    expect(basicLivingEquation?.result.amount).toBe(scenario.basicLivingExpenseDifference)
+    expect(basicLivingEquation?.parts.map((part) => part.type === 'operand' ? part.operand.label : '')).toContain('基本生活費')
+  })
+
   it('returns two scenarios for single filing with dividends', () => {
     const result = calcTaxScenarios({
       ...baseSingle,
@@ -128,6 +139,20 @@ describe('calcTaxScenarios', () => {
     })
     expect(result.scenarios).toHaveLength(2)
     expect(result.scenarios.map((s) => s.dividendMode)).toEqual(['merged', 'separate_28'])
+  })
+
+  it('builds dividend handling sections for merged and separate dividend modes', () => {
+    const result = calcTaxScenarios({
+      ...baseSingle,
+      persons: [{ ...baseSingle.persons[0], dividendIncome: 500_000 }],
+    })
+    const merged = result.scenarios.find((scenario) => scenario.dividendMode === 'merged')
+    const separate = result.scenarios.find((scenario) => scenario.dividendMode === 'separate_28')
+
+    expect(merged?.formulaSections.find((section) => section.title === '股利處理')?.equations.map((eq) => eq.label))
+      .toEqual(['股利可抵減稅額', '一般所得稅額'])
+    expect(separate?.formulaSections.find((section) => section.title === '股利處理')?.equations.map((eq) => eq.label))
+      .toEqual(['股利分開計稅稅額', '一般所得稅額'])
   })
 
   it('omits zero dividend terms from regular-tax formula expressions', () => {
@@ -167,6 +192,22 @@ describe('calcTaxScenarios', () => {
     expect(scenariosByMode.get('spouse_salary_separate')?.assumptions).toEqual([assumption])
     expect(scenariosByMode.get('self_all_income_separate')?.assumptions).toEqual([assumption])
     expect(scenariosByMode.get('spouse_all_income_separate')?.assumptions).toEqual([assumption])
+  })
+
+  it('builds split-tax formula sections as split side, remaining side, and sum', () => {
+    const result = calcTaxScenarios(baseMarried)
+    const scenario = result.scenarios.find((s) => s.coupleMode === 'spouse_salary_separate')
+
+    expect(scenario?.formulaSections.slice(0, 3).map((section) => section.title)).toEqual([
+      '配偶薪資所得分開計稅',
+      '不含薪資分開計稅部分',
+      '加總',
+    ])
+    expect(scenario?.formulaSections[0]?.equations.map((eq) => eq.label)).toEqual([
+      '配偶薪資分開計稅淨額',
+      '配偶薪資分開應納稅額',
+    ])
+    expect(scenario?.formulaSections[2]?.equations[0]?.result.label).toBe('應納稅額')
   })
 
   it('returns ten couple scenarios with dividends', () => {
@@ -245,6 +286,31 @@ describe('calcTaxScenarios', () => {
     expect(above.bestScenario.overseasTaxCredit).toBe(30_000)
     expect(above.bestScenario.amtSupplement).toBe(70_000)
     expect(above.bestScenario.finalTax).toBe(70_000)
+  })
+
+  it('builds AMT formulas with overseas tax credit', () => {
+    const result = calcTaxScenarios({
+      ...baseSingle,
+      persons: [{ ...baseSingle.persons[0], salaryNetIncome: 0 }],
+      overseasIncome: 8_000_000,
+      overseasTaxPaid: 30_000,
+    })
+    const amtSection = result.bestScenario.formulaSections.find((section) => section.title === 'AMT 計算')
+
+    expect(amtSection?.equations.map((eq) => eq.label)).toEqual([
+      '基本所得額',
+      '基本稅額',
+      '海外稅額扣抵',
+      'AMT 補稅',
+    ])
+    expect(amtSection?.equations.find((eq) => eq.label === '海外稅額扣抵')?.result.amount).toBe(30_000)
+    expect(amtSection?.equations.find((eq) => eq.label === 'AMT 補稅')?.result.amount).toBe(70_000)
+  })
+
+  it('does not mention dividends in sectioned formulas when only overseas income exists', () => {
+    const scenario = calcTaxScenarios({ ...baseSingle, overseasIncome: 8_000_000 }).bestScenario
+    expect(JSON.stringify(scenario.formulaSections)).not.toContain('股利')
+    expect(scenario.formulaSections.map((section) => section.title)).toContain('AMT 計算')
   })
 
   it('omits AMT formula lines when overseas income is zero', () => {

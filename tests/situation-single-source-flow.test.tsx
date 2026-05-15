@@ -213,14 +213,6 @@ function clickByTestId(testId: string) {
   })
 }
 
-function clickBodyByTestId(testId: string) {
-  const element = document.body.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
-  if (!element) throw new Error(`Missing body element with data-testid "${testId}"`)
-  act(() => {
-    element.click()
-  })
-}
-
 function clickLatestScenarioDialogByTestId(testId: string) {
   const dialog = getLatestScenarioDialog()
   const element = dialog?.querySelector<HTMLElement>(`[data-testid="${testId}"]`)
@@ -913,6 +905,12 @@ describe('situation single-source flow', () => {
     expect(dialog?.textContent).toContain('單身申報')
     expect(dialog?.textContent).not.toContain('推薦')
     expect(getScenarioDialogHeaders()).toEqual(['申報組合', '最終稅額', ''])
+
+    clickLatestScenarioDialogByTestId('scenario-row-single:none')
+    const expandedDialog = getLatestScenarioDialog()
+    expect(expandedDialog?.textContent).toContain('所得計算')
+    expect(expandedDialog?.textContent).toContain('基本生活費差額')
+    expect(expandedDialog?.textContent).not.toContain('股利')
   })
 
   it('shows spouse tax-method column only for married scenario details', () => {
@@ -928,6 +926,12 @@ describe('situation single-source flow', () => {
     clickButtonByText('查看詳情')
 
     expect(getScenarioDialogHeaders()).toEqual(['申報組合', '配偶計稅方式', '最終稅額', ''])
+
+    clickLatestScenarioDialogByTestId('scenario-row-spouse_salary_separate:none')
+    const splitSections = document.body.querySelector<HTMLElement>('[data-testid="scenario-formula-sections-spouse_salary_separate:none"]')
+    expect(splitSections?.textContent).toContain('配偶薪資所得分開計稅')
+    expect(splitSections?.textContent).toContain('不含薪資分開計稅部分')
+    expect(splitSections?.textContent).toContain('加總')
   })
 
   it('calculates summary scenarios when completed income cards include positive dividends', () => {
@@ -954,11 +958,15 @@ describe('situation single-source flow', () => {
     expect(dialog?.textContent).not.toContain('股利合併計稅並扣抵')
     expect(dialog?.textContent).not.toContain('股利 28% 分開計稅')
 
-    clickBodyByTestId('scenario-row-single:merged')
-    const mergedHint = document.body.querySelector<HTMLElement>('[data-testid="scenario-structure-hint-single:merged"]')
-    expect(mergedHint?.textContent).toContain('所得淨額 = 綜合所得總額 − 免稅額 − 一般扣除額 − 特別扣除額 − 基本生活費差額')
-    expect(mergedHint?.textContent).toContain('一般稅額 = 應納稅額 − 股利可抵減稅額')
-    expect(mergedHint?.textContent).not.toContain('股利分開計稅稅額')
+    clickLatestScenarioDialogByTestId('scenario-row-single:merged')
+    const mergedSections = document.body.querySelector<HTMLElement>('[data-testid="scenario-formula-sections-single:merged"]')
+    expect(mergedSections?.textContent).toContain('所得計算')
+    expect(mergedSections?.textContent).toContain('基本生活費差額')
+    expect(mergedSections?.textContent).toContain('股利處理')
+    expect(mergedSections?.textContent).toContain('股利可抵減稅額')
+    expect(mergedSections?.textContent).toContain('一般所得稅額')
+    expect(mergedSections?.textContent).not.toContain('股利分開計稅稅額')
+    expect(document.body.querySelector('[data-testid="scenario-structure-hint-single:merged"]')).toBeNull()
   })
 
   it('hides AMT wording in summary scenario details until overseas income is positive', () => {

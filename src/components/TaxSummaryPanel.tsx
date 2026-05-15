@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { calcTax, getBrackets } from '../lib/numbers'
-import type { TaxScenario, TaxScenarioResult } from '../lib/taxScenarios'
+import type { TakeMinCandidate, TaxScenario, TaxScenarioResult } from '../lib/taxScenarios'
 import { Card, CardBody, CardHeader } from './ui/Card'
 
 interface Props {
@@ -372,63 +372,176 @@ function ChevronIcon({ open }: { open: boolean }) {
   )
 }
 
-function StructureHint({ scenario, includeAmt }: { scenario: TaxScenario; includeAmt: boolean }) {
-  const regularTaxFormula =
-    scenario.dividendMode === 'merged'
-      ? (
-          <>
-            應納稅額 <span className="text-gray-400">−</span> 股利可抵減稅額
-          </>
-        )
-      : scenario.dividendMode === 'separate_28'
-        ? (
-            <>
-              應納稅額 <span className="text-gray-400">+</span> 股利分開計稅稅額
-            </>
-          )
-        : '應納稅額'
-
+function FormulaOperandView({
+  label,
+  value,
+  isResult = false,
+}: {
+  label: string
+  value: string
+  isResult?: boolean
+}) {
   return (
-    <div
-      data-testid={`scenario-structure-hint-${scenario.id}`}
-      className="mb-2 rounded-lg border border-gray-200 bg-white px-3 py-2 font-mono text-base text-gray-600"
-    >
-      {includeAmt && (
-        <div>
-          <span className="text-gray-400">最終稅額 =</span>{' '}
-          一般稅額 <span className="text-gray-400">+</span> AMT 補稅
-        </div>
-      )}
-      <div className="pl-4">
-        <span className="text-gray-400">所得淨額 =</span>{' '}
-        綜合所得總額 <span className="text-gray-400">−</span> 免稅額 <span className="text-gray-400">−</span>{' '}
-        一般扣除額 <span className="text-gray-400">−</span> 特別扣除額 <span className="text-gray-400">−</span>{' '}
-        基本生活費差額
+    <div className="inline-flex min-w-[6.75rem] flex-col gap-0.5 align-bottom">
+      <span className="text-sm leading-tight text-gray-500">{label}</span>
+      <span className={`text-base font-semibold leading-tight tabular-nums ${isResult ? 'text-blue-700' : 'text-gray-800'}`}>
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function FloorZeroTag() {
+  return (
+    <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 align-middle text-[11px] font-medium text-amber-800">
+      負數不計，採用0元
+    </span>
+  )
+}
+
+function CapAtTag({ amount }: { amount: number }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 align-middle text-[11px] font-medium text-amber-800">
+      已達上限 {fmt(amount)} 元
+    </span>
+  )
+}
+
+function TakeMinBlock({ candidates, winner }: { candidates: TakeMinCandidate[]; winner: number }) {
+  return (
+    <div className="w-full">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="whitespace-nowrap rounded border border-gray-300 bg-gray-50 px-1.5 py-px text-[11px] font-medium text-gray-500">
+          取較小值
+        </span>
+        <span className="h-px flex-1 bg-gray-200" />
       </div>
-      <div className="pl-4">
-        <span className="text-gray-400">一般稅額 =</span>{' '}
-        {regularTaxFormula}
+      <div className="flex flex-wrap gap-2">
+        {candidates.map((c, i) => {
+          const win = i === winner
+          return (
+            <div
+              key={i}
+              className={`relative min-w-40 flex-1 basis-44 rounded-lg border p-2.5 ${win ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
+            >
+              <div className={`mb-1.5 text-xs font-medium ${win ? 'text-blue-700' : 'text-gray-400'}`}>
+                {c.label}
+              </div>
+              {c.subParts && (
+                <div className="mb-1 flex flex-wrap items-end gap-x-1.5 gap-y-0.5">
+                  {c.subParts.map((p, pi) =>
+                    p.type === 'operand' ? (
+                      <FormulaOperandView
+                        key={pi}
+                        label={p.operand.label}
+                        value={p.operand.displayValue ?? `${fmt(p.operand.amount)} 元`}
+                      />
+                    ) : (
+                      <span key={pi} className="select-none pb-[2px] text-sm text-gray-400">
+                        {p.operator}
+                      </span>
+                    ),
+                  )}
+                  <span className="select-none pb-[2px] text-sm text-gray-400">＝</span>
+                  <FormulaOperandView label={c.label} value={`${fmt(c.amount)} 元`} isResult />
+                </div>
+              )}
+              {!c.subParts && (
+                <div className={`text-base font-bold tabular-nums ${win ? 'text-blue-700' : 'text-gray-500'}`}>
+                  {fmt(c.amount)} 元
+                </div>
+              )}
+              {win && (
+                <span className="absolute right-2.5 top-2 text-[10px] font-semibold text-blue-600">
+                  ✓ 採用
+                </span>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-function FormulaTable({ scenario }: { scenario: TaxScenario }) {
+function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50/60 p-3">
-      <div className="space-y-0.5">
-        {scenario.formulas.map((line, i) => (
-          <div key={`ft-${i}`} className="grid grid-cols-[7.5rem_1fr_auto] items-baseline gap-3 py-1 text-base">
-            <span className="leading-snug text-gray-500">{line.label}</span>
-            <span className="font-mono text-base leading-snug text-gray-500">{line.expression}</span>
-            <span className={`tabular-nums font-semibold ${line.amount < 0 ? 'text-emerald-700' : 'text-gray-900'}`}>
-              {line.amount < 0 ? '−' : ''}{fmt(Math.abs(line.amount))} 元
-            </span>
+    <div
+      data-testid={`scenario-formula-sections-${scenario.id}`}
+      className="rounded-lg border border-gray-200 bg-white"
+    >
+      {scenario.formulaSections.map((section, sectionIndex) => (
+        <section
+          key={`${scenario.id}-${section.title}`}
+          data-testid={`scenario-formula-section-${scenario.id}-${sectionIndex}`}
+          className="border-t border-dashed border-gray-200 px-3 py-3 first:border-t-0"
+        >
+          <h4 className="mb-2 text-base font-semibold text-gray-900">{section.title}</h4>
+          <div className="space-y-3">
+            {section.equations.map((equation, equationIndex) => {
+              const hasTakeMin = equation.parts.some((p) => p.type === 'takeMin')
+              return (
+                <div
+                  key={`${scenario.id}-${sectionIndex}-${equationIndex}`}
+                  data-testid={`scenario-formula-equation-${scenario.id}-${sectionIndex}-${equationIndex}`}
+                >
+                  <div className="mb-1 text-base text-gray-600">{equation.label}</div>
+                  {hasTakeMin ? (
+                    <div>
+                      {equation.parts.map((part, partIndex) => {
+                        if (part.type === 'takeMin') {
+                          return <TakeMinBlock key={partIndex} candidates={part.candidates} winner={part.winner} />
+                        }
+                        return null
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+                      {equation.parts.map((part, partIndex) => {
+                        if (part.type === 'operator') {
+                          return (
+                            <span key={partIndex} className="select-none pb-[2px] text-sm text-gray-400">
+                              {part.operator}
+                            </span>
+                          )
+                        }
+                        if (part.type === 'text') {
+                          return (
+                            <span key={partIndex} className="pb-[2px] text-sm font-medium text-gray-400">
+                              {part.text}
+                            </span>
+                          )
+                        }
+                        if (part.type === 'floorZero') {
+                          return part.isApplied ? <FloorZeroTag key={partIndex} /> : null
+                        }
+                        if (part.type === 'capAt') {
+                          return part.isHit ? <CapAtTag key={partIndex} amount={part.amount} /> : null
+                        }
+                        return (
+                          <FormulaOperandView
+                            key={partIndex}
+                            label={part.operand.label}
+                            value={part.operand.displayValue ?? `${fmt(part.operand.amount)} 元`}
+                          />
+                        )
+                      })}
+                      <span className="select-none pb-[2px] text-sm text-gray-400">＝</span>
+                      <FormulaOperandView
+                        label={equation.result.label}
+                        value={equation.result.displayValue ?? `${fmt(equation.result.amount)} 元`}
+                        isResult
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
-        ))}
-      </div>
+        </section>
+      ))}
       {scenario.assumptions.length > 0 && (
-        <p className="mt-2 border-t border-dashed border-gray-200 pt-2 text-base leading-relaxed text-gray-500">
+        <p className="border-t border-dashed border-gray-200 px-3 py-2 text-base leading-relaxed text-gray-500">
           假設：{scenario.assumptions.join('；')}
         </p>
       )}
@@ -623,8 +736,7 @@ function TaxScenarioCombinationsDialog({
                       {isOpen && (
                         <tr className={`relative z-0 border-gray-200 ${isBest ? 'bg-blue-50/30' : 'bg-gray-50/40'}`}>
                           <td colSpan={colCount} className="px-4 pb-4 pt-1.5">
-                            <StructureHint scenario={scenario} includeAmt={scenarioResult.hasOverseasIncome} />
-                            <FormulaTable scenario={scenario} />
+                            <ScenarioFormulaSections scenario={scenario} />
                           </td>
                         </tr>
                       )}
