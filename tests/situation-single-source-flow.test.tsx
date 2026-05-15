@@ -264,6 +264,11 @@ function getLatestScenarioDialog() {
   return dialogs.at(-1) ?? null
 }
 
+function getScenarioDialogHeaders() {
+  const dialog = getLatestScenarioDialog()
+  return Array.from(dialog?.querySelectorAll('th') ?? []).map((th) => th.textContent?.trim() ?? '')
+}
+
 function getLatestFormulaDialog() {
   const dialogs = Array.from(
     document.body.querySelectorAll<HTMLElement>('[data-testid="tax-formula-dialog"]'),
@@ -886,6 +891,22 @@ describe('situation single-source flow', () => {
     const dialog = getLatestScenarioDialog()
     expect(dialog?.textContent).toContain('單身申報')
     expect(dialog?.textContent).not.toContain('推薦')
+    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '最終稅額', ''])
+  })
+
+  it('shows spouse tax-method column only for married scenario details', () => {
+    renderApp()
+    clickButtonByText('配偶合併申報')
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    changeInputByTestId('income-input-gross-income-self', '800000')
+    changeInputByTestId('income-input-gross-income-spouse', '600000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+    clickByTestId('card-choice-exemption-general-spouse_age_band-under_70')
+    clickButtonByText('查看詳情')
+
+    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '配偶計稅方式', '最終稅額', ''])
   })
 
   it('calculates summary scenarios when completed income cards include positive dividends', () => {

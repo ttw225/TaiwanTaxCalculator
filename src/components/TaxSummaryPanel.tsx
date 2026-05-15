@@ -478,8 +478,9 @@ function TaxScenarioCombinationsDialog({
 
   const bestId = scenarioResult.bestScenario.id
   const hasMultipleScenarios = scenarioResult.scenarios.length > 1
-  // 申報組合 + 計稅方式 (always) + 股利申報方式 (conditional) + 最終稅額 + chevron
-  const colCount = scenarioResult.hasDividend ? 5 : 4
+  const hasSpouseScenarios = scenarioResult.scenarios.some((scenario) => scenario.coupleMode !== 'single')
+  // 申報組合 + 配偶計稅方式 (couple only) + 股利申報方式 (conditional) + 最終稅額 + chevron
+  const colCount = 3 + (hasSpouseScenarios ? 1 : 0) + (scenarioResult.hasDividend ? 1 : 0)
 
   const dialog = (
     <div
@@ -548,12 +549,14 @@ function TaxScenarioCombinationsDialog({
                   >
                     申報組合<SortIndicator col="couple" sortCol={sortCol} sortDir={sortDir} />
                   </th>
-                  <th
-                    onClick={() => handleSort('coupleType')}
-                    className="group sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium cursor-pointer select-none first:rounded-tl-xl last:rounded-tr-xl focus:outline-none hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                  >
-                    計稅方式<SortIndicator col="coupleType" sortCol={sortCol} sortDir={sortDir} />
-                  </th>
+                  {hasSpouseScenarios && (
+                    <th
+                      onClick={() => handleSort('coupleType')}
+                      className="group sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-left font-medium cursor-pointer select-none first:rounded-tl-xl last:rounded-tr-xl focus:outline-none hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      配偶計稅方式<SortIndicator col="coupleType" sortCol={sortCol} sortDir={sortDir} />
+                    </th>
+                  )}
                   {scenarioResult.hasDividend && (
                     <th
                       onClick={() => handleSort('dividend')}
@@ -599,9 +602,11 @@ function TaxScenarioCombinationsDialog({
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 align-middle text-gray-600">
-                          {coupleType}
-                        </td>
+                        {hasSpouseScenarios && (
+                          <td className="px-4 py-3 align-middle text-gray-600">
+                            {coupleType}
+                          </td>
+                        )}
                         {scenarioResult.hasDividend && (
                           <td className="px-4 py-3 align-middle">
                             {dividendLabel
