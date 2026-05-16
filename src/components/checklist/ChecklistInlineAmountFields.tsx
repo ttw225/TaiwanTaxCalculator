@@ -278,42 +278,40 @@ function ExemptionAgeRow({
   return (
     <fieldset className="border-0 p-0">
       <legend className="sr-only">{field.label}</legend>
-      <div className="grid gap-2 sm:grid-cols-[6rem_1fr] sm:items-center">
-        <div className="text-base font-medium text-gray-700" aria-hidden="true">{field.label}</div>
-        <div
-          className="flex flex-wrap gap-x-5 gap-y-2"
-          data-testid={`card-choice-exemption-general-${field.id}`}
-        >
-          {(field.choices ?? []).map((choice) => {
-            const selected = value === choice.value
-            return (
-              <label
-                key={choice.value}
-                className="flex min-h-10 cursor-pointer items-center gap-2 text-base text-gray-800"
+      <div className="text-base font-medium text-gray-600" aria-hidden="true">{field.label}</div>
+      <div
+        className="mt-1 flex flex-wrap gap-x-5 gap-y-2"
+        data-testid={`card-choice-exemption-general-${field.id}`}
+      >
+        {(field.choices ?? []).map((choice) => {
+          const selected = value === choice.value
+          return (
+            <label
+              key={choice.value}
+              className="flex min-h-10 cursor-pointer items-center gap-2 text-base text-gray-700"
+            >
+              <input
+                type="radio"
+                name={`exemption-general-${field.id}`}
+                value={choice.value}
+                checked={selected}
+                onChange={() => onInputChange?.(field.id, choice.value)}
+                data-testid={`card-choice-exemption-general-${field.id}-${choice.value}`}
+                className="peer sr-only"
+              />
+              <span
+                className={[
+                  'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2',
+                  selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
+                ].join(' ')}
+                aria-hidden="true"
               >
-                <input
-                  type="radio"
-                  name={`exemption-general-${field.id}`}
-                  value={choice.value}
-                  checked={selected}
-                  onChange={() => onInputChange?.(field.id, choice.value)}
-                  data-testid={`card-choice-exemption-general-${field.id}-${choice.value}`}
-                  className="peer sr-only"
-                />
-                <span
-                  className={[
-                    'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500 peer-focus-visible:ring-offset-2',
-                    selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300 bg-white',
-                  ].join(' ')}
-                  aria-hidden="true"
-                >
-                  {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-                </span>
-                <span className="font-medium">{choice.label}</span>
-              </label>
-            )
-          })}
-        </div>
+                {selected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              <span className="font-medium text-gray-700">{choice.label}</span>
+            </label>
+          )
+        })}
       </div>
     </fieldset>
   )
@@ -331,9 +329,7 @@ function ExemptionDependentCountRow({
   onInputChange?: (fieldId: string, value: string) => void
 }) {
   return (
-    <label className="grid gap-2 sm:grid-cols-[6rem_1fr] sm:items-center">
-      <span className="text-base font-medium text-gray-700">其他親屬</span>
-      <span className="flex flex-wrap items-center gap-2 text-base text-gray-700">
+    <label className="flex flex-wrap items-center gap-2 text-base text-gray-700">
         <span className="min-w-20 font-medium">{label}</span>
         <input
           type="number"
@@ -346,7 +342,6 @@ function ExemptionDependentCountRow({
           placeholder="0"
         />
         <span className="text-gray-500">人</span>
-      </span>
     </label>
   )
 }
@@ -366,7 +361,7 @@ function ExemptionGeneralInlineFields({
   const over70CountField = findInlineField(inlineFields, 'exemption_over70_count')
 
   return (
-    <div className="mt-3 space-y-2 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
+    <div className="mt-3 space-y-3 rounded-xl border border-gray-300 bg-gray-100/70 p-3">
       {selfAgeField && (
         <ExemptionAgeRow
           field={selfAgeField}
@@ -381,21 +376,26 @@ function ExemptionGeneralInlineFields({
           onInputChange={onInputChange}
         />
       )}
-      {under70CountField && (
-        <ExemptionDependentCountRow
-          field={under70CountField}
-          label="未滿 70 歲"
-          value={inputValues[under70CountField.id] ?? ''}
-          onInputChange={onInputChange}
-        />
-      )}
-      {over70CountField && (
-        <ExemptionDependentCountRow
-          field={over70CountField}
-          label="70 歲以上"
-          value={inputValues[over70CountField.id] ?? ''}
-          onInputChange={onInputChange}
-        />
+      {(under70CountField || over70CountField) && (
+        <div className="space-y-2">
+          <div className="text-base font-medium text-gray-600">其他親屬</div>
+          {under70CountField && (
+            <ExemptionDependentCountRow
+              field={under70CountField}
+              label="未滿 70 歲"
+              value={inputValues[under70CountField.id] ?? ''}
+              onInputChange={onInputChange}
+            />
+          )}
+          {over70CountField && (
+            <ExemptionDependentCountRow
+              field={over70CountField}
+              label="70 歲以上"
+              value={inputValues[over70CountField.id] ?? ''}
+              onInputChange={onInputChange}
+            />
+          )}
+        </div>
       )}
     </div>
   )

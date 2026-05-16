@@ -956,6 +956,21 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).toBeNull()
   })
 
+  it('shows incomplete tax hint before required fields are filled and removes it after completion', () => {
+    renderApp()
+    clickButtonByText('薪資收入')
+    clickButtonByText('產生節稅清單')
+
+    const hint = container.querySelector<HTMLElement>('[data-testid="tax-result-incomplete-hint"]')
+    expect(hint?.textContent).toContain('填寫完畢後，將推薦稅額組合')
+    expect(container.textContent).not.toContain('尚未完成')
+
+    changeInputByTestId('income-input-gross-income-self', '300000')
+    clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+
+    expect(container.querySelector('[data-testid="tax-result-incomplete-hint"]')).toBeNull()
+  })
+
   it('shows filing mode without recommendation prefix when there is only one tax scenario', () => {
     renderApp()
     clickButtonByText('薪資收入')
@@ -974,7 +989,7 @@ describe('situation single-source flow', () => {
     const dialog = getLatestScenarioDialog()
     expect(dialog?.textContent).toContain('單身申報')
     expect(dialog?.textContent).not.toContain('推薦')
-    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '最終稅額', ''])
+    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '應繳納稅額', ''])
 
     // single scenario auto-expands, so formula content is visible immediately
     expect(dialog?.textContent).toContain('所得計算')
@@ -994,7 +1009,7 @@ describe('situation single-source flow', () => {
     clickByTestId('card-choice-exemption-general-spouse_age_band-under_70')
     clickButtonByText('查看所有稅額組合')
 
-    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '配偶計稅方式', '最終稅額', ''])
+    expect(getScenarioDialogHeaders()).toEqual(['申報組合', '配偶計稅方式', '應繳納稅額', ''])
 
     clickLatestScenarioDialogByTestId('scenario-row-spouse_salary_separate:none')
     const splitSections = document.body.querySelector<HTMLElement>('[data-testid="scenario-formula-sections-spouse_salary_separate:none"]')
