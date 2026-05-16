@@ -8,6 +8,7 @@ import { ModalOverlay } from './ui/ModalOverlay'
 
 interface Props {
   grossIncome: number | null
+  overseasIncomeAmount: number
   grossIncomePendingCalculation?: boolean
   taxScenarioResult?: TaxScenarioResult | null
   /** When true, show a navigational row (no amount) after gross income */
@@ -81,7 +82,6 @@ function SummarySectionLink({
 function SummaryRow({
   label,
   value,
-  isDeduction = false,
   missing = false,
   pendingCalculation = false,
   sectionId,
@@ -89,7 +89,6 @@ function SummaryRow({
 }: {
   label: ReactNode
   value: number | null
-  isDeduction?: boolean
   missing?: boolean
   pendingCalculation?: boolean
   sectionId: string
@@ -111,7 +110,7 @@ function SummaryRow({
           <GoFill sectionId={sectionId} onScroll={onScroll} />
         ) : hasVal ? (
           <span className="text-base font-semibold leading-6 tabular-nums text-gray-800">
-            {isDeduction && value! > 0 ? '−' : ''}{fmt(value!)} 元
+            {fmt(value!)} 元
           </span>
         ) : (
           <span className="text-base leading-6 text-gray-200">—</span>
@@ -571,7 +570,11 @@ function TaxScenarioCombinationsDialog({
   onOpenFormula: () => void
   onOpenRules: () => void
 }) {
-  const [openRows, setOpenRows] = useState<Record<string, boolean>>({})
+  const [openRows, setOpenRows] = useState<Record<string, boolean>>(() =>
+    scenarioResult.scenarios.length === 1
+      ? { [scenarioResult.scenarios[0].id]: true }
+      : {},
+  )
   const [sortCol, setSortCol] = useState<SortCol>('finalTax')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
@@ -790,14 +793,16 @@ interface SummaryBodyProps {
   generalDeductionAmount: number | null
   generalDeductionMethod?: 'standard' | 'itemized' | null
   specialDeductionAmount: number | null
-  basicLivingExpenseDifference: number | null
   hasSpecialDeductions: boolean
   grossIncomePendingCalculation?: boolean
   hasOverseasIncomeSection?: boolean
-  netIncome: number | null
+  overseasIncomeAmount: number
+  onScrollToSection?: (categoryId: string) => void
+}
+
+interface TaxResultBodyProps {
   taxAmount: number | null
   taxScenarioResult?: TaxScenarioResult | null
-  onScrollToSection?: (categoryId: string) => void
   onOpenScenarioDialog?: () => void
 }
 
@@ -807,129 +812,97 @@ function TaxSummaryBody({
   generalDeductionAmount,
   generalDeductionMethod,
   specialDeductionAmount,
-  basicLivingExpenseDifference,
   hasSpecialDeductions,
   grossIncomePendingCalculation = false,
   hasOverseasIncomeSection = false,
-  netIncome,
-  taxAmount,
-  taxScenarioResult,
+  overseasIncomeAmount,
   onScrollToSection,
-  onOpenScenarioDialog,
 }: SummaryBodyProps) {
   const grossMissing = grossIncome === null && !grossIncomePendingCalculation
   const exemptMissing = exemptionAmount === null
   const generalMissing = generalDeductionAmount === null
   const specialMissing = hasSpecialDeductions && specialDeductionAmount === null
-  const basicLivingMissing = basicLivingExpenseDifference === null
 
   return (
-    <>
-      {/* Calculation rows */}
-      <CardBody variant="summary" className="space-y-2.5">
-        <SummaryRow
-          label={(
-            <SummarySectionLink sectionId="gross_income" onScroll={onScrollToSection}>
-              綜合所得總額
-            </SummarySectionLink>
-          )}
-          value={grossIncome}
-          missing={grossMissing}
-          pendingCalculation={grossIncomePendingCalculation}
-          sectionId="gross_income"
-          onScroll={onScrollToSection}
-        />
-        {hasOverseasIncomeSection && (
-          <SummaryRow
-            label={(
-              <SummarySectionLink sectionId="overseas_income" onScroll={onScrollToSection}>
-                海外所得
-              </SummarySectionLink>
-            )}
-            value={null}
-            sectionId="overseas_income"
-            onScroll={onScrollToSection}
-          />
+    <CardBody variant="summary" className="space-y-2.5">
+      <SummaryRow
+        label={(
+          <SummarySectionLink sectionId="gross_income" onScroll={onScrollToSection}>
+            綜合所得總額
+          </SummarySectionLink>
         )}
+        value={grossIncome}
+        missing={grossMissing}
+        pendingCalculation={grossIncomePendingCalculation}
+        sectionId="gross_income"
+        onScroll={onScrollToSection}
+      />
+      {hasOverseasIncomeSection && (
         <SummaryRow
           label={(
-            <SummarySectionLink sectionId="exemptions" onScroll={onScrollToSection}>
-              免稅額
+            <SummarySectionLink sectionId="overseas_income" onScroll={onScrollToSection}>
+              海外所得
             </SummarySectionLink>
           )}
-          value={exemptionAmount}
-          isDeduction
-          missing={exemptMissing}
-          sectionId="exemptions"
+          value={overseasIncomeAmount}
+          sectionId="overseas_income"
           onScroll={onScrollToSection}
         />
-        <SummaryRow
-          label={(
-            <span className="inline-flex items-center gap-2">
-              <SummarySectionLink sectionId="general_deductions" onScroll={onScrollToSection}>
-                一般扣除額
-              </SummarySectionLink>
-              {generalDeductionMethod && (
-                <span
-                  data-testid="general-deduction-method-label"
-                  className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-sm font-semibold text-blue-800"
-                >
-                  {generalDeductionMethod === 'itemized' ? '列舉' : '標準'}
-                </span>
-              )}
-            </span>
-          )}
-          value={generalDeductionAmount}
-          isDeduction
-          missing={generalMissing}
-          sectionId="general_deductions"
-          onScroll={onScrollToSection}
-        />
-        {hasSpecialDeductions && (
-          <SummaryRow
-            label={(
-              <SummarySectionLink sectionId="special_deductions" onScroll={onScrollToSection}>
-                特別扣除額
-              </SummarySectionLink>
-            )}
-            value={specialDeductionAmount}
-            isDeduction
-            missing={specialMissing}
-            sectionId="special_deductions"
-            onScroll={onScrollToSection}
-          />
+      )}
+      <SummaryRow
+        label={(
+          <SummarySectionLink sectionId="exemptions" onScroll={onScrollToSection}>
+            免稅額
+          </SummarySectionLink>
         )}
+        value={exemptionAmount}
+        missing={exemptMissing}
+        sectionId="exemptions"
+        onScroll={onScrollToSection}
+      />
+      <SummaryRow
+        label={(
+          <span className="inline-flex items-center gap-2">
+            <SummarySectionLink sectionId="general_deductions" onScroll={onScrollToSection}>
+              一般扣除額
+            </SummarySectionLink>
+            {generalDeductionMethod && (
+              <span
+                data-testid="general-deduction-method-label"
+                className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-sm font-semibold text-blue-800"
+              >
+                {generalDeductionMethod === 'itemized' ? '列舉' : '標準'}
+              </span>
+            )}
+          </span>
+        )}
+        value={generalDeductionAmount}
+        missing={generalMissing}
+        sectionId="general_deductions"
+        onScroll={onScrollToSection}
+      />
+      {hasSpecialDeductions && (
         <SummaryRow
           label={(
-            <SummarySectionLink sectionId="basic_living_expense" onScroll={onScrollToSection}>
-              基本生活費差額
+            <SummarySectionLink sectionId="special_deductions" onScroll={onScrollToSection}>
+              特別扣除額
             </SummarySectionLink>
           )}
-          value={basicLivingExpenseDifference}
-          isDeduction
-          pendingCalculation={basicLivingMissing}
-          sectionId="basic_living_expense"
+          value={specialDeductionAmount}
+          missing={specialMissing}
+          sectionId="special_deductions"
           onScroll={onScrollToSection}
         />
+      )}
+    </CardBody>
+  )
+}
 
-        {/* Divider + net income */}
-        <div className="border-t border-dashed border-gray-200 pt-2.5 space-y-1.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className={`text-base font-medium shrink-0 ${netIncome !== null ? 'text-gray-700' : 'text-muted'}`}>
-              所得淨額
-            </span>
-            {netIncome !== null ? (
-              <span className="text-base font-bold tabular-nums text-gray-900">{fmt(netIncome)} 元</span>
-            ) : (
-              <span className="text-base text-muted">待計算</span>
-            )}
-          </div>
-        </div>
-      </CardBody>
-
-      {/* Tax amount card */}
+function TaxResultBody({ taxAmount, taxScenarioResult, onOpenScenarioDialog }: TaxResultBodyProps) {
+  return (
+    <CardBody variant="summary">
       <div
-        className={`mx-3 mb-3 rounded-xl border px-3 py-2.5 transition-all ${
+        className={`rounded-xl border px-3 py-2.5 transition-all ${
           taxAmount !== null
             ? 'border-blue-200 bg-blue-50'
             : 'border-dashed border-gray-200 bg-gray-50'
@@ -965,12 +938,13 @@ function TaxSummaryBody({
           </div>
         )}
       </div>
-    </>
+    </CardBody>
   )
 }
 
 export function TaxSummaryPanel({
   grossIncome,
+  overseasIncomeAmount,
   grossIncomePendingCalculation = false,
   taxScenarioResult = null,
   hasOverseasIncomeSection = false,
@@ -1034,10 +1008,9 @@ export function TaxSummaryPanel({
       )}
 
       <Card variant="summary" className="print-summary-card">
-        {/* Header */}
         <CardHeader variant="summary" className="border-b-0">
           <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-700">
-            節稅試算摘要
+            填寫摘要
           </h3>
         </CardHeader>
         <div className="mx-4 border-b border-gray-100" />
@@ -1046,16 +1019,27 @@ export function TaxSummaryPanel({
           grossIncome={displayGrossIncome}
           grossIncomePendingCalculation={grossIncomePendingCalculation && !taxScenarioResult}
           hasOverseasIncomeSection={hasOverseasIncomeSection}
+          overseasIncomeAmount={overseasIncomeAmount}
           exemptionAmount={exemptionAmount}
           generalDeductionAmount={generalDeductionAmount}
           generalDeductionMethod={generalDeductionMethod}
           specialDeductionAmount={specialDeductionAmount}
-          basicLivingExpenseDifference={taxScenarioResult?.bestScenario.basicLivingExpenseDifference ?? basicLivingExpenseDifference}
           hasSpecialDeductions={hasSpecialDeductions}
-          netIncome={netIncome}
+          onScrollToSection={onScrollToSection}
+        />
+      </Card>
+
+      <Card variant="summary" className="mt-3 print-summary-card">
+        <CardHeader variant="summary" className="border-b-0">
+          <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-700">
+            試算結果
+          </h3>
+        </CardHeader>
+        <div className="mx-4 border-b border-gray-100" />
+
+        <TaxResultBody
           taxAmount={taxAmount}
           taxScenarioResult={taxScenarioResult}
-          onScrollToSection={onScrollToSection}
           onOpenScenarioDialog={printMode ? undefined : () => setDialogState('scenario')}
         />
       </Card>

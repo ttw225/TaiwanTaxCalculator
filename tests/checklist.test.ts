@@ -353,6 +353,14 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     return html.slice(rowIndex, nextRowIndex === -1 ? undefined : nextRowIndex)
   }
 
+  function fillingSummaryMarkup(html: string): string {
+    const summaryIndex = html.indexOf('填寫摘要')
+    expect(summaryIndex).toBeGreaterThanOrEqual(0)
+    const resultIndex = html.indexOf('試算結果', summaryIndex)
+    expect(resultIndex).toBeGreaterThan(summaryIndex)
+    return html.slice(summaryIndex, resultIndex)
+  }
+
   function renderResult(
     selectedSituations: Parameters<typeof filterBySituations>[1],
     cardInputMap: CardInputMap = {},
@@ -414,6 +422,28 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
       }),
     )
     expect(summaryRowMarkup(html, 'summary-row-exemptions')).toContain('388,000 元')
+  })
+
+  it('uses filling/result summary titles and omits derived tax rows from filling summary', () => {
+    const html = renderResult(['salary_income'])
+    const summary = fillingSummaryMarkup(html)
+    expect(html).toContain('填寫摘要')
+    expect(html).toContain('試算結果')
+    expect(html).not.toContain('節稅試算摘要')
+    expect(summary).not.toContain('基本生活費差額')
+    expect(summary).not.toContain('所得淨額')
+  })
+
+  it('shows overseas income amount without including overseas tax paid in summary', () => {
+    const html = renderResult(['salary_income', 'overseas_income'], {
+      'overseas-income-amt': {
+        overseas_income_amount: '8000000',
+        overseas_income_tax_paid: '12000',
+      },
+    })
+    const overseasRow = summaryRowMarkup(html, 'summary-row-overseas_income')
+    expect(overseasRow).toContain('8,000,000 元')
+    expect(overseasRow).not.toContain('12,000 元')
   })
 
   it('ignores stale income inputs for cards that are not currently selected', () => {
@@ -572,6 +602,8 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     const html = renderResult(['salary_income'])
     expect(html).toContain('data-testid="general-deduction-method-label"')
     expect(html).toContain('標準')
+    expect(summaryRowMarkup(html, 'summary-row-general_deductions')).toContain('131,000 元')
+    expect(summaryRowMarkup(html, 'summary-row-general_deductions')).not.toContain('−131,000 元')
   })
 
   it('shows itemized method label in summary when itemized deduction is used', () => {
