@@ -1225,7 +1225,7 @@ describe('DeductionCard inline input fields', () => {
     expect(html).toContain('後顯示申報上限')
   })
 
-  it('shows mortgage interest cap feedback after savings investment deduction', () => {
+  it('shows mortgage interest formula and cap feedback after savings investment deduction', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -1238,12 +1238,17 @@ describe('DeductionCard inline input fields', () => {
       }),
     )
     expect(html).toContain('text-red-700')
-    expect(html).toContain('扣除「')
+    expect(html).toContain('購屋支付利息')
     expect(html).toContain('儲蓄投資特別扣除額')
-    expect(html).toContain('」後已達可申報上限 300,000 元')
+    expect(html).toContain('購屋借款利息')
+    expect(html).toContain('450,000 元')
+    expect(html).toContain('100,000 元')
+    expect(html).toContain('350,000 元')
+    expect(html).toContain('已達可申報上限 300,000 元')
+    expect(html).not.toContain('扣除「')
   })
 
-  it('shows mortgage interest net eligible amount when below cap after savings deduction', () => {
+  it('shows mortgage interest formula when below cap after savings deduction', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -1255,13 +1260,17 @@ describe('DeductionCard inline input fields', () => {
         },
       }),
     )
-    expect(html).toContain('text-gray-700')
-    expect(html).toContain('扣除「')
+    expect(html).toContain('購屋支付利息')
     expect(html).toContain('儲蓄投資特別扣除額')
-    expect(html).toContain('」後為 110,111 元')
+    expect(html).toContain('購屋借款利息')
+    expect(html).toContain('210,111 元')
+    expect(html).toContain('100,000 元')
+    expect(html).toContain('110,111 元')
+    expect(html).not.toContain('已達可申報上限')
+    expect(html).not.toContain('扣除「')
   })
 
-  it('shows mortgage interest cap hint before input', () => {
+  it('does not show mortgage interest feedback before input', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem(),
@@ -1270,10 +1279,50 @@ describe('DeductionCard inline input fields', () => {
         feedbackContext: { savingsInvestmentEnabled: true },
       }),
     )
-    expect(html).toContain('須先扣除「')
-    expect(html).toContain('儲蓄投資特別扣除額')
-    expect(html).toContain('」')
+    expect(html).not.toContain('須先扣除')
+    expect(html).not.toContain('儲蓄投資特別扣除額')
     expect(html).not.toContain('可申報上限為 300,000 元')
+  })
+
+  it('shows zero-floor text when mortgage interest is less than savings deduction', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [mortgageInterestField],
+        inputValues: { mortgage_interest_amount: '50000' },
+        feedbackContext: {
+          savingsInvestmentEnabled: true,
+          savingsInvestmentDeductionAmount: 100_000,
+        },
+      }),
+    )
+    expect(html).toContain('購屋支付利息')
+    expect(html).toContain('儲蓄投資特別扣除額')
+    expect(html).toContain('購屋借款利息')
+    expect(html).toContain('50,000 元')
+    expect(html).toContain('100,000 元')
+    expect(html).toContain('負數不計，採用0元')
+    expect(html).not.toContain('>0 元')
+  })
+
+  it('shows mortgage interest formula with zero savings deduction when savings investment is not enabled', () => {
+    const html = renderToStaticMarkup(
+      createElement(DeductionCard, {
+        item: makeItem(),
+        inlineFields: [mortgageInterestField],
+        inputValues: { mortgage_interest_amount: '210111' },
+        feedbackContext: {
+          savingsInvestmentEnabled: false,
+          savingsInvestmentDeductionAmount: null,
+        },
+      }),
+    )
+    expect(html).toContain('購屋支付利息')
+    expect(html).toContain('儲蓄投資特別扣除額')
+    expect(html).toContain('購屋借款利息')
+    expect(html).toContain('210,111 元')
+    expect(html).toContain('0 元')
+    expect(html).not.toContain('已達可申報上限')
   })
 
   it('overseas-income-amt: salary-like and implicit-zero labels omit （選填）', () => {

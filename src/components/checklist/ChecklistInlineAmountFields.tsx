@@ -73,6 +73,54 @@ function CapHint({ cap, children }: { cap: number; children?: ReactNode }) {
   )
 }
 
+function InlineFormulaCol({
+  label,
+  amount,
+  amountText,
+  amountClass = 'text-gray-700',
+}: {
+  label: string
+  amount: number
+  amountText?: string
+  amountClass?: string
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-sm leading-tight text-gray-500">{label}</span>
+      <span className={`text-base font-semibold tabular-nums leading-tight ${amountClass}`}>
+        {amountText ?? `${formatAmount(amount)} 元`}
+      </span>
+    </div>
+  )
+}
+
+function MortgageInterestFormulaInline({
+  paidInterest,
+  savingsDeduction,
+  eligibleAmount,
+  eligibleAmountText,
+}: {
+  paidInterest: number
+  savingsDeduction: number
+  eligibleAmount: number
+  eligibleAmountText?: string
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <InlineFormulaCol label="購屋支付利息" amount={paidInterest} />
+      <span className="select-none self-end pb-[2px] text-sm text-gray-400">−</span>
+      <InlineFormulaCol label="儲蓄投資特別扣除額" amount={savingsDeduction} />
+      <span className="select-none self-end pb-[2px] text-sm text-gray-400">＝</span>
+      <InlineFormulaCol
+        label="購屋借款利息"
+        amount={eligibleAmount}
+        amountText={eligibleAmountText}
+        amountClass="text-gray-800"
+      />
+    </div>
+  )
+}
+
 function InlineFeedback({
   field,
   value,
@@ -83,20 +131,6 @@ function InlineFeedback({
   feedbackContext?: Partial<CardInlineFeedbackContext>
 }) {
   const hasValue = value.trim() !== ''
-  const savingsTargetItemId = 'savings-investment-deduction'
-  const savingsLink = (
-    <a
-      href={`#${savingsTargetItemId}`}
-      onClick={(event) => {
-        if (!feedbackContext?.onScrollToItem) return
-        event.preventDefault()
-        feedbackContext.onScrollToItem(savingsTargetItemId)
-      }}
-      className="inline p-0 m-0 border-0 bg-transparent font-inherit text-gray-600 underline underline-offset-2 hover:text-gray-800 transition-colors leading-none align-baseline"
-    >
-      儲蓄投資特別扣除額
-    </a>
-  )
 
   if (field.splitPerUnitKeys) {
     if (!hasValue) return null
@@ -151,7 +185,7 @@ function InlineFeedback({
     }
     if (dividendMergedGrossIncomeAmount !== null && dividendSeparateGrossIncomeAmount !== null) {
       return (
-        <div className="mt-1 space-y-0.5 text-sm text-blue-700">
+        <div className="mt-1 space-y-0.5 text-sm text-gray-700">
           <p>若股利合併計稅，捐贈金額上限為 {formatAmount(dividendMergedGrossIncomeAmount * 0.2)} 元</p>
           <p>若股利分開計稅，捐款金額上限為 {formatAmount(dividendSeparateGrossIncomeAmount * 0.2)} 元</p>
         </div>
@@ -178,37 +212,30 @@ function InlineFeedback({
       ? (feedbackContext.savingsInvestmentDeductionAmount ?? 0)
       : 0
     if (!hasValue) {
-      if (feedbackContext?.savingsInvestmentEnabled) {
-        return (
-          <p className="mt-1 text-sm text-blue-700">
-            須先扣除「{savingsLink}」
-          </p>
-        )
-      }
-      return (
-        <CapHint cap={cap} />
-      )
+      return null
     }
     const numVal = parseAmount(value)
     if (numVal === null || numVal <= 0) return null
-    const eligibleAmount = Math.max(0, numVal - savingsDeduction)
+    const rawEligibleAmount = numVal - savingsDeduction
+    const eligibleAmount = Math.max(0, rawEligibleAmount)
+    const isOverCap = eligibleAmount > cap
+    const eligibleAmountText = rawEligibleAmount < 0 ? '負數不計，採用0元' : undefined
 
-    if (savingsDeduction > 0 && eligibleAmount <= cap) {
-      return (
-        <p className="mt-1 text-sm text-gray-700">
-          扣除「{savingsLink}」後為 {formatAmount(eligibleAmount)} 元
-        </p>
-      )
-    }
-    if (savingsDeduction > 0 && eligibleAmount > cap) {
-      return (
-        <p className="mt-1 text-sm text-red-700">
-          扣除「{savingsLink}」後已達可申報上限 {formatAmount(cap)} 元
-        </p>
-      )
-    }
-
-    return <CapFeedback value={eligibleAmount} cap={cap} />
+    return (
+      <div className="mt-2">
+        <MortgageInterestFormulaInline
+          paidInterest={numVal}
+          savingsDeduction={savingsDeduction}
+          eligibleAmount={eligibleAmount}
+          eligibleAmountText={eligibleAmountText}
+        />
+        {isOverCap && (
+          <p className="mt-1 text-sm text-red-700">
+            已達可申報上限 {formatAmount(cap)} 元
+          </p>
+        )}
+      </div>
+    )
   }
 
   if (!field.capKey) return null

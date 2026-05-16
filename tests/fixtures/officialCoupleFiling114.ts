@@ -84,7 +84,7 @@ export const etaxFaqLe0k8lg114Inputs: TaxScenarioInputs = {
 export type OfficialDividendMode = Extract<DividendScenarioMode, 'merged' | 'separate_28'>
 
 export interface OfficialGoldenBlock {
-  /** Must match `TaxScenario.formulas` label for the net line (e.g. 綜合所得淨額). */
+  /** Must match a `formulaSections` equation result label (e.g. 綜合所得淨額). */
   netLabel: string
   net: number
   tax: number

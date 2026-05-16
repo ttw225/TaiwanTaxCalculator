@@ -28,10 +28,179 @@ export type CoupleScenarioMode =
 
 export type DividendScenarioMode = 'none' | 'merged' | 'separate_28'
 
+/** Compact flat row derived from `formulaSections` (tests / golden asserts). */
 export interface FormulaLine {
   label: string
   expression: string
   amount: number
+}
+
+/** Lookup equation result amount by equation or result label. */
+export function findScenarioEquationResultAmount(
+  sections: ScenarioFormulaSection[],
+  label: string,
+): number | undefined {
+  for (const section of sections) {
+    for (const eq of section.equations) {
+      if (eq.label === label || eq.result.label === label) {
+        return eq.result.amount
+      }
+    }
+  }
+  return undefined
+}
+
+/** Net income amount for an official-golden block (remaining-side labels differ in sections). */
+export function findScenarioNetAmount(
+  sections: ScenarioFormulaSection[],
+  netLabel: string,
+): number | undefined {
+  const mapped =
+    netLabel.includes('不含') && netLabel.endsWith('所得淨額') ? '剩餘所得淨額' : netLabel
+  return findScenarioEquationResultAmount(sections, mapped)
+}
+
+/** Tax amount for an official-golden net block (labels differ between flat vs sectioned UI). */
+export function findScenarioBlockTaxAmount(
+  sections: ScenarioFormulaSection[],
+  netLabel: string,
+): number | undefined {
+  if (netLabel === '綜合所得淨額') {
+    return findScenarioEquationResultAmount(sections, '應納稅額')
+  }
+  if (netLabel.endsWith('計稅淨額')) {
+    return findScenarioEquationResultAmount(sections, netLabel.replace(/計稅淨額$/, '應納稅額'))
+  }
+  if (netLabel.includes('不含') && netLabel.endsWith('所得淨額')) {
+    return findScenarioEquationResultAmount(sections, '剩餘部分應納稅額')
+  }
+  return findScenarioEquationResultAmount(sections, `${netLabel}稅額`)
+}
+
+interface DeriveFormulaLinesContext {
+  inputs: TaxScenarioInputs
+  taxableParts: { label: string; taxableIncome: number; tax: number }[]
+  includeDividend: boolean
+  dividendMode: DividendScenarioMode
+  totalDividend: number
+  dividendCredit: number
+  separateDividendTax: number
+  regularIncomeTaxBeforeDividendCredit: number
+  regularTax: number
+  finalTax: number
+  basicLivingExpenseDifference: number
+  overseasIncome: number
+  amtSupplement: number
+}
+
+function basicLivingExpenseExpression(inputs: TaxScenarioInputs): string {
+  return `max(0, ${money(getNumber('basic_living_expense'))} × ${Math.max(0, Math.floor(inputs.householdMemberCount))} - ${money(inputs.exemptionAmount)} - ${money(inputs.generalDeductionAmount)} - ${money(inputs.specialDeductionAmount)})`
+}
+
+function equationTextExpression(eq: ScenarioFormulaEquation): string {
+  const textPart = eq.parts.find((part): part is Extract<ScenarioFormulaPart, { type: 'text' }> => part.type === 'text')
+  if (textPart) return textPart.text
+
+  const chunks: string[] = []
+  for (const part of eq.parts) {
+    if (part.type === 'operand') {
+      chunks.push(money(part.operand.amount))
+    } else if (part.type === 'operator') {
+      chunks.push(part.operator === '−' ? '-' : part.operator)
+    }
+  }
+  return chunks.join(' ')
+}
+
+/** Builds legacy flat `FormulaLine[]` from structured sections (single source of truth for amounts). */
+export function deriveFormulaLinesFromSections(
+  sections: ScenarioFormulaSection[],
+  ctx: DeriveFormulaLinesContext,
+): FormulaLine[] {
+  const lines: FormulaLine[] = []
+  const grossIncome = findScenarioEquationResultAmount(sections, '綜合所得總額')
+  if (grossIncome !== undefined) {
+    lines.push({
+      label: '綜合所得總額',
+      expression: ctx.includeDividend ? '薪資淨額 + 股利 + 利息 + 其他收入' : '薪資淨額 + 利息 + 其他收入',
+      amount: grossIncome,
+    })
+  }
+
+  if (findScenarioEquationResultAmount(sections, '基本生活費差額') !== undefined) {
+    lines.push({
+      label: '基本生活費差額',
+      expression: basicLivingExpenseExpression(ctx.inputs),
+      amount: -ctx.basicLivingExpenseDifference,
+    })
+  }
+
+  for (const part of ctx.taxableParts) {
+    lines.push({
+      label: part.label,
+      expression: '依本方案可減除項目計算',
+      amount: part.taxableIncome,
+    })
+    lines.push({
+      label: `${part.label}稅額`,
+      expression: `${money(part.taxableIncome)} × 級距稅率 - 累進差額`,
+      amount: part.tax,
+    })
+  }
+
+  if (ctx.dividendMode === 'merged') {
+    const credit = findScenarioEquationResultAmount(sections, '股利可抵減稅額')
+    if (credit !== undefined) {
+      lines.push({
+        label: '股利可抵減稅額',
+        expression: `min(${money(ctx.totalDividend)} × 8.5%, 80,000)`,
+        amount: -ctx.dividendCredit,
+      })
+    }
+  } else if (ctx.dividendMode === 'separate_28') {
+    const separateTax = findScenarioEquationResultAmount(sections, '股利分開計稅稅額')
+    if (separateTax !== undefined) {
+      lines.push({
+        label: '股利分開計稅稅額',
+        expression: `${money(ctx.totalDividend)} × 28%`,
+        amount: ctx.separateDividendTax,
+      })
+    }
+  }
+
+  lines.push({
+    label: '一般稅額',
+    expression: regularTaxExpression(
+      ctx.dividendMode,
+      ctx.regularIncomeTaxBeforeDividendCredit,
+      ctx.dividendCredit,
+      ctx.separateDividendTax,
+    ),
+    amount: ctx.regularTax,
+  })
+
+  const amtSection = sections.find((section) => section.title === 'AMT 計算')
+  if (amtSection) {
+    for (const eq of amtSection.equations) {
+      if (eq.label === '海外稅額扣抵') continue
+      lines.push({
+        label: eq.label,
+        expression: equationTextExpression(eq),
+        amount: eq.result.amount,
+      })
+    }
+  }
+
+  const hasAmtLines = amtSection && amtSection.equations.some((eq) => eq.label !== 'AMT 判斷')
+  lines.push({
+    label: '應繳納稅額',
+    expression: hasAmtLines
+      ? `${money(ctx.regularTax)} + ${money(ctx.amtSupplement)}`
+      : `${money(ctx.regularTax)}`,
+    amount: ctx.finalTax,
+  })
+
+  return lines
 }
 
 export interface ScenarioFormulaOperand {
@@ -89,6 +258,7 @@ export interface TaxScenario {
   overseasTaxCredit: number
   amtSupplement: number
   finalTax: number
+  /** Derived from `formulaSections` via `deriveFormulaLinesFromSections` (compact rows for tests). */
   formulas: FormulaLine[]
   formulaSections: ScenarioFormulaSection[]
   assumptions: string[]
@@ -274,14 +444,13 @@ function buildAmtLines(
   regularTax: number,
   overseasIncome: number,
   overseasTaxPaid: number,
-): Pick<TaxScenario, 'basicIncome' | 'basicTax' | 'overseasTaxCredit' | 'amtSupplement'> & { lines: FormulaLine[] } {
+): Pick<TaxScenario, 'basicIncome' | 'basicTax' | 'overseasTaxCredit' | 'amtSupplement'> {
   if (overseasIncome <= 0) {
     return {
       basicIncome: taxableIncome + separateDividendAmount,
       basicTax: 0,
       overseasTaxCredit: 0,
       amtSupplement: 0,
-      lines: [],
     }
   }
 
@@ -291,11 +460,6 @@ function buildAmtLines(
       basicTax: 0,
       overseasTaxCredit: 0,
       amtSupplement: 0,
-      lines: [{
-        label: 'AMT 判斷',
-        expression: `海外所得 ${money(overseasIncome)} 元未達 1,000,000 元，不計入核心 AMT 試算`,
-        amount: 0,
-      }],
     }
   }
 
@@ -310,23 +474,6 @@ function buildAmtLines(
     basicTax,
     overseasTaxCredit,
     amtSupplement,
-    lines: [
-      {
-        label: '基本所得額',
-        expression: `${money(taxableIncome)} + ${money(separateDividendAmount)} + ${money(overseasIncome)}`,
-        amount: basicIncome,
-      },
-      {
-        label: '基本稅額',
-        expression: `max(0, ${money(basicIncome)} - 7,500,000) × 20%`,
-        amount: basicTax,
-      },
-      {
-        label: 'AMT 補稅',
-        expression: `max(0, ${money(basicTax)} - ${money(regularTax)} - ${money(overseasTaxCredit)})`,
-        amount: amtSupplement,
-      },
-    ],
   }
 }
 
@@ -883,64 +1030,21 @@ function buildScenario(
     buildFinalTaxSection(regularTax, amt.amtSupplement, finalTax, overseasIncome > 0),
   ]
 
-  const formulas: FormulaLine[] = [
-    {
-      label: '綜合所得總額',
-      expression: includeDividend ? '薪資淨額 + 股利 + 利息 + 其他收入' : '薪資淨額 + 利息 + 其他收入',
-      amount: grossIncome,
-    },
-    {
-      label: '基本生活費差額',
-      expression: `max(0, ${money(getNumber('basic_living_expense'))} × ${Math.max(0, Math.floor(inputs.householdMemberCount))} - ${money(inputs.exemptionAmount)} - ${money(inputs.generalDeductionAmount)} - ${money(inputs.specialDeductionAmount)})`,
-      amount: -basicLivingExpenseDifference,
-    },
-    ...taxableParts.flatMap((part) => [
-      {
-        label: part.label,
-        expression: '依本方案可減除項目計算',
-        amount: part.taxableIncome,
-      },
-      {
-        label: `${part.label}稅額`,
-        expression: `${money(part.taxableIncome)} × 級距稅率 - 累進差額`,
-        amount: part.tax,
-      },
-    ]),
-  ]
-
-  if (dividendMode === 'merged') {
-    formulas.push({
-      label: '股利可抵減稅額',
-      expression: `min(${money(totalDividend)} × 8.5%, 80,000)`,
-      amount: -dividendCredit,
-    })
-  } else if (dividendMode === 'separate_28') {
-    formulas.push({
-      label: '股利分開計稅稅額',
-      expression: `${money(totalDividend)} × 28%`,
-      amount: separateDividendTax,
-    })
-  }
-
-  formulas.push({
-    label: '一般稅額',
-    expression: regularTaxExpression(
-      dividendMode,
-      regularIncomeTaxBeforeDividendCredit,
-      dividendCredit,
-      separateDividendTax,
-    ),
-    amount: regularTax,
+  const formulas = deriveFormulaLinesFromSections(formulaSections, {
+    inputs,
+    taxableParts,
+    includeDividend,
+    dividendMode,
+    totalDividend,
+    dividendCredit,
+    separateDividendTax,
+    regularIncomeTaxBeforeDividendCredit,
+    regularTax,
+    finalTax,
+    basicLivingExpenseDifference,
+    overseasIncome,
+    amtSupplement: amt.amtSupplement,
   })
-  formulas.push(...amt.lines)
-  formulas.push({
-    label: '應繳納稅額',
-    expression: amt.lines.length > 0
-      ? `${money(regularTax)} + ${money(amt.amtSupplement)}`
-      : `${money(regularTax)}`,
-    amount: finalTax,
-  })
-
   return {
     id: `${coupleMode}:${dividendMode}`,
     coupleMode,

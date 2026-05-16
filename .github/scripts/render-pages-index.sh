@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root="${1:?Usage: render-pages-index.sh <pages-root>}"
-production_url="${PRODUCTION_URL:-https://taiwantaxcalculator.com/}"
+production_url="${PRODUCTION_URL:-https://TaiwanTaxCalculator.com/}"
 generated_at="$(TZ=Asia/Taipei date +"%Y-%m-%d %H:%M UTC+8")"
 pr_links=""
 

@@ -179,9 +179,10 @@ This value is subtracted when calculating taxable income. Salary special deducti
 
 [`calcTaxScenarios`](../src/lib/taxScenarios.ts) returns **`TaxScenarioResult`**, including:
 
-- **`hasOverseasIncome`**: `true` when declared overseas income is positive — drives **`StructureHint`** AMT line in the combinations dialog expanded row (`includeAmt`), separate from the AMT threshold flag **`hasAmt`**.
+- **`hasOverseasIncome`**: `true` when declared overseas income is positive — used for summary sidebar copy; AMT detail appears in the combinations dialog expanded row (`ScenarioFormulaSections`, **AMT 計算** section) when applicable, separate from the AMT threshold flag **`hasAmt`**.
 - **`hasAmt`**: `true` when overseas income reaches the AMT threshold (see numbers / `taxScenarios` constants).
-- Each **`TaxScenario.formulas`**: omits AMT lines when overseas income is zero; last line label **應繳納稅額** with `expression` derived from dividend mode (`regularTaxExpression`). **假設** lines are omitted in the UI when a scenario's `assumptions` array is empty.
+- Each **`TaxScenario.formulaSections`**: structured sections (所得計算, split-filing blocks, **股利處理**, **AMT 計算**, **應繳納稅額**) built in [`taxScenarios.ts`](../src/lib/taxScenarios.ts); rendered by **`ScenarioFormulaSections`** in [`TaxSummaryPanel.tsx`](../src/components/TaxSummaryPanel.tsx). **`TaxScenario.formulas`** is derived from `formulaSections` via **`deriveFormulaLinesFromSections`** (compact flat rows for tests/golden asserts). **假設** footer renders only when `scenario.assumptions.length > 0`.
+- Helpers **`findScenarioEquationResultAmount`**, **`findScenarioNetAmount`** (maps **不含…所得淨額** → **剩餘所得淨額**), and **`findScenarioBlockTaxAmount`** locate amounts in `formulaSections` for tests (split-tax tax rows use **…應納稅額**, not **…淨額稅額**).
 - **Scenario display titles** (e.g. married `joint` → **配偶所得合併計稅**) are produced in [`taxScenarios.ts`](../src/lib/taxScenarios.ts) and kept in sync with [`TaxSummaryPanel.tsx`](../src/components/TaxSummaryPanel.tsx) label maps for the combinations table.
 
 ## Related docs
