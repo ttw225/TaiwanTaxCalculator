@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { ModalOverlay } from './ui/ModalOverlay'
 import type { ChecklistItem } from '../types/content'
 import {
   calcPersonDeduction,
@@ -193,18 +194,10 @@ interface NameDialogProps {
 }
 
 function NameDialog({ title, label, onLabelChange, onConfirm, onCancel, confirmLabel }: NameDialogProps) {
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [onCancel])
-
   return (
-    <div
+    <ModalOverlay
+      onDismiss={onCancel}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40"
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel() }}
     >
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
         <h2 className="mb-4 text-base font-semibold text-gray-800">{title}</h2>
@@ -235,7 +228,7 @@ function NameDialog({ title, label, onLabelChange, onConfirm, onCancel, confirmL
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   )
 }
 

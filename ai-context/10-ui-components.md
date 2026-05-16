@@ -2,6 +2,23 @@
 
 All under [`src/components/`](../src/components/) unless noted. User-visible strings are **zh-TW** in source.
 
+## `ModalOverlay.tsx` / `useModalDismiss.ts` (`src/components/ui/`)
+
+Shared modal backdrop wrapper for in-app dialogs.
+
+```ts
+interface ModalOverlayProps extends HTMLAttributes<HTMLDivElement> {
+  onDismiss: () => void
+  dismissEnabled?: boolean
+  children: ReactNode
+}
+```
+
+- **Dismiss**: × / footer buttons (per dialog), **Escape** (`useModalDismiss`), and **click on the dimmed overlay** (`e.target === e.currentTarget`).
+- **Nested modals**: module-level layer stack — only the topmost layer handles Escape (e.g. `TaxFormulaDialog` over `TaxScenarioCombinationsDialog`).
+- **Confirm dialogs** (`RemoveImpactDialog`, `ResetConfirmDialog`): Escape / backdrop call **`onCancel`**, not confirm.
+- Used by `IncomeCard` `NameDialog`, `TaxSummaryPanel` portals, and `ChecklistResult` modals.
+
 ## `SiteHeader.tsx`
 
 ```ts
@@ -65,7 +82,7 @@ interface Props {
 
 - Root uses `print-container` for print layout.
 - Layout: `max-w-5xl` with `lg:grid lg:grid-cols-[1fr_360px]` — main checklist column left, `TaxSummaryPanel` sticky sidebar right (desktop only; `no-print`).
-- Embeds per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`).
+- Embeds per-category cards, add-situation modal, remove confirmation dialog, export block (markdown copy/download, `window.print()`). Modals use [`ModalOverlay`](../src/components/ui/ModalOverlay.tsx) (Escape + backdrop dismiss).
 - Add-situation modal lists situations not currently present in `selected`; savings-investment is disabled and linked to interest income.
 - Card routing: regular income card ids (`gross-income`, `dividend-income`, `interest-income`, `other-income`) → `IncomeCard`; `savings-investment-deduction` → derived read-only card; all others → `DeductionCard`.
 - Non-removable cards at UI layer: `exemption-general`, `standard-deduction-single`, `standard-deduction-married`, `savings-investment-deduction` (no `×` button).
@@ -155,7 +172,7 @@ interface Props {
 - Rows: 綜合所得總額、（選）海外所得連結至 `#overseas_income`、免稅額、一般扣除額、（選）特別扣除額；所得淨額與應納稅額試算。
 - `exemptionAmount === null` means the required filer/spouse age band is missing, so the row shows「前往填寫」and tax scenarios stay pending.
 - When `taxScenarioResult` is present, shows the best filing/dividend combination, payable tax, and **「推薦：…」only when `taxScenarioResult.scenarios.length > 1`** (single-scenario cases omit the recommendation prefix). Sidebar AMT helper copy appears only when overseas income is positive (domain: `taxScenarioResult.hasOverseasIncome` from [`taxScenarios.ts`](../src/lib/taxScenarios.ts)).
-- **Dialogs** (internal; `createPortal` to `document.body`):
+- **Dialogs** (internal; `createPortal` to `document.body`; overlay via [`ModalOverlay`](../src/components/ui/ModalOverlay.tsx) — Escape and backdrop dismiss, nested Escape closes top layer only):
   - **`TaxFormulaDialog`** (`data-testid="tax-formula-dialog"`): title **「稅率級距」** — static copy for 所得淨額 / 應納稅額 definitions plus the progressive **bracket table** from `getBrackets()`. Does **not** list per-scenario formulas.
   - **`ScenarioRulesDialog`** (`scenario-rules-dialog`): title **試算規則**. Top-level sections: **配偶申報組合** (intro copy plus nested **五種計稅方式** as a numbered list and **扣除額分配**); **股利所得** (merged vs **28%** separate-tax option in prose); **海外所得 AMT** (threshold-oriented prose: overseas aggregate **100** 萬元以上 feeds「基本所得額」; basic amount over **750** 萬元 may trigger AMT); **排序與推薦**. Footer line **配偶計稅方式說明整理自** + anchor text **財政部稅務入口網** linking the eTax `tax-saving-manual` path on `etax.nat.gov.tw`. No embedded scenario formula tables.
   - **`TaxScenarioCombinationsDialog`** (`tax-scenario-combinations-dialog`): title **所有稅額組合** — intro explains scenario count and links to **試算規則** / **稅率級距**; no AMT prose in the header. Sortable table; row `data-testid` **`scenario-row-{scenario.id}`**; expandable rows render **`ScenarioFormulaSections`** from `scenario.formulaSections` (operands, cap/floor tags, take-min cards; AMT in **AMT 計算** when applicable). **配偶計稅方式** column only when any non-single scenario exists. Best row highlighted. Scenario **假設** footer when `scenario.assumptions.length > 0`.

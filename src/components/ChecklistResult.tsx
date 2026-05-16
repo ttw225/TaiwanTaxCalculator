@@ -41,6 +41,7 @@ import { IncomeCard } from './IncomeCard'
 import { TaxSummaryPanel } from './TaxSummaryPanel'
 import { PageHeading } from './ui/PageHeading'
 import { Card, CardBody } from './ui/Card'
+import { ModalOverlay } from './ui/ModalOverlay'
 import { ChecklistCardShell } from './checklist/ChecklistCardShell'
 
 export interface RemovalImpactPreview {
@@ -177,7 +178,11 @@ function AddSituationModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
+    <ModalOverlay
+      onDismiss={onCancel}
+      dismissEnabled={isOpen}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print"
+    >
       <div className="w-full max-w-3xl flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">新增項目</h2>
@@ -284,7 +289,7 @@ function AddSituationModal({
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   )
 }
 
@@ -303,7 +308,10 @@ function RemoveImpactDialog({
   }, [])
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
+    <ModalOverlay
+      onDismiss={onCancel}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print"
+    >
       <div className="w-full max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">
@@ -339,7 +347,7 @@ function RemoveImpactDialog({
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   )
 }
 
@@ -356,7 +364,10 @@ function ResetConfirmDialog({
   }, [])
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print">
+    <ModalOverlay
+      onDismiss={onCancel}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/40 p-4 no-print"
+    >
       <div className="w-full max-w-lg flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl">
         <div className="border-b border-gray-100 px-4 py-3">
           <h2 className="text-base font-semibold text-gray-900">重新試算？</h2>
@@ -382,7 +393,7 @@ function ResetConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   )
 }
 
