@@ -489,22 +489,27 @@ function GrossIncomeFormulaPanel({
   return (
     <div>
       <FormulaRow items={items} />
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-testid="gross-income-dividend-scenarios">
-        <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2">
-          <p className="text-sm font-semibold text-green-900">合併計稅</p>
-          <p className="mt-1 text-xs leading-relaxed text-green-800">
+      <div className="mt-3 border-t border-dashed border-gray-300" />
+      <div
+        className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] sm:gap-0"
+        data-testid="gross-income-dividend-scenarios"
+      >
+        <div className="px-1 py-1 sm:pr-4">
+          <p className="text-sm font-semibold text-gray-900">合併計稅</p>
+          <p className="mt-1 text-xs leading-relaxed text-gray-700">
             綜合所得總額包含薪資、股利、利息與其他收入；後續計算稅額時可再考慮股利可抵減稅額。
           </p>
-          <p className="mt-2 text-lg font-bold tabular-nums text-green-800">
+          <p className="mt-2 text-lg font-bold tabular-nums text-gray-800">
             {mergedAmount === null ? '待填寫' : `${formatTwd(mergedAmount)} 元`}
           </p>
         </div>
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-          <p className="text-sm font-semibold text-blue-900">28% 分開計稅</p>
-          <p className="mt-1 text-xs leading-relaxed text-blue-800">
+        <div className="hidden bg-gray-300 sm:block" />
+        <div className="border-t border-gray-200 px-1 pt-4 pb-1 sm:border-t-0 sm:pt-1 sm:pl-4">
+          <p className="text-sm font-semibold text-gray-900">28% 分開計稅</p>
+          <p className="mt-1 text-xs leading-relaxed text-gray-700">
             股利不併入此處的綜合所得總額，改以固定稅率另行計算；本區先列出不含股利的總額。
           </p>
-          <p className="mt-2 text-lg font-bold tabular-nums text-blue-800">
+          <p className="mt-2 text-lg font-bold tabular-nums text-gray-800">
             {separateDividendAmount === null ? '待填寫' : `${formatTwd(separateDividendAmount)} 元`}
           </p>
         </div>
