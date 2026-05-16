@@ -12,8 +12,11 @@ export const SITE_CONFIG = {
   // Task 1.5: fill in once Buy Me a Coffee / Ko-fi account is created
   buyMeCoffeeUrl: '',
 
-  // Task 1.6: fill in once GitHub repo is created, e.g. 'https://github.com/user/repo/issues/new'
-  githubNewIssueUrl: '',
+  // 意見回報 Google 表單（一般用戶）
+  googleFormUrl: '',
+
+  // GitHub issue（開發者回報）
+  githubNewIssueUrl: 'https://github.com/ttw225/TaiwanTaxCalculator/issues/new/choose',
 
   // Official government links — leave url empty to hide
   officialLinks: [
