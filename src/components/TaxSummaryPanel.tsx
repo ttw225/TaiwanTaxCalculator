@@ -570,7 +570,11 @@ function TaxScenarioCombinationsDialog({
   onOpenFormula: () => void
   onOpenRules: () => void
 }) {
-  const [openRows, setOpenRows] = useState<Record<string, boolean>>({})
+  const [openRows, setOpenRows] = useState<Record<string, boolean>>(() =>
+    scenarioResult.scenarios.length === 1
+      ? { [scenarioResult.scenarios[0].id]: true }
+      : {},
+  )
   const [sortCol, setSortCol] = useState<SortCol>('finalTax')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
