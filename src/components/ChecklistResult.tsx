@@ -1287,6 +1287,7 @@ export function ChecklistResult({
           <div className="print-only mt-8">
             <TaxSummaryPanel
               grossIncome={grossIncomeAmount}
+              overseasIncomeAmount={overseasIncomeAmount}
               grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
               taxScenarioResult={taxScenarioResult}
               hasOverseasIncomeSection={hasOverseasIncomeSection}
@@ -1308,6 +1309,7 @@ export function ChecklistResult({
         >
           <TaxSummaryPanel
             grossIncome={grossIncomeAmount}
+            overseasIncomeAmount={overseasIncomeAmount}
             grossIncomePendingCalculation={shouldDeferGrossIncomeSummary}
             taxScenarioResult={taxScenarioResult}
             hasOverseasIncomeSection={hasOverseasIncomeSection}
