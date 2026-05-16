@@ -132,9 +132,7 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
         className="w-full max-w-2xl flex flex-col max-h-[calc(100dvh-2rem)] rounded-xl border border-gray-200 bg-white shadow-xl"
       >
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-          <h2 className="text-base font-semibold text-gray-900">
-            「所得稅應納稅額」公式
-          </h2>
+          <h2 className="text-base font-semibold text-gray-900">稅率級距</h2>
           <button
             type="button"
             onClick={onClose}
@@ -230,23 +228,23 @@ function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
         <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4">
           <div className="space-y-4 text-base leading-relaxed text-gray-700">
             <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">配偶申報組合</h3>
+              <h3 className="mb-2 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-900">配偶申報組合</h3>
               <p>
                 配偶合併申報時，稅法允許選擇不同的計稅方式。有人合併計算稅額較低，有人讓某一方的薪資或全部所得分開計算更有利。本頁根據您的資料，自動試算所有合法組合，並標示稅額最低的推薦方案。
               </p>
               <div className="mt-3 space-y-3 border-l-2 border-gray-100 pl-3">
                 <div>
-                  <h4 className="mb-1 text-sm font-semibold text-gray-800">五種計稅方式</h4>
-                  <ol className="mt-1 list-decimal list-inside space-y-1 text-sm">
+                  <h4 className="mb-1 text-base font-semibold text-gray-800">五種計稅方式</h4>
+                  <ol className="mt-1 list-decimal list-inside space-y-1 text-base">
                     <li>合併計稅：兩人所得全部合在一起計算</li>
                     <li>本人薪資分開：本人薪資單獨計稅，其餘所得合併</li>
                     <li>配偶薪資分開：配偶薪資單獨計稅，其餘所得合併</li>
-                    <li>本人所得分開：本人全部所得單獨計稅</li>
-                    <li>配偶所得分開：配偶全部所得單獨計稅</li>
+                    <li>本人各類所得分開：本人全部所得單獨計稅</li>
+                    <li>配偶各類所得分開：配偶全部所得單獨計稅</li>
                   </ol>
                 </div>
                 <div>
-                  <h4 className="mb-1 text-sm font-semibold text-gray-800">扣除額分配</h4>
+                  <h4 className="mb-1 text-base font-semibold text-gray-800">扣除額分配</h4>
                   <p>
                     選擇分開計稅的那一方，只能列報自己的免稅額（薪資分開），或免稅額加特定扣除項目（全部所得分開）；其餘扣除額由另一方統一列報。這是各組合稅額有差異的原因之一。
                   </p>
@@ -254,19 +252,19 @@ function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
               </div>
             </section>
             <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">股利所得</h3>
+              <h3 className="mb-2 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-900">股利所得</h3>
               <p>
                 有股利所得時，可選擇「合併入所得計稅」或「以 28% 稅率分開計稅」兩種方式。哪種較划算取決於整體所得結構，系統會兩種都試算，一併納入組合比較。
               </p>
             </section>
             <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">海外所得 AMT</h3>
+              <h3 className="mb-2 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-900">海外所得 AMT</h3>
               <p>
                 全年海外所得合計達 100 萬元以上時，須一併納入「基本所得額」計算。若基本所得額超過 750 萬元，可能需繳最低稅負（AMT）——系統會自動判斷，並將差額計入試算稅額。
               </p>
             </section>
             <section>
-              <h3 className="mb-1 text-sm font-semibold text-gray-900">排序與推薦</h3>
+              <h3 className="mb-2 border-b border-gray-200 pb-1 text-lg font-semibold text-gray-900">排序與推薦</h3>
               <p>
                 所有組合依試算稅額由低到高排列，最上方標示「推薦」的組合，是根據目前填入資料試算出稅額最低的選項。正式申報請以財政部申報系統及您的實際資料為準。
               </p>
@@ -277,7 +275,7 @@ function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
                 href="https://www.etax.nat.gov.tw/etwmain/tax-info/understanding/tax-saving-manual/national/individual-income-tax/ZJGegL6"
                 target="_blank"
                 rel="noreferrer"
-                className="text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
+                className="text-gray-600 underline underline-offset-2 hover:text-gray-800"
               >
                 財政部稅務入口網
               </a>
@@ -383,7 +381,7 @@ function FormulaOperandView({
 }) {
   return (
     <div className="inline-flex min-w-[6.75rem] flex-col gap-0.5 align-bottom">
-      <span className="text-sm leading-tight text-gray-500">{label}</span>
+      <span className="text-sm leading-tight text-gray-700">{label}</span>
       <span className={`text-base font-semibold leading-tight tabular-nums ${isResult ? 'text-blue-700' : 'text-gray-800'}`}>
         {value}
       </span>
@@ -410,12 +408,6 @@ function CapAtTag({ amount }: { amount: number }) {
 function TakeMinBlock({ candidates, winner }: { candidates: TakeMinCandidate[]; winner: number }) {
   return (
     <div className="w-full">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="whitespace-nowrap rounded border border-gray-300 bg-gray-50 px-1.5 py-px text-[11px] font-medium text-gray-500">
-          取較小值
-        </span>
-        <span className="h-px flex-1 bg-gray-200" />
-      </div>
       <div className="flex flex-wrap gap-2">
         {candidates.map((c, i) => {
           const win = i === winner
@@ -452,9 +444,17 @@ function TakeMinBlock({ candidates, winner }: { candidates: TakeMinCandidate[]; 
                 </div>
               )}
               {win && (
-                <span className="absolute right-2.5 top-2 text-[10px] font-semibold text-blue-600">
-                  ✓ 採用
-                </span>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  aria-hidden="true"
+                  className="absolute right-2 top-2 text-blue-600"
+                >
+                  <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M6 10.5l2.5 2.5L14 7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               )}
             </div>
           )
@@ -470,22 +470,27 @@ function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
       data-testid={`scenario-formula-sections-${scenario.id}`}
       className="rounded-lg border border-gray-200 bg-white"
     >
-      {scenario.formulaSections.map((section, sectionIndex) => (
+      {scenario.formulaSections.map((section, sectionIndex) => {
+        const withDividerTitle = ['所得計算', '股利處理', 'AMT 計算', '應繳納稅額'].includes(section.title)
+        return (
         <section
           key={`${scenario.id}-${section.title}`}
           data-testid={`scenario-formula-section-${scenario.id}-${sectionIndex}`}
-          className="border-t border-dashed border-gray-200 px-3 py-3 first:border-t-0"
+          className="px-3 py-3"
         >
-          <h4 className="mb-2 text-base font-semibold text-gray-900">{section.title}</h4>
-          <div className="space-y-3">
+          <h4 className={`mb-2.5 text-base font-semibold text-gray-900 ${withDividerTitle ? 'border-b border-gray-200 pb-1.5' : ''}`}>{section.title}</h4>
+          <div>
             {section.equations.map((equation, equationIndex) => {
               const hasTakeMin = equation.parts.some((p) => p.type === 'takeMin')
+              const showEquationLabel = !(section.title === '應繳納稅額' && equation.label === '應繳納稅額')
+              const equationLabel = hasTakeMin ? `${equation.label}（取較小值）` : equation.label
               return (
                 <div
                   key={`${scenario.id}-${sectionIndex}-${equationIndex}`}
                   data-testid={`scenario-formula-equation-${scenario.id}-${sectionIndex}-${equationIndex}`}
+                  className={equationIndex > 0 ? 'border-t border-dashed border-gray-200 pt-3 mt-3' : ''}
                 >
-                  <div className="mb-1 text-base text-gray-600">{equation.label}</div>
+                  {showEquationLabel && <div className="mb-2.5 text-base text-gray-600">{equationLabel}</div>}
                   {hasTakeMin ? (
                     <div>
                       {equation.parts.map((part, partIndex) => {
@@ -542,9 +547,10 @@ function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
             })}
           </div>
         </section>
-      ))}
+        )
+      })}
       {scenario.assumptions.length > 0 && (
-        <p className="border-t border-dashed border-gray-200 px-3 py-2 text-base leading-relaxed text-gray-500">
+        <p className="px-3 py-2 text-base leading-relaxed text-gray-500">
           假設：{scenario.assumptions.join('；')}
         </p>
       )}
@@ -614,24 +620,21 @@ function TaxScenarioCombinationsDialog({
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-4 py-3 shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">稅額組合試算明細</h2>
+            <h2 className="text-base font-semibold text-gray-900">所有稅額組合</h2>
             <p className="mt-1 text-base leading-relaxed text-gray-500">
-              共 {scenarioResult.scenarios.length} 種組合，依最終稅額由低至高排序。
-            </p>
-            <p className="mt-1 text-base leading-relaxed text-gray-500">
-              <span className="text-gray-500">瞭解更多：</span>
+              依您填寫的項目，共有 {scenarioResult.scenarios.length} 種稅額組合。了解
               <a
                 href="#tax-scenario-rules"
                 onClick={(e) => { e.preventDefault(); onOpenRules() }}
-                className="inline text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
+                className="inline text-gray-600 underline underline-offset-2 hover:text-gray-800"
               >
                 試算規則
               </a>
-              <span aria-hidden className="text-gray-300">｜</span>
+              <span className="text-gray-500">與</span>
               <a
                 href="#tax-formula-detail"
                 onClick={(e) => { e.preventDefault(); onOpenFormula() }}
-                className="inline text-gray-600 hover:text-gray-800 hover:underline underline-offset-2"
+                className="inline text-gray-600 underline underline-offset-2 hover:text-gray-800"
               >
                 稅率級距
               </a>
@@ -887,11 +890,16 @@ function TaxSummaryBody({
           />
         )}
         <SummaryRow
-          label="基本生活費差額"
+          label={(
+            <SummarySectionLink sectionId="basic_living_expense" onScroll={onScrollToSection}>
+              基本生活費差額
+            </SummarySectionLink>
+          )}
           value={basicLivingExpenseDifference}
           isDeduction
           pendingCalculation={basicLivingMissing}
           sectionId="basic_living_expense"
+          onScroll={onScrollToSection}
         />
 
         {/* Divider + net income */}
@@ -923,14 +931,6 @@ function TaxSummaryBody({
               <span className="font-semibold">推薦：</span>
             )}
             <span className="font-semibold">{taxScenarioResult.bestScenario.title}</span>
-            {' '}
-            <a
-              href="#tax-scenario-detail"
-              onClick={(e) => { e.preventDefault(); onOpenScenarioDialog() }}
-              className="text-sm text-gray-500 hover:text-gray-700 hover:underline underline-offset-2"
-            >
-              查看詳情
-            </a>
           </div>
         )}
         <div className="flex items-center justify-between gap-2">
@@ -943,6 +943,17 @@ function TaxSummaryBody({
             <span className="text-base text-muted">待計算</span>
           )}
         </div>
+        {taxScenarioResult && onOpenScenarioDialog && (
+          <div className="mt-1.5">
+            <button
+              type="button"
+              onClick={onOpenScenarioDialog}
+              className="inline-flex w-full items-center justify-center rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-sm font-medium text-blue-700 hover:bg-blue-100"
+            >
+              查看所有稅額組合
+            </button>
+          </div>
+        )}
       </div>
     </>
   )
