@@ -552,11 +552,6 @@ function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
         </section>
         )
       })}
-      {scenario.assumptions.length > 0 && (
-        <p className="px-3 py-2 text-base leading-relaxed text-gray-500">
-          假設：{scenario.assumptions.join('；')}
-        </p>
-      )}
     </div>
   )
 }
@@ -622,36 +617,43 @@ function TaxScenarioCombinationsDialog({
           border border-gray-200 bg-white shadow-xl"
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-4 py-3 shrink-0">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">所有稅額組合</h2>
-            <p className="mt-1 text-base leading-relaxed text-gray-500">
-              依您填寫的項目，共有 {scenarioResult.scenarios.length} 種稅額組合。了解
-              <a
-                href="#tax-scenario-rules"
-                onClick={(e) => { e.preventDefault(); onOpenRules() }}
-                className="inline text-gray-600 underline underline-offset-2 hover:text-gray-800"
-              >
-                試算規則
-              </a>
-              <span className="text-gray-500">與</span>
-              <a
-                href="#tax-formula-detail"
-                onClick={(e) => { e.preventDefault(); onOpenFormula() }}
-                className="inline text-gray-600 underline underline-offset-2 hover:text-gray-800"
-              >
-                稅率級距
-              </a>
-            </p>
+        <div className="border-b border-gray-100 px-4 py-3 shrink-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-semibold text-gray-900">所有稅額組合</h2>
+              <p className="mt-1 text-base leading-relaxed text-gray-500">
+                依您填寫的項目，共有 {scenarioResult.scenarios.length} 種稅額組合。了解
+                <a
+                  href="#tax-scenario-rules"
+                  onClick={(e) => { e.preventDefault(); onOpenRules() }}
+                  className="inline text-gray-600 underline underline-offset-2 hover:text-gray-800"
+                >
+                  試算規則
+                </a>
+                <span className="text-gray-500">與</span>
+                <a
+                  href="#tax-formula-detail"
+                  onClick={(e) => { e.preventDefault(); onOpenFormula() }}
+                  className="inline text-gray-600 underline underline-offset-2 hover:text-gray-800"
+                >
+                  稅率級距
+                </a>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="關閉"
+              className="shrink-0 inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-100"
+            >
+              ×
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="關閉"
-            className="shrink-0 inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:bg-gray-100"
-          >
-            ×
-          </button>
+          {scenarioResult.scenarios.some(s => s.assumptions.length > 0) && (
+            <p className="mt-2 w-full rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-800">
+              各類所得分開試算中，僅有儲蓄投資特別扣除額有計入分開計稅方。若您或配偶個人有較高的扣除額，請以國稅局計算為準。
+            </p>
+          )}
         </div>
 
         {/* Body — overflow-y-auto is the sticky anchor; overflow-x-auto handles narrow viewports */}
