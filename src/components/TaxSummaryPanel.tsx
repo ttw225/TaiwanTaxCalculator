@@ -307,12 +307,12 @@ function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
 type SortCol = 'couple' | 'coupleType' | 'dividend' | 'finalTax'
 
 const COUPLE_TYPE_MAP: Record<string, string> = {
-  single: '合併計稅',
-  joint: '合併計稅',
-  self_salary_separate: '分開計稅',
-  spouse_salary_separate: '分開計稅',
-  self_all_income_separate: '分開計稅',
-  spouse_all_income_separate: '分開計稅',
+  single: '合併',
+  joint: '合併',
+  self_salary_separate: '分開',
+  spouse_salary_separate: '分開',
+  self_all_income_separate: '分開',
+  spouse_all_income_separate: '分開',
 }
 
 function SortIndicator({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol; sortDir: 'asc' | 'desc' }) {
@@ -341,17 +341,21 @@ function SortIndicator({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortC
 
 const COUPLE_LABEL_MAP: Record<string, string> = {
   single: '單身申報',
-  joint: '配偶所得合併計稅',
-  self_salary_separate: '本人薪資所得分開計稅',
-  spouse_salary_separate: '配偶薪資所得分開計稅',
-  self_all_income_separate: '本人各類所得分開計稅',
-  spouse_all_income_separate: '配偶各類所得分開計稅',
+  joint: '配偶所得合併',
+  self_salary_separate: '本人薪資所得分開',
+  spouse_salary_separate: '配偶薪資所得分開',
+  self_all_income_separate: '本人各類所得分開',
+  spouse_all_income_separate: '配偶各類所得分開',
 }
 
 const DIVIDEND_LABEL_MAP: Record<string, string | null> = {
   none: null,
-  merged: '股利合併計稅',
-  separate_28: '股利分開計稅',
+  merged: '股利合併',
+  separate_28: '股利分開',
+}
+
+function displayScenarioTitle(title: string): string {
+  return title.replaceAll('計稅', '')
 }
 
 function ChevronIcon({ open }: { open: boolean }) {
@@ -936,7 +940,7 @@ function TaxSummaryBody({
             {taxScenarioResult.scenarios.length > 1 && (
               <span className="font-semibold">推薦：</span>
             )}
-            <span className="font-semibold">{taxScenarioResult.bestScenario.title}</span>
+            <span className="font-semibold">{displayScenarioTitle(taxScenarioResult.bestScenario.title)}</span>
           </div>
         )}
         <div className="flex items-center justify-between gap-2">
