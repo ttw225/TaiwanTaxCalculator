@@ -941,7 +941,13 @@ describe('formatChecklistMarkdown', () => {
     },
   ]
 
-  const md = formatChecklistMarkdown(groups, { totalSelected: 1 })
+  const md = formatChecklistMarkdown({
+    groups,
+    cardInputMap: {},
+    isMarriedFiling: false,
+    totalSelected: 1,
+    exportTime: '2026/05/16 12:00:00',
+  })
 
   // Requirement: Markdown Export Content — section/content
   it('contains the category label as a heading', () => {
@@ -968,8 +974,12 @@ describe('formatChecklistMarkdown', () => {
     expect(md).toContain('財政部電子申報系統')
   })
 
-  it('includes selected situation count', () => {
-    expect(md).toContain('1 項')
+  it('includes selected situation count in new copy', () => {
+    expect(md).toContain('根據您選擇的 1 項情況')
+  })
+
+  it('uses the new "本文件產生時間" label', () => {
+    expect(md).toContain('本文件產生時間')
   })
 
   it('does not contain raw source_id', () => {
@@ -986,7 +996,13 @@ describe('formatChecklistMarkdown', () => {
   })
 
   it('uses the updated usage reminder in header without removed badge wording', () => {
-    const headerMd = formatChecklistMarkdown([], { totalSelected: 0 })
+    const headerMd = formatChecklistMarkdown({
+      groups: [],
+      cardInputMap: {},
+      isMarriedFiling: false,
+      totalSelected: 0,
+      exportTime: '2026/05/16 12:00:00',
+    })
     expect(headerMd).toContain(CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS)
     expect(headerMd).not.toContain('標示「需進一步確認」的項目')
   })

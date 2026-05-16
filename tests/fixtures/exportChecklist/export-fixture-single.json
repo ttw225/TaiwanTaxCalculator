@@ -1,0 +1,21 @@
+{
+  "selection": {
+    "selected": [
+      "salary_income",
+      "donations"
+    ]
+  },
+  "inputs": {
+    "cardInputMap": {
+      "gross-income": {
+        "self_income": "1200000"
+      },
+      "exemption-general": {
+        "self_age_band": "under_70"
+      },
+      "donations-deduction": {
+        "donation_amount_qualified": "100000"
+      }
+    }
+  }
+}

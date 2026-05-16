@@ -664,7 +664,10 @@ export function ChecklistResult({
   }
 
   function getMarkdown() {
-    return formatChecklistMarkdown(groups, {
+    return formatChecklistMarkdown({
+      groups,
+      cardInputMap,
+      isMarriedFiling: selectedSituations.includes('married'),
       totalSelected,
       exportTime: new Date().toLocaleString('zh-TW'),
     })
