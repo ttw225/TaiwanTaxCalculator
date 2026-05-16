@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { calcTax, getBrackets } from '../lib/numbers'
 import type { TakeMinCandidate, TaxScenario, TaxScenarioResult } from '../lib/taxScenarios'
 import { Card, CardBody, CardHeader } from './ui/Card'
+import { ModalOverlay } from './ui/ModalOverlay'
 
 interface Props {
   grossIncome: number | null
@@ -123,7 +124,8 @@ function SummaryRow({
 function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
 
   const dialog = (
-    <div
+    <ModalOverlay
+      onDismiss={onClose}
       data-testid="tax-formula-dialog-overlay"
       className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/40 p-4 no-print"
     >
@@ -198,7 +200,7 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   )
 
   return createPortal(dialog, document.body)
@@ -206,7 +208,8 @@ function TaxFormulaDialog({ onClose }: { onClose: () => void }) {
 
 function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
   const dialog = (
-    <div
+    <ModalOverlay
+      onDismiss={onClose}
       data-testid="scenario-rules-dialog-overlay"
       className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/40 p-4 no-print"
     >
@@ -293,7 +296,7 @@ function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
-    </div>
+    </ModalOverlay>
   )
 
   return createPortal(dialog, document.body)
@@ -605,7 +608,8 @@ function TaxScenarioCombinationsDialog({
   const colCount = 3 + (hasSpouseScenarios ? 1 : 0) + (scenarioResult.hasDividend ? 1 : 0)
 
   const dialog = (
-    <div
+    <ModalOverlay
+      onDismiss={onClose}
       data-testid="tax-scenario-combinations-dialog-overlay"
       className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-gray-900/40 p-0 sm:p-4 no-print"
     >
@@ -767,7 +771,7 @@ function TaxScenarioCombinationsDialog({
         </div>
 
       </div>
-    </div>
+    </ModalOverlay>
   )
 
   return createPortal(dialog, document.body)

@@ -295,6 +295,22 @@ function clickLatestScenarioDialogLinkByText(text: string) {
   })
 }
 
+function pressEscape() {
+  act(() => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+  })
+}
+
+function openTaxFormulaDialogFromScenario() {
+  renderApp()
+  clickButtonByText('薪資收入')
+  clickButtonByText('產生節稅清單')
+  changeInputByTestId('income-input-gross-income-self', '300000')
+  clickByTestId('card-choice-exemption-general-self_age_band-under_70')
+  clickButtonByText('查看所有稅額組合')
+  clickLatestScenarioDialogLinkByText('稅率級距')
+}
+
 describe('situation single-source flow', () => {
   it('goes to selecting from intro start button when a selection exists but checklist is not generated', () => {
     renderApp({ autoStart: false })
@@ -508,6 +524,41 @@ describe('situation single-source flow', () => {
     expect(document.body.style.overflow).toBe('')
   })
 
+  it('closes tax formula dialog with Escape key', () => {
+    openTaxFormulaDialogFromScenario()
+    expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).not.toBeNull()
+
+    pressEscape()
+
+    expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
+    expect(getLatestScenarioDialog()).not.toBeNull()
+  })
+
+  it('closes tax formula dialog when clicking the overlay backdrop', () => {
+    openTaxFormulaDialogFromScenario()
+    const overlay = document.querySelector<HTMLElement>('[data-testid="tax-formula-dialog-overlay"]')
+    expect(overlay).not.toBeNull()
+
+    act(() => {
+      overlay?.click()
+    })
+
+    expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
+    expect(getLatestScenarioDialog()).not.toBeNull()
+  })
+
+  it('closes only the topmost dialog when Escape is pressed in a nested stack', () => {
+    openTaxFormulaDialogFromScenario()
+    expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).not.toBeNull()
+    expect(document.querySelector('[data-testid="tax-scenario-combinations-dialog-overlay"]')).not.toBeNull()
+
+    pressEscape()
+
+    expect(document.querySelector('[data-testid="tax-formula-dialog-overlay"]')).toBeNull()
+    expect(document.querySelector('[data-testid="tax-scenario-combinations-dialog-overlay"]')).not.toBeNull()
+    expect(getLatestScenarioDialog()).not.toBeNull()
+  })
+
   it('does not show remove button for non-removable cards', () => {
     renderApp()
     clickButtonByText('薪資收入')
@@ -631,6 +682,22 @@ describe('situation single-source flow', () => {
     clickByTestId('open-add-situation-modal-btn')
     expect(container.querySelector('[data-testid="add-situation-checkbox-salary_income"]')).not.toBeNull()
     clickByTestId('cancel-add-situations-btn')
+  })
+
+  it('dismisses remove confirmation with Escape without removing the card', () => {
+    renderApp()
+    clickButtonByText('房屋租金支出')
+    clickButtonByText('產生節稅清單')
+    changeInputByTestId('card-input-rent-deduction-rent_amount', '120000')
+
+    clickByTestId('remove-item-rent-deduction')
+    expect(container.textContent).toContain('移除 房屋租金支出')
+
+    pressEscape()
+
+    expect(container.textContent).not.toContain('移除 房屋租金支出')
+    expect(container.querySelector('[data-testid="checklist-item-rent-deduction"]')).not.toBeNull()
+    expect(localStorage.getItem(SITUATION_SELECTION_STORAGE_KEY)).toContain('rent')
   })
 
   it('shows confirmation when removing a card with existing input', () => {
