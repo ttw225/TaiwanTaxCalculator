@@ -254,8 +254,8 @@ describe('calcTaxScenarios', () => {
     const spouseSalarySeparate = result.scenarios.find((scenario) => scenario.coupleMode === 'spouse_salary_separate')
     const spouseAllIncomeSeparate = result.scenarios.find((scenario) => scenario.coupleMode === 'spouse_all_income_separate')
 
-    expect(spouseSalarySeparate?.formulas.find((line) => line.label === '配偶薪資分開計稅淨額')?.amount).toBe(454_500)
-    expect(spouseAllIncomeSeparate?.formulas.find((line) => line.label === '配偶各類所得分開計稅淨額')?.amount).toBe(454_500)
+    expect(spouseSalarySeparate?.formulaSections.flatMap((s) => s.equations).find((eq) => eq.result.label === '配偶薪資分開計稅淨額')?.result.amount).toBe(454_500)
+    expect(spouseAllIncomeSeparate?.formulaSections.flatMap((s) => s.equations).find((eq) => eq.result.label === '配偶各類所得分開計稅淨額')?.result.amount).toBe(454_500)
   })
 
   it('chooses the lower dividend mode after credit or 28% separate tax', () => {
