@@ -976,11 +976,10 @@ describe('situation single-source flow', () => {
     expect(dialog?.textContent).not.toContain('推薦')
     expect(getScenarioDialogHeaders()).toEqual(['申報組合', '最終稅額', ''])
 
-    clickLatestScenarioDialogByTestId('scenario-row-single:none')
-    const expandedDialog = getLatestScenarioDialog()
-    expect(expandedDialog?.textContent).toContain('所得計算')
-    expect(expandedDialog?.textContent).toContain('基本生活費差額')
-    expect(expandedDialog?.textContent).not.toContain('股利')
+    // single scenario auto-expands, so formula content is visible immediately
+    expect(dialog?.textContent).toContain('所得計算')
+    expect(dialog?.textContent).toContain('基本生活費差額')
+    expect(dialog?.textContent).not.toContain('股利')
   })
 
   it('shows spouse tax-method column only for married scenario details', () => {
@@ -1065,12 +1064,9 @@ describe('situation single-source flow', () => {
     clickByTestId('card-choice-exemption-general-self_age_band-under_70')
     clickButtonByText('查看所有稅額組合')
 
+    // single scenario auto-expands, so AMT wording is visible immediately
     const dialog = getLatestScenarioDialog()
-    expect(dialog?.textContent).not.toContain('AMT')
-
-    clickLatestScenarioDialogByTestId('scenario-row-single:none')
-    const expandedDialog = getLatestScenarioDialog()
-    expect(expandedDialog?.textContent).toContain('AMT')
+    expect(dialog?.textContent).toContain('AMT')
   })
 
   it('opens tax bracket reference from summary scenario dialog', () => {
