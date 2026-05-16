@@ -1018,13 +1018,13 @@ describe('situation single-source flow', () => {
     expect(container.querySelector('[data-testid="summary-row-gross_income"]')?.textContent).toContain('182,000 元')
     expect(container.querySelector('[data-testid="gross-income-dividend-scenarios"]')).not.toBeNull()
     expect(container.textContent).toContain('合併計稅')
-    expect(container.textContent).toContain('股利合併計稅')
+    expect(container.textContent).toContain('股利合併')
     expect(container.textContent).toContain('推薦：')
 
     clickButtonByText('查看所有稅額組合')
     const dialog = getLatestScenarioDialog()
-    expect(dialog?.textContent).toContain('股利合併計稅')
-    expect(dialog?.textContent).toContain('股利分開計稅')
+    expect(dialog?.textContent).toContain('股利合併')
+    expect(dialog?.textContent).toContain('股利分開')
     expect(dialog?.textContent).not.toContain('股利合併計稅並扣抵')
     expect(dialog?.textContent).not.toContain('股利 28% 分開計稅')
 
