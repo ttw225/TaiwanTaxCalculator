@@ -16,7 +16,7 @@
     {
       "id": "layout",
       "file": "03-repo-layout.md",
-      "keywords": ["directory", "src", "tests", "public", "github"]
+      "keywords": ["directory", "src", "tests", "public", "github", "scripts", "functions", "introduction-image", "avif", "webp", "Hero.svg", "siteConfig", "introImages", "homeHeroImage"]
     },
     {
       "id": "domain-model",
@@ -36,7 +36,7 @@
     {
       "id": "app-flow",
       "file": "07-app-flow-and-state.md",
-      "keywords": ["App.tsx", "selecting", "results", "removal", "scroll"]
+      "keywords": ["ChecklistFlow", "routes", "checklist/start", "checklist", "route state", "snapshot", "removal", "scroll"]
     },
     {
       "id": "checklist-engine",
@@ -51,7 +51,7 @@
     {
       "id": "storage",
       "file": "11-storage-and-persistence.md",
-      "keywords": ["localStorage", "situationSelection", "BASE_URL", "storage event"]
+      "keywords": ["localStorage", "situationSelection", "checklistSnapshot", "route state", "BASE_URL", "storage event"]
     },
     {
       "id": "styling",
@@ -66,7 +66,7 @@
     {
       "id": "ci-deploy",
       "file": "14-ci-and-deploy.md",
-      "keywords": ["ci.yml", "pages-preview", "VITE_BASE_PATH", "gh-pages"]
+      "keywords": ["ci.yml", "pages-preview", "VITE_BASE_PATH", "gh-pages", "Cloudflare Pages", "wrangler", "_headers", "_redirects", "functions", "middleware", "noindex", "preview isolation"]
     },
     {
       "id": "release",

@@ -6,6 +6,7 @@ dist/
 dist-ssr/
 build/
 coverage/
+.react-router/
 
 # Environment
 .env

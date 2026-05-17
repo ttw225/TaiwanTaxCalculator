@@ -1,6 +1,6 @@
 # Claude Code — tax-web
 
-This is the **standalone public frontend** (Vite + React + TypeScript). It does **not** include the private `tax` research monorepo.
+This is the **standalone public frontend** (React Router v7 + Vite + React + TypeScript). It does **not** include the private `tax` research monorepo.
 
 **Read [`AGENTS.md`](./AGENTS.md)** for stack, commands, directory layout, and tax-content rules. Optional paths to a local private clone: copy [`AGENTS.local.md.example`](./AGENTS.local.md.example) to gitignored **`AGENTS.local.md`**.
 

@@ -1,49 +1,51 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import type {
   CardInputMap,
   ChecklistItem,
   Situation,
   SituationId,
   SituationGroup,
-} from './types/content'
-import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from './content/deductions'
-import { filterBySituations, groupByCategory } from './lib/checklist'
-import type { CategoryGroup } from './lib/checklist'
+} from '../types/content'
+import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from '../content/deductions'
+import { filterBySituations, groupByCategory } from '../lib/checklist'
+import type { CategoryGroup } from '../lib/checklist'
 import {
   clearSavedChecklistInputMap,
-  loadSavedChecklistInputMap,
   saveChecklistInputMap,
-} from './lib/checklistInputStorage'
-import {
-  CHECKLIST_VIEW_STATE_STORAGE_KEY,
-  clearSavedChecklistViewState,
-  loadSavedChecklistViewState,
-  saveChecklistViewState,
-} from './lib/checklistViewStateStorage'
+} from '../lib/checklistInputStorage'
+import { clearSavedChecklistViewState } from '../lib/checklistViewStateStorage'
+import { removeLocal } from '../lib/storage'
 import {
   clearSavedSituationSelection,
-  loadSavedSituationSelection,
   parseSavedSituationSelection,
   saveSituationSelection,
   SITUATION_SELECTION_STORAGE_KEY,
-} from './lib/situationSelectionStorage'
-import { INCOME_CARD_IDS, INCOME_PARTICIPANTS_ITEM_ID } from './lib/grossIncome'
-import { SituationSelector } from './components/SituationSelector'
-import { ChecklistResult } from './components/ChecklistResult'
-import type { RemovalImpactPreview } from './components/ChecklistResult'
-import { IntroPage } from './components/IntroPage'
-import { SiteHeader } from './components/SiteHeader'
-import { SiteFooter } from './components/SiteFooter'
-import { BackToTopButton } from './components/BackToTopButton'
+} from '../lib/situationSelectionStorage'
+import {
+  createChecklistNavigationState,
+  createChecklistSnapshot,
+  getChecklistSnapshotFromNavigationState,
+  loadSavedChecklistSnapshot,
+  normalizeChecklistSituations,
+  saveChecklistGeneratedFlag,
+} from '../lib/checklistSnapshot'
+import { INCOME_CARD_IDS, INCOME_PARTICIPANTS_ITEM_ID } from '../lib/grossIncome'
+import { SituationSelector } from '../components/SituationSelector'
+import { ChecklistResult } from '../components/ChecklistResult'
+import type { RemovalImpactPreview } from '../components/ChecklistResult'
+import { SiteHeader } from '../components/SiteHeader'
+import { SiteFooter } from '../components/SiteFooter'
+import { BackToTopButton } from '../components/BackToTopButton'
+import { PageHeading } from '../components/ui/PageHeading'
 
 const SITUATION_IDS = SITUATIONS.map((s) => s.id)
 const VISIBLE_SITUATION_ID_SET = new Set<SituationId>(SITUATION_IDS)
 const ITEM_BY_ID = new Map(CHECKLIST_ITEMS.map((item) => [item.id, item]))
 const SITUATION_LABEL_BY_ID = new Map(SITUATIONS.map((s) => [s.id, s.label]))
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
-const CHECKLIST_GENERATED_STORAGE_KEY = 'tax.checklist.generated.v1'
 
-type AppState = 'intro' | 'selecting' | 'results'
+type ChecklistFlowScreen = 'start' | 'results'
 
 interface RemovalEffect {
   itemId: string
@@ -105,16 +107,6 @@ function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInpu
     delete next[itemId]
   }
   return next
-}
-
-function normalizeLinkedSituations(selected: SituationId[]): SituationId[] {
-  const next = new Set(selected)
-  if (next.has('interest_income')) {
-    next.add('savings_investment')
-  } else {
-    next.delete('savings_investment')
-  }
-  return Array.from(next)
 }
 
 function countVisibleSelectedSituations(selected: SituationId[]): number {
@@ -183,141 +175,164 @@ function getItemSourceSituationLabelsById(
   return itemSourceSituationLabelsById
 }
 
-function loadSavedChecklistGeneratedFlag(): boolean {
-  try {
-    const raw = localStorage.getItem(CHECKLIST_GENERATED_STORAGE_KEY)
-    if (raw === null) return false
-    const parsed: unknown = JSON.parse(raw)
-    if (typeof parsed === 'boolean') return parsed
-    if (typeof parsed === 'object' && parsed !== null && 'generated' in parsed) {
-      return Boolean((parsed as { generated?: unknown }).generated)
-    }
-    return false
-  } catch {
-    return false
-  }
-}
-
-function saveChecklistGeneratedFlag(generated: boolean): void {
-  try {
-    if (generated) {
-      localStorage.setItem(CHECKLIST_GENERATED_STORAGE_KEY, JSON.stringify(true))
-      return
-    }
-    localStorage.removeItem(CHECKLIST_GENERATED_STORAGE_KEY)
-  } catch {
-    // localStorage unavailable (private browsing, iframe restrictions)
-  }
-}
-
-function App() {
-  const skipNextChecklistViewStateSave = useRef(false)
-  const [selected, setSelected] = useState<SituationId[]>(() =>
-    normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS)),
+function ChecklistResultsFallback() {
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-8 min-h-[calc(100vh-3.5rem)]">
+      <PageHeading
+        title="節稅試算清單"
+        description="正在載入節稅清單，稍候會顯示已儲存的項目與填寫資料。"
+      />
+      <div className="mt-5 lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
+        <div className="space-y-4">
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="h-4 w-32 rounded bg-gray-200" />
+              <div className="mt-3 h-3 w-full max-w-xl rounded bg-gray-100" />
+              <div className="mt-2 h-3 w-2/3 rounded bg-gray-100" />
+              <div className="mt-4 h-10 rounded-lg bg-gray-50" />
+            </div>
+          ))}
+        </div>
+        <aside className="no-print mt-6 lg:mt-0">
+          <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <div className="h-4 w-24 rounded bg-gray-200" />
+            <div className="mt-4 space-y-3">
+              <div className="h-3 rounded bg-gray-100" />
+              <div className="h-3 rounded bg-gray-100" />
+              <div className="h-3 w-3/4 rounded bg-gray-100" />
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
   )
-  const [hasGeneratedChecklist, setHasGeneratedChecklist] = useState<boolean>(() => {
-    const savedSelection = normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS))
-    if (savedSelection.length === 0) return false
-    return loadSavedChecklistGeneratedFlag()
-  })
-  const [appState, setAppState] = useState<AppState>(() => {
-    const savedViewState = loadSavedChecklistViewState()
-    const savedSelection = normalizeLinkedSituations(loadSavedSituationSelection(SITUATION_IDS))
-    const hasSavedViewState = localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY) !== null
-    if (hasSavedViewState) {
-      if (savedViewState === 'intro') return 'intro'
-      if (savedViewState === 'selecting') return 'selecting'
-      if (savedViewState === 'results' && savedSelection.length > 0) return 'results'
-    }
-    if (savedSelection.length > 0) return 'selecting'
-    return 'intro'
-  })
-  const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => loadSavedChecklistInputMap())
+}
+
+export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const navigationSnapshot = screen === 'results'
+    ? getChecklistSnapshotFromNavigationState(location.state)
+    : null
+  const [selected, setSelected] = useState<SituationId[]>(() => navigationSnapshot?.selected ?? [])
+  const [hasGeneratedChecklist, setHasGeneratedChecklist] = useState<boolean>(
+    () => navigationSnapshot?.hasGeneratedChecklist ?? false,
+  )
+  const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => navigationSnapshot?.cardInputMap ?? {})
+  const [isHydrated, setIsHydrated] = useState(() => navigationSnapshot !== null)
 
   const [pendingRemovalEffect, setPendingRemovalEffect] = useState<RemovalEffect | null>(null)
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null)
+  const shouldRedirectEmptyResults = useRef(false)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [screen])
 
   useEffect(() => {
-    saveSituationSelection(selected)
-  }, [selected])
+    const hydratedSnapshot = screen === 'results'
+      ? getChecklistSnapshotFromNavigationState(location.state) ?? loadSavedChecklistSnapshot()
+      : loadSavedChecklistSnapshot()
+    const hydratedSelection = hydratedSnapshot.selected
+
+    shouldRedirectEmptyResults.current = screen === 'results' && hydratedSelection.length === 0
+
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setSelected(hydratedSelection)
+    setCardInputMap(hydratedSnapshot.cardInputMap)
+    setHasGeneratedChecklist(hydratedSnapshot.hasGeneratedChecklist)
+    setIsHydrated(true)
+    /* eslint-enable react-hooks/set-state-in-effect */
+
+    clearSavedChecklistViewState()
+    removeLocal(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
+  }, [location.state, screen])
 
   useEffect(() => {
-    saveChecklistInputMap(cardInputMap)
-  }, [cardInputMap])
-
-  useEffect(() => {
-    if (skipNextChecklistViewStateSave.current) {
-      skipNextChecklistViewStateSave.current = false
-      clearSavedChecklistViewState()
-      return
+    if (!isHydrated) return
+    if (shouldRedirectEmptyResults.current) {
+      shouldRedirectEmptyResults.current = false
+      navigate('/checklist/start', { replace: true, preventScrollReset: true, flushSync: true })
     }
-    saveChecklistViewState(appState)
-  }, [appState])
+  }, [isHydrated, navigate])
 
   useEffect(() => {
+    if (!isHydrated) return
+    saveSituationSelection(selected)
+  }, [selected, isHydrated])
+
+  useEffect(() => {
+    if (!isHydrated) return
+    saveChecklistInputMap(cardInputMap)
+  }, [cardInputMap, isHydrated])
+
+  useEffect(() => {
+    if (!isHydrated) return
     saveChecklistGeneratedFlag(hasGeneratedChecklist)
-  }, [hasGeneratedChecklist])
-
-  useEffect(() => {
-    // Clean up deprecated pre-v2 checklist overrides data to keep refresh behavior deterministic.
-    localStorage.removeItem(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
-  }, [])
+  }, [hasGeneratedChecklist, isHydrated])
 
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
       if (event.key === SITUATION_SELECTION_STORAGE_KEY) {
-        const syncedSelection = normalizeLinkedSituations(parseSavedSituationSelection(event.newValue, SITUATION_IDS))
+        const syncedSelection = normalizeChecklistSituations(parseSavedSituationSelection(event.newValue, SITUATION_IDS))
         setSelected(syncedSelection)
         if (syncedSelection.length === 0) {
           setHasGeneratedChecklist(false)
-          setAppState('selecting')
+          if (screen === 'results') {
+            navigate('/checklist/start', { replace: true, preventScrollReset: true, flushSync: true })
+          }
         }
       }
     }
 
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
-  }, [])
+  }, [navigate, screen])
 
   function toggleSituation(id: SituationId) {
     setPendingRemovalEffect(null)
     if (id === 'savings_investment') return
     setSelected((prev) => {
       const toggled = prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-      return normalizeLinkedSituations(toggled)
+      return normalizeChecklistSituations(toggled)
     })
   }
 
   function handleGenerate() {
     if (selected.length > 0) {
+      const snapshot = createChecklistSnapshot(selected, true, cardInputMap)
       setScrollToItemId(null)
       setHasGeneratedChecklist(true)
-      setAppState('results')
-      window.scrollTo(0, 0)
+      saveSituationSelection(selected)
+      saveChecklistGeneratedFlag(true)
+      navigate('/checklist', {
+        state: createChecklistNavigationState(snapshot),
+        preventScrollReset: true,
+        flushSync: true,
+      })
     }
   }
 
   function navigateToChecklistFlow() {
     setScrollToItemId(null)
-    if (hasGeneratedChecklist && selected.length > 0) {
-      setAppState('results')
-    } else {
-      setAppState('selecting')
-    }
-    window.scrollTo(0, 0)
+    const destination = hasGeneratedChecklist && selected.length > 0 ? '/checklist' : '/checklist/start'
+    const snapshot = createChecklistSnapshot(selected, hasGeneratedChecklist, cardInputMap)
+    navigate(destination, {
+      state: destination === '/checklist' ? createChecklistNavigationState(snapshot) : undefined,
+      preventScrollReset: true,
+      flushSync: true,
+    })
+    if (location.pathname === destination) window.scrollTo(0, 0)
   }
 
   function navigateToIntro() {
     setScrollToItemId(null)
-    setAppState('intro')
-    window.scrollTo(0, 0)
+    navigate('/', { preventScrollReset: true, flushSync: true })
   }
 
   function resetChecklistState() {
-    skipNextChecklistViewStateSave.current = true
     setSelected([])
     setHasGeneratedChecklist(false)
-    setAppState('selecting')
     setCardInputMap({})
     setPendingRemovalEffect(null)
     setScrollToItemId(null)
@@ -325,8 +340,8 @@ function App() {
     clearSavedChecklistInputMap()
     clearSavedChecklistViewState()
     saveChecklistGeneratedFlag(false)
-    localStorage.removeItem(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
-    window.scrollTo(0, 0)
+    removeLocal(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
+    navigate('/checklist/start', { preventScrollReset: true, flushSync: true })
   }
 
   function handleClearSelections() {
@@ -341,7 +356,7 @@ function App() {
     setPendingRemovalEffect(null)
     if (ids.length === 0) return
 
-    const nextSelected = normalizeLinkedSituations(Array.from(new Set([...selected, ...ids])))
+    const nextSelected = normalizeChecklistSituations(Array.from(new Set([...selected, ...ids])))
     if (nextSelected.length === selected.length) return
 
     setScrollToItemId(getScrollTargetAfterAdd(selected, nextSelected))
@@ -356,7 +371,7 @@ function App() {
     if (itemId === 'interest-income') {
       removedSituationIds.add('savings_investment')
     }
-    const nextSelected = normalizeLinkedSituations(
+    const nextSelected = normalizeChecklistSituations(
       selected.filter((situationId) => !removedSituationIds.has(situationId)),
     )
     const resetClearedItemTitles = nextSelected.length === 0
@@ -386,7 +401,7 @@ function App() {
     if (effect.itemId === 'interest-income') {
       removedSituationIds.add('savings_investment')
     }
-    const nextSelected = normalizeLinkedSituations(
+    const nextSelected = normalizeChecklistSituations(
       selected.filter((situationId) => !removedSituationIds.has(situationId)),
     )
     if (nextSelected.length === 0) {
@@ -435,52 +450,49 @@ function App() {
     }))
   }, [])
 
-  const content = (() => {
-    const effectiveItems = filterBySituations(CHECKLIST_ITEMS, selected)
-    const groups = groupByCategory(effectiveItems)
-    const addableSituationGroups = getAddableSituationGroups(
-      SITUATION_GROUPS,
-      SITUATIONS,
-      selected,
-    )
-    const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
+  const effectiveItems = filterBySituations(CHECKLIST_ITEMS, selected)
+  const groups = groupByCategory(effectiveItems)
+  const addableSituationGroups = getAddableSituationGroups(
+    SITUATION_GROUPS,
+    SITUATIONS,
+    selected,
+  )
+  const itemSourceSituationLabelsById = getItemSourceSituationLabelsById(selected, effectiveItems)
 
-    if (appState === 'intro') {
-      return <IntroPage onStart={navigateToChecklistFlow} />
-    }
-
-    if (appState === 'results') {
-      return (
-        <ChecklistResult
-          groups={groups}
-          totalSelected={countVisibleSelectedSituations(selected)}
-          selectedSituations={selected}
-          itemSourceSituationLabelsById={itemSourceSituationLabelsById}
-          addableSituationGroups={addableSituationGroups}
-          cardInputMap={cardInputMap}
-          pendingRemovalImpact={pendingRemovalEffect?.preview ?? null}
-          onCardInputChange={handleCardInputChange}
-          onAddSituations={handleAddSituations}
-          onRemoveItem={handleRemoveItem}
-          onCancelRemoveItem={handleCancelRemoveItem}
-          onConfirmRemoveItem={handleConfirmRemoveItem}
-          scrollToItemId={scrollToItemId}
-          onScrollHandled={() => setScrollToItemId(null)}
-          onReset={handleResetCalculation}
+  const content = screen === 'results'
+    ? (
+        !isHydrated || selected.length === 0 ? (
+          <ChecklistResultsFallback />
+        ) : (
+          <ChecklistResult
+            groups={groups}
+            totalSelected={countVisibleSelectedSituations(selected)}
+            selectedSituations={selected}
+            itemSourceSituationLabelsById={itemSourceSituationLabelsById}
+            addableSituationGroups={addableSituationGroups}
+            cardInputMap={cardInputMap}
+            pendingRemovalImpact={pendingRemovalEffect?.preview ?? null}
+            onCardInputChange={handleCardInputChange}
+            onAddSituations={handleAddSituations}
+            onRemoveItem={handleRemoveItem}
+            onCancelRemoveItem={handleCancelRemoveItem}
+            onConfirmRemoveItem={handleConfirmRemoveItem}
+            scrollToItemId={scrollToItemId}
+            onScrollHandled={() => setScrollToItemId(null)}
+            onReset={handleResetCalculation}
+          />
+        )
+      )
+    : (
+        <SituationSelector
+          groups={SITUATION_GROUPS}
+          situations={SITUATIONS}
+          selected={selected}
+          onToggle={toggleSituation}
+          onClear={handleClearSelections}
+          onGenerate={handleGenerate}
         />
       )
-    }
-    return (
-      <SituationSelector
-        groups={SITUATION_GROUPS}
-        situations={SITUATIONS}
-        selected={selected}
-        onToggle={toggleSituation}
-        onClear={handleClearSelections}
-        onGenerate={handleGenerate}
-      />
-    )
-  })()
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -497,5 +509,3 @@ function App() {
     </div>
   )
 }
-
-export default App

@@ -1,10 +1,15 @@
-import { act, createElement } from 'react'
+import { act, createElement, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import App from '../src/App'
+import ChecklistPage from '../src/pages/ChecklistPage'
+import ChecklistStartPage from '../src/pages/ChecklistStartPage'
+import HomePage from '../src/pages/HomePage'
 import { CHECKLIST_INPUT_STORAGE_KEY } from '../src/lib/checklistInputStorage'
 import { CHECKLIST_VIEW_STATE_STORAGE_KEY } from '../src/lib/checklistViewStateStorage'
 import { SITUATION_SELECTION_STORAGE_KEY } from '../src/lib/situationSelectionStorage'
+import { CHECKLIST_GENERATED_STORAGE_KEY } from '../src/lib/checklistSnapshot'
 
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
 
@@ -13,6 +18,7 @@ let scrollToSpy: ReturnType<typeof vi.fn>
 let scrollYValue = 0
 let rafCallbacks: Array<FrameRequestCallback | undefined>
 let requestAnimationFrameSpy: ReturnType<typeof vi.fn>
+let currentPath = '/checklist/start'
 
 const DONATION_TARGET_TOP = 900
 const DONATION_TARGET_HEIGHT = 120
@@ -41,6 +47,7 @@ function runNextAnimationFrame(timestamp: number) {
 beforeEach(() => {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
   localStorage.clear()
+  currentPath = '/checklist/start'
   scrollYValue = 0
   Object.defineProperty(window, 'scrollY', {
     get: () => scrollYValue,
@@ -177,10 +184,36 @@ afterEach(() => {
   document.body.removeChild(container)
 })
 
-function renderApp({ autoStart = true }: { autoStart?: boolean } = {}) {
+function LocationProbe() {
+  const location = useLocation()
+  useEffect(() => {
+    currentPath = location.pathname
+  }, [location.pathname])
+  return null
+}
+
+function TestRoutes() {
+  return createElement(
+    Routes,
+    null,
+    createElement(Route, { path: '/', element: createElement(HomePage) }),
+    createElement(Route, { path: '/checklist/start', element: createElement(ChecklistStartPage) }),
+    createElement(Route, { path: '/checklist', element: createElement(ChecklistPage) }),
+  )
+}
+
+function renderApp({ autoStart = true, route = currentPath }: { autoStart?: boolean; route?: string } = {}) {
+  currentPath = route
   const root = createRoot(container)
   act(() => {
-    root.render(createElement(App))
+    root.render(
+      createElement(
+        MemoryRouter,
+        { initialEntries: [route] },
+        createElement(LocationProbe),
+        createElement(TestRoutes),
+      ),
+    )
   })
   if (autoStart) {
     const introButton = Array.from(container.querySelectorAll('button')).find(
@@ -312,8 +345,56 @@ function openTaxFormulaDialogFromScenario() {
 }
 
 describe('situation single-source flow', () => {
+  it('static checklist route render does not contain landing-page intro content', () => {
+    const html = renderToString(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ['/checklist'] },
+        createElement(ChecklistPage),
+      ),
+    )
+
+    expect(html).toContain('正在載入節稅清單')
+    expect(html).not.toContain('一次搞懂申報規則')
+    expect(html).not.toContain('開始試算')
+  })
+
+  it('restores generated checklist directly on /checklist without visiting intro', () => {
+    localStorage.setItem(SITUATION_SELECTION_STORAGE_KEY, JSON.stringify({ selected: ['rent'] }))
+    localStorage.setItem(CHECKLIST_GENERATED_STORAGE_KEY, JSON.stringify(true))
+    localStorage.setItem(
+      CHECKLIST_INPUT_STORAGE_KEY,
+      JSON.stringify({ cardInputMap: { 'rent-deduction': { rent_amount: '120000' } } }),
+    )
+
+    renderApp({ route: '/checklist' })
+
+    expect(currentPath).toBe('/checklist')
+    expect(container.textContent).toContain('節稅試算清單')
+    expect(container.textContent).not.toContain('一次搞懂申報規則')
+    const restoredInput = container.querySelector<HTMLInputElement>('[data-testid="card-input-rent-deduction-rent_amount"]')
+    expect(restoredInput?.value).toBe('120000')
+  })
+
+  it('keeps saved but ungenerated selections on /checklist/start', () => {
+    localStorage.setItem(SITUATION_SELECTION_STORAGE_KEY, JSON.stringify({ selected: ['rent'] }))
+
+    renderApp({ route: '/checklist/start' })
+
+    expect(currentPath).toBe('/checklist/start')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+    expect(container.textContent).toContain('已選 1 項')
+  })
+
+  it('replaces /checklist with /checklist/start when no selection exists', () => {
+    renderApp({ route: '/checklist' })
+
+    expect(currentPath).toBe('/checklist/start')
+    expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+  })
+
   it('goes to selecting from intro start button when a selection exists but checklist is not generated', () => {
-    renderApp({ autoStart: false })
+    renderApp({ autoStart: false, route: '/' })
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', {
         key: SITUATION_SELECTION_STORAGE_KEY,
@@ -326,7 +407,7 @@ describe('situation single-source flow', () => {
   })
 
   it('goes to selecting from intro start button when no selection exists', () => {
-    renderApp({ autoStart: false })
+    renderApp({ autoStart: false, route: '/' })
     clickButtonByText('開始試算')
 
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
@@ -338,21 +419,21 @@ describe('situation single-source flow', () => {
       JSON.stringify({ selected: ['rent'] }),
     )
 
-    renderApp({ autoStart: false })
+    renderApp({ autoStart: false, route: '/' })
     clickButtonByText('節稅試算')
 
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
   it('goes to selecting from header nav when no selection exists', () => {
-    renderApp({ autoStart: false })
+    renderApp({ autoStart: false, route: '/' })
     clickButtonByText('節稅試算')
 
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
   })
 
   it('goes to results from intro start button after checklist has been generated', () => {
-    renderApp({ autoStart: false })
+    renderApp({ autoStart: false, route: '/' })
     clickButtonByText('開始試算')
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
@@ -362,8 +443,55 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('節稅試算清單')
   })
 
+  it('goes to generated results from intro without showing the loading fallback', () => {
+    localStorage.setItem(SITUATION_SELECTION_STORAGE_KEY, JSON.stringify({ selected: ['rent'] }))
+    localStorage.setItem(CHECKLIST_GENERATED_STORAGE_KEY, JSON.stringify(true))
+    localStorage.setItem(
+      CHECKLIST_INPUT_STORAGE_KEY,
+      JSON.stringify({ cardInputMap: { 'rent-deduction': { rent_amount: '120000' } } }),
+    )
+
+    renderApp({ autoStart: false, route: '/' })
+    act(() => {
+      window.scrollTo(0, 420)
+    })
+    const scrollSnapshots: Array<{ text: string; y: number }> = []
+    scrollToSpy.mockImplementation((x: number, y: number) => {
+      void x
+      scrollYValue = y
+      scrollSnapshots.push({ text: container.textContent ?? '', y })
+    })
+    scrollToSpy.mockClear()
+
+    clickButtonByText('開始試算')
+
+    expect(currentPath).toBe('/checklist')
+    expect(container.textContent).toContain('節稅試算清單')
+    const restoredInput = container.querySelector<HTMLInputElement>('[data-testid="card-input-rent-deduction-rent_amount"]')
+    expect(restoredInput?.value).toBe('120000')
+    expect(scrollSnapshots.some((snapshot) =>
+      snapshot.y === 0 && snapshot.text.includes('節稅試算清單'),
+    )).toBe(true)
+    expect(scrollSnapshots.some((snapshot) =>
+      snapshot.y === 0 && snapshot.text.includes('正在載入節稅清單'),
+    )).toBe(false)
+  })
+
+  it('generates results from selecting without showing the loading fallback', () => {
+    renderApp({ autoStart: false, route: '/' })
+    clickButtonByText('開始試算')
+    clickButtonByText('薪資收入')
+    scrollToSpy.mockClear()
+
+    clickButtonByText('產生節稅清單')
+
+    expect(currentPath).toBe('/checklist')
+    expect(container.textContent).toContain('節稅試算清單')
+    expect(container.textContent).not.toContain('正在載入節稅清單')
+  })
+
   it('goes to results from header nav after checklist has been generated and user returns to intro', () => {
-    renderApp({ autoStart: false })
+    renderApp({ autoStart: false, route: '/' })
     clickButtonByText('開始試算')
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
@@ -374,7 +502,7 @@ describe('situation single-source flow', () => {
   })
 
   it('goes to results from header nav after refresh on intro when checklist has been generated', () => {
-    const root = renderApp({ autoStart: false })
+    const root = renderApp({ autoStart: false, route: '/' })
     clickButtonByText('開始試算')
     clickButtonByText('薪資收入')
     clickButtonByText('產生節稅清單')
@@ -391,14 +519,28 @@ describe('situation single-source flow', () => {
     expect(container.textContent).toContain('節稅試算清單')
   })
 
-  it('scrolls to top when navigating via header nav button', () => {
-    renderApp({ autoStart: false })
+  it('replaces landing content before scrolling during checklist navigation', () => {
+    renderApp({ autoStart: false, route: '/' })
     act(() => {
       window.scrollTo(0, 420)
     })
+    const scrollSnapshots: Array<{ text: string; y: number }> = []
+    scrollToSpy.mockImplementation((x: number, y: number) => {
+      void x
+      scrollYValue = y
+      scrollSnapshots.push({ text: container.textContent ?? '', y })
+    })
+    scrollToSpy.mockClear()
 
     clickButtonByText('節稅試算')
-    expect(scrollToSpy).toHaveBeenLastCalledWith(0, 0)
+    expect(currentPath).toBe('/checklist/start')
+    expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
+    expect(scrollSnapshots.some((snapshot) =>
+      snapshot.y === 0 && snapshot.text.includes('選擇符合 114 年度的報稅項目'),
+    )).toBe(true)
+    expect(scrollSnapshots.some((snapshot) =>
+      snapshot.y === 0 && snapshot.text.includes('一次搞懂申報規則'),
+    )).toBe(false)
   })
 
   it('scrolls to gross income section with dynamic offset when clicking summary section link', () => {
@@ -437,7 +579,6 @@ describe('situation single-source flow', () => {
     clickButtonByText('產生節稅清單')
 
     expect(container.textContent).toContain('節稅試算清單')
-    expect(scrollToSpy).toHaveBeenCalledWith(0, 0)
     expect(container.textContent).not.toContain('帶入說明')
     expect(container.textContent).not.toContain('一個情境可能對應多個檢核項目')
     expect(container.textContent).not.toContain('來源情境：')
@@ -874,7 +1015,7 @@ describe('situation single-source flow', () => {
     clickButtonByText('產生節稅清單')
 
     expect(container.textContent).toContain('節稅試算清單')
-    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('results')
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
 
     act(() => {
       root.unmount()
@@ -888,7 +1029,7 @@ describe('situation single-source flow', () => {
     const root = renderApp()
     clickButtonByText('房屋租金支出')
     expect(container.textContent).toContain('產生節稅清單')
-    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('selecting')
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
 
     act(() => {
       root.unmount()
@@ -899,7 +1040,7 @@ describe('situation single-source flow', () => {
   })
 
   it('keeps intro page after refresh when no selection exists', () => {
-    const root = renderApp({ autoStart: false })
+    const root = renderApp({ autoStart: false, route: '/' })
     expect(container.textContent).toContain('開始試算')
 
     act(() => {
@@ -911,10 +1052,10 @@ describe('situation single-source flow', () => {
   })
 
   it('keeps selecting page after refresh when selecting page has no selection', () => {
-    const root = renderApp({ autoStart: false })
+    const root = renderApp({ autoStart: false, route: '/' })
     clickButtonByText('節稅試算')
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
-    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toContain('selecting')
+    expect(localStorage.getItem(CHECKLIST_VIEW_STATE_STORAGE_KEY)).toBeNull()
 
     act(() => {
       root.unmount()

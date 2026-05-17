@@ -9,23 +9,29 @@
     "pnpm": "^11.0.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "react-router dev",
+    "dev:clean": "rm -rf node_modules/.vite && react-router dev",
+    "build": "react-router build && tsx scripts/generate-sitemap.ts",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run -c vitest.config.ts",
+    "test:watch": "vitest -c vitest.config.ts",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview --outDir dist/client"
   },
   "dependencies": {
+    "@react-router/node": "^7.15.1",
     "@tailwindcss/vite": "^4.2.4",
+    "isbot": "^5",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-router": "^7.15.1",
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260516.1",
     "@eslint/js": "^10.0.1",
+    "@react-router/dev": "^7.15.1",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -37,6 +43,9 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "jsdom": "^29.1.0",
+    "sharp": "^0.34.5",
+    "svgo": "^4.0.1",
+    "tsx": "^4.22.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.10",

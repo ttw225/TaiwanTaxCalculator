@@ -1,17 +1,44 @@
 import { getNumber } from '../lib/numbers'
-import { createPublicAssetUrl } from '../lib/publicAsset'
+import { HOME_HERO_IMAGE_HEIGHT, HOME_HERO_IMAGE_SRC, HOME_HERO_IMAGE_WIDTH } from '../lib/homeHeroImage'
+import { getIntroImage } from '../lib/introImages'
 
 interface Props {
   onStart: () => void
 }
 
-const STEPS = [
+interface ResultCard {
+  title: string
+  size: 'wide' | 'narrow' | 'full'
+  basename: string
+  basenameDesktop?: string
+  alt: string
+  desktopImageZoom?: boolean
+}
+
+interface DetailImage {
+  title: string
+  basename: string
+  alt: string
+}
+
+interface Step {
+  n: string
+  kicker: string
+  title: string
+  body: React.ReactNode
+  basename?: string
+  alt?: string
+  detailImages?: DetailImage[]
+  resultCards?: ResultCard[]
+}
+
+const STEPS: Step[] = [
   {
     n: '1',
     kicker: '篩選項目',
     title: '篩選可申報項目',
-    imageSrc: createPublicAssetUrl('introduction-image/Step1.png'),
-    imageAlt: '步驟 1 示意圖',
+    basename: 'Step1',
+    alt: '步驟 1 示意圖',
     body: (
       <>
         依照申報年度，先從
@@ -32,16 +59,14 @@ const STEPS = [
     title: '確認項目適用資格',
     body: '查看各項目的適用資格與限制條件，協助進行判斷並準備資料。',
     detailImages: [
-      { title: '節稅試算清單', imageSrc: createPublicAssetUrl('introduction-image/Step2-1.png'), imageAlt: '步驟 2-1 示意圖' },
-      { title: '查看項目適用條件與準備資料', imageSrc: createPublicAssetUrl('introduction-image/Step2-2.png'), imageAlt: '步驟 2-2 示意圖' },
+      { title: '節稅試算清單', basename: 'Step2-1', alt: '步驟 2-1 示意圖' },
+      { title: '查看項目適用條件與準備資料', basename: 'Step2-2', alt: '步驟 2-2 示意圖' },
     ],
   },
   {
     n: '3',
     kicker: '試算匯出',
     title: '即時試算，提供申報建議',
-    imageSrc: '',
-    imageAlt: '步驟 3 示意圖',
     body: (
       <>
         填寫資料後，系統會
@@ -50,14 +75,65 @@ const STEPS = [
       </>
     ),
     resultCards: [
-      { title: '綜合所得總額', size: 'wide', imageSrc: createPublicAssetUrl('introduction-image/Step3-1-income-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-1-income-web.png'), imageAlt: '綜合所得總額示意圖', desktopImageZoom: true },
-      { title: '一般扣除額', size: 'narrow', imageSrc: createPublicAssetUrl('introduction-image/Step3-2-income-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-2-count-web.png'), imageAlt: '一般扣除額示意圖' },
-      { title: '特別扣除額', size: 'narrow', imageSrc: createPublicAssetUrl('introduction-image/Step3-3-special-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-3-special-web.png'), imageAlt: '特別扣除額示意圖' },
-      { title: '填寫摘要、試算結果', size: 'wide', imageSrc: createPublicAssetUrl('introduction-image/Step3-4-summary-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-4-summary-web.png'), imageAlt: '試算摘要示意圖' },
-      { title: '比較所有稅額組合', size: 'full', imageSrc: createPublicAssetUrl('introduction-image/Step3-5-result-mobile.png'), imageSrcDesktop: createPublicAssetUrl('introduction-image/Step3-5-result-web.png'), imageAlt: '試算結果與組合比較示意圖' },
+      { title: '綜合所得總額', size: 'wide', basename: 'Step3-1-income-mobile', basenameDesktop: 'Step3-1-income-web', alt: '綜合所得總額示意圖', desktopImageZoom: true },
+      { title: '一般扣除額', size: 'narrow', basename: 'Step3-2-income-mobile', basenameDesktop: 'Step3-2-count-web', alt: '一般扣除額示意圖' },
+      { title: '特別扣除額', size: 'narrow', basename: 'Step3-3-special-mobile', basenameDesktop: 'Step3-3-special-web', alt: '特別扣除額示意圖' },
+      { title: '填寫摘要、試算結果', size: 'wide', basename: 'Step3-4-summary-mobile', basenameDesktop: 'Step3-4-summary-web', alt: '試算摘要示意圖' },
+      { title: '比較所有稅額組合', size: 'full', basename: 'Step3-5-result-mobile', basenameDesktop: 'Step3-5-result-web', alt: '試算結果與組合比較示意圖' },
     ],
   },
 ]
+
+interface ResponsiveImageProps {
+  basename: string
+  basenameDesktop?: string
+  alt: string
+  className?: string
+  loading?: 'eager' | 'lazy'
+  desktopMediaQuery?: string
+}
+
+/**
+ * Responsive `<picture>` that prefers AVIF, falls back to WebP, then optimized
+ * PNG. When `basenameDesktop` is set, that variant is preferred on viewports
+ * matching `desktopMediaQuery` (default: `(min-width: 1024px)`).
+ *
+ * Inserts intrinsic `width`/`height` to reserve layout space and prevent CLS.
+ */
+function ResponsiveImage({
+  basename,
+  basenameDesktop,
+  alt,
+  className,
+  loading = 'lazy',
+  desktopMediaQuery = '(min-width: 1024px)',
+}: ResponsiveImageProps) {
+  const mobile = getIntroImage(basename)
+  const desktop = basenameDesktop ? getIntroImage(basenameDesktop) : undefined
+
+  return (
+    <picture>
+      {desktop ? (
+        <>
+          <source type="image/avif" media={desktopMediaQuery} srcSet={desktop.avif} />
+          <source type="image/webp" media={desktopMediaQuery} srcSet={desktop.webp} />
+          <source media={desktopMediaQuery} srcSet={desktop.png} />
+        </>
+      ) : null}
+      <source type="image/avif" srcSet={mobile.avif} />
+      <source type="image/webp" srcSet={mobile.webp} />
+      <img
+        src={mobile.png}
+        alt={alt}
+        width={mobile.width}
+        height={mobile.height}
+        className={className}
+        loading={loading}
+        decoding="async"
+      />
+    </picture>
+  )
+}
 
 export function IntroPage({ onStart }: Props) {
   const threshold =
@@ -65,7 +141,6 @@ export function IntroPage({ onStart }: Props) {
     getNumber('standard_deduction_single') +
     getNumber('special_deduction_salary')
   const fmt = (n: number) => n.toLocaleString('zh-TW')
-  const heroImageSrc = createPublicAssetUrl('Hero.svg')
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-16 sm:pt-20 lg:pt-24 pb-8">
@@ -111,10 +186,14 @@ export function IntroPage({ onStart }: Props) {
             </div>
             <div className="mt-7 sm:mt-8">
               <img
-                src={heroImageSrc}
+                src={HOME_HERO_IMAGE_SRC}
                 alt="報稅流程示意圖"
+                width={HOME_HERO_IMAGE_WIDTH}
+                height={HOME_HERO_IMAGE_HEIGHT}
                 className="w-full h-auto object-contain"
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
               />
             </div>
           </div>
@@ -157,56 +236,35 @@ export function IntroPage({ onStart }: Props) {
                           {card.size === 'full' ? (
                             <div className="overflow-hidden rounded-lg border border-gray-200 bg-[#F4F6F8]">
                               <div className="aspect-video w-full">
-                                {card.imageSrc ? (
-                                  <picture>
-                                    {card.imageSrcDesktop ? <source media="(min-width: 1024px)" srcSet={card.imageSrcDesktop} /> : null}
-                                    <img
-                                      src={card.imageSrc}
-                                      alt={card.imageAlt}
-                                      className="h-full w-full object-contain"
-                                      loading="lazy"
-                                    />
-                                  </picture>
-                                ) : (
-                                  <div className="h-full w-full bg-[#F4F6F8]" aria-hidden="true" />
-                                )}
+                                <ResponsiveImage
+                                  basename={card.basename}
+                                  basenameDesktop={card.basenameDesktop}
+                                  alt={card.alt}
+                                  className="h-full w-full object-contain"
+                                />
                               </div>
                             </div>
                           ) : card.size === 'narrow' ? (
                             <div className="flex-1 overflow-hidden rounded-lg border border-gray-200 bg-[#F4F6F8] lg:flex lg:items-center lg:justify-center">
                               <div className="h-full w-full overflow-hidden lg:w-auto lg:aspect-[3/4]">
-                                {card.imageSrc ? (
-                                  <picture>
-                                    {card.imageSrcDesktop ? <source media="(min-width: 1024px)" srcSet={card.imageSrcDesktop} /> : null}
-                                    <img
-                                      src={card.imageSrc}
-                                      alt={card.imageAlt}
-                                      className="h-full w-full object-contain lg:object-cover"
-                                      loading="lazy"
-                                    />
-                                  </picture>
-                                ) : (
-                                  <div className="h-full w-full bg-[#F4F6F8]" aria-hidden="true" />
-                                )}
+                                <ResponsiveImage
+                                  basename={card.basename}
+                                  basenameDesktop={card.basenameDesktop}
+                                  alt={card.alt}
+                                  className="h-full w-full object-contain lg:object-cover"
+                                />
                               </div>
                             </div>
                           ) : (
                             <div className="flex-1 overflow-hidden rounded-lg border border-gray-200 bg-[#F4F6F8]">
-                              {card.imageSrc ? (
-                                <picture>
-                                  {card.imageSrcDesktop ? <source media="(min-width: 1024px)" srcSet={card.imageSrcDesktop} /> : null}
-                                  <img
-                                    src={card.imageSrc}
-                                    alt={card.imageAlt}
-                                    className={`h-full w-full object-contain ${
-                                      card.desktopImageZoom ? 'lg:scale-110 lg:origin-top' : ''
-                                    }`}
-                                    loading="lazy"
-                                  />
-                                </picture>
-                              ) : (
-                                <div className="h-full w-full bg-[#F4F6F8]" aria-hidden="true" />
-                              )}
+                              <ResponsiveImage
+                                basename={card.basename}
+                                basenameDesktop={card.basenameDesktop}
+                                alt={card.alt}
+                                className={`h-full w-full object-contain ${
+                                  card.desktopImageZoom ? 'lg:scale-110 lg:origin-top' : ''
+                                }`}
+                              />
                             </div>
                           )}
                         </div>
@@ -218,30 +276,28 @@ export function IntroPage({ onStart }: Props) {
                         <div key={image.title} className="overflow-hidden rounded-xl border border-gray-200 bg-white p-3">
                           <p className="text-base font-medium text-gray-700 mb-2">{image.title}</p>
                           <div className="h-full w-full overflow-hidden rounded-lg border border-gray-200 bg-[#F4F6F8]">
-                            <img
-                              src={image.imageSrc}
-                              alt={image.imageAlt}
+                            <ResponsiveImage
+                              basename={image.basename}
+                              alt={image.alt}
                               className="h-full w-full object-cover"
-                              loading="lazy"
                             />
                           </div>
                         </div>
                       ))}
                     </div>
-                  ) : (
+                  ) : s.basename ? (
                     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
                       <div className="h-full w-full overflow-hidden bg-[#F4F6F8]">
-                        {s.imageSrc ? (
-                          <img
-                            src={s.imageSrc}
-                            alt={s.imageAlt}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="h-full min-h-[220px] w-full bg-[#F4F6F8]" aria-hidden="true" />
-                        )}
+                        <ResponsiveImage
+                          basename={s.basename}
+                          alt={s.alt ?? ''}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                      <div className="h-full min-h-[220px] w-full bg-[#F4F6F8]" aria-hidden="true" />
                     </div>
                   )}
                 </div>

@@ -4,9 +4,9 @@ This repository is the **public frontend** for a Taiwan individual income tax (ç
 
 ## Stack
 
-- **Build**: Vite 8, React 19, TypeScript (project references: `tsconfig.app.json`, `tsconfig.node.json`)
+- **Build**: React Router v7 (framework mode, static prerender), Vite 8, React 19, TypeScript (project references: `tsconfig.app.json`, `tsconfig.node.json`)
 - **UI**: Tailwind CSS v4 (`@tailwindcss/vite` in `vite.config.ts`), `src/index.css`
-- **Test**: Vitest + jsdom (`pnpm test`, config in `vite.config.ts`)
+- **Test**: Vitest + jsdom (`pnpm test`, config in `vitest.config.ts`)
 - **Lint**: ESLint flat config (`eslint.config.js`), TypeScript ESLint recommended
 
 ## Commands
@@ -14,7 +14,7 @@ This repository is the **public frontend** for a Taiwan individual income tax (ç
 | Command | Purpose |
 |--------|---------|
 | `pnpm dev` | Dev server (default port **5173**) |
-| `pnpm build` | `tsc -b` then production build |
+| `pnpm build` | `react-router build` then sitemap generation |
 | `pnpm typecheck` | Typecheck app TS (`tsconfig.app.json`) |
 | `pnpm test` | Run Vitest once |
 | `pnpm test:watch` | Vitest watch |
@@ -27,7 +27,7 @@ Run **`pnpm test`** and **`pnpm lint`** after non-trivial logic or content-schem
 
 | Path | Role |
 |------|------|
-| `src/App.tsx`, `src/main.tsx` | App entry |
+| `src/root.tsx`, `src/routes.ts` | React Router root layout and route config |
 | `src/components/` | UI components |
 | `src/content/` | Copy and structured content (`deductions.ts`, `inlineFields.ts`) |
 | `src/data/numbers_2026.json` | **In-repo** canonical numeric snapshot for the app |
