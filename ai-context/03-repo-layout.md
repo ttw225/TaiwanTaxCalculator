@@ -8,12 +8,12 @@ Paths are relative to repo root unless noted.
 |------|------|
 | [`package.json`](../package.json) | Dependencies, scripts, Node/pnpm version policy (`engines`, `packageManager`) |
 | [`pnpm-lock.yaml`](../pnpm-lock.yaml) | Lockfile |
-| [`vite.config.ts`](../vite.config.ts) | Vite + Vitest + Tailwind plugin |
+| [`vite.config.ts`](../vite.config.ts) | Vite + React Router framework plugin + Tailwind plugin |
+| [`react-router.config.ts`](../react-router.config.ts) | React Router framework/prerender config |
 | [`tsconfig.json`](../tsconfig.json) | Project references |
 | [`tsconfig.app.json`](../tsconfig.app.json) | App + tests TS config |
 | [`tsconfig.node.json`](../tsconfig.node.json) | Node-side TS (Vite config) |
 | [`eslint.config.js`](../eslint.config.js) | ESLint flat config |
-| [`index.html`](../index.html) | HTML shell |
 | [`Makefile`](../Makefile) | pnpm shortcuts |
 | [`cz.toml`](../cz.toml) | Commitizen / version bump settings |
 | [`AGENTS.md`](../AGENTS.md), [`CLAUDE.md`](../CLAUDE.md) | Agent / contributor entry |
@@ -24,13 +24,14 @@ Paths are relative to repo root unless noted.
 
 | Path | Role |
 |------|------|
-| [`src/main.tsx`](../src/main.tsx) | `createRoot`, `StrictMode`, CSS import |
-| [`src/App.tsx`](../src/App.tsx) | Top-level checklist flow, state, storage wiring |
+| [`src/root.tsx`](../src/root.tsx) | React Router root layout, meta links, scripts, site-wide JSON-LD |
+| [`src/routes.ts`](../src/routes.ts) | React Router route config |
 | [`src/index.css`](../src/index.css) | Tailwind import + print media rules |
-| [`src/components/`](../src/components/) | UI: header/footer, situation selector, results, cards |
+| [`src/pages/`](../src/pages/) | Route modules: home, checklist start/results, content pages, shared checklist flow |
+| [`src/components/`](../src/components/) | UI: header/footer, intro, situation selector, results, cards |
 | [`src/content/`](../src/content/) | Structured zh-TW content: checklist and inline field defs |
 | [`src/data/numbers_2026.json`](../src/data/numbers_2026.json) | Canonical numeric snapshot for deployed year |
-| [`src/lib/`](../src/lib/) | Domain logic: checklist engine, numbers, [`grossIncome.ts`](../src/lib/grossIncome.ts), [`generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts), [`checklistCardCopy.ts`](../src/lib/checklistCardCopy.ts), [`taxScenarios.ts`](../src/lib/taxScenarios.ts), [`exportChecklist.ts`](../src/lib/exportChecklist.ts) (`formatChecklistMarkdown`), [`scenarioLabels.ts`](../src/lib/scenarioLabels.ts), storage, scroll, deploy, [`siteConfig.ts`](../src/lib/siteConfig.ts) |
+| [`src/lib/`](../src/lib/) | Domain logic: checklist engine, numbers, [`grossIncome.ts`](../src/lib/grossIncome.ts), [`generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts), [`checklistCardCopy.ts`](../src/lib/checklistCardCopy.ts), [`taxScenarios.ts`](../src/lib/taxScenarios.ts), [`exportChecklist.ts`](../src/lib/exportChecklist.ts) (`formatChecklistMarkdown`), [`scenarioLabels.ts`](../src/lib/scenarioLabels.ts), storage, scroll, deploy, checklist entry routing, [`siteConfig.ts`](../src/lib/siteConfig.ts) |
 | [`src/types/content.ts`](../src/types/content.ts) | Shared content types |
 | [`src/assets/`](../src/assets/) | Static images (e.g. hero) |
 

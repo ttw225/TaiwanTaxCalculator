@@ -1,7 +1,8 @@
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
+import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import App from '../src/App'
+import ChecklistStartPage from '../src/pages/ChecklistStartPage'
 import {
   createSituationSelectionStorageKey,
   loadSavedSituationSelection,
@@ -30,7 +31,13 @@ afterEach(() => {
 function renderApp() {
   const root = createRoot(container)
   act(() => {
-    root.render(createElement(App))
+    root.render(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ['/checklist/start'] },
+        createElement(ChecklistStartPage),
+      ),
+    )
   })
   return root
 }

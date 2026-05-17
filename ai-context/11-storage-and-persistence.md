@@ -65,7 +65,7 @@ interface SavedChecklistInput { cardInputMap: CardInputMap }
 - `saveChecklistInputMap(cardInputMap)`
 - `clearSavedChecklistInputMap()` → `removeLocal`
 
-## Checklist view state (which screen)
+## Legacy checklist view state
 
 [`src/lib/checklistViewStateStorage.ts`](../src/lib/checklistViewStateStorage.ts).
 
@@ -82,7 +82,7 @@ type ChecklistViewState = 'intro' | 'selecting' | 'results'
 interface SavedChecklistViewState { page: ChecklistViewState }
 ```
 
-`saveChecklistViewState(page)` writes `{ page }`. `loadSavedChecklistViewState` normalizes invalid values to `'selecting'` except explicit `'intro'` / `'results'`.
+This key is legacy after route-level checklist pages were introduced. Page identity now comes from `/`, `/checklist/start`, and `/checklist`; `ChecklistFlow` clears the key during hydration and full reset.
 
 ### API
 
@@ -90,27 +90,25 @@ interface SavedChecklistViewState { page: ChecklistViewState }
 - `saveChecklistViewState(page)`
 - `clearSavedChecklistViewState()` → `removeLocal`
 
-[`src/App.tsx`](../src/App.tsx) hydrates initial `appState` from this key when present; a full reset clears it (see [`07-app-flow-and-state.md`](./07-app-flow-and-state.md)).
-
 ## Checklist generated flag
 
-Defined in [`src/App.tsx`](../src/App.tsx) (not a separate module).
+Used by [`src/pages/ChecklistFlow.tsx`](../src/pages/ChecklistFlow.tsx) and [`src/lib/checklistEntryPath.ts`](../src/lib/checklistEntryPath.ts).
 
 ### Storage key
 
 - **`tax.checklist.generated.v1`** — JSON `true` when the user has generated the checklist with a non-empty selection; removed when cleared.
 
-Used with saved selection to set initial **`hasGeneratedChecklist`** (no selection → always `false`). Cleared on **`resetChecklistState`**.
+Used with saved selection to choose the checklist nav entry route (`/checklist` vs `/checklist/start`) and to hydrate **`hasGeneratedChecklist`** (no selection → always `false`). Cleared on **`resetChecklistState`**.
 
 ## Cross-tab sync
 
-[`src/App.tsx`](../src/App.tsx) listens to `window` `storage` events for `SITUATION_SELECTION_STORAGE_KEY`; updates `selected` from `parseSavedSituationSelection(event.newValue, SITUATION_IDS)`. Result cards are derived from the synced selection. If synced selection is empty → **`setHasGeneratedChecklist(false)`** and `appState` → `'selecting'`.
+[`src/pages/ChecklistFlow.tsx`](../src/pages/ChecklistFlow.tsx) listens to `window` `storage` events for `SITUATION_SELECTION_STORAGE_KEY`; updates `selected` from `parseSavedSituationSelection(event.newValue, SITUATION_IDS)`. Result cards are derived from the synced selection. If synced selection is empty → **`setHasGeneratedChecklist(false)`** and `/checklist` replace-navigates to `/checklist/start`.
 
 Other checklist keys are not cross-tab synced by a dedicated listener in App.
 
 ## Legacy key cleanup
 
-- Constant in `App.tsx`: **`tax.checklist.manualOverrides.v1`**
+- Constant in `ChecklistFlow.tsx`: **`tax.checklist.manualOverrides.v1`**
 - Removed on mount and on full clear — deprecated pre-v2 checklist overrides.
 
 ## Related docs

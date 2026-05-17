@@ -36,7 +36,7 @@
     {
       "id": "app-flow",
       "file": "07-app-flow-and-state.md",
-      "keywords": ["App.tsx", "selecting", "results", "removal", "scroll"]
+      "keywords": ["ChecklistFlow", "routes", "checklist/start", "checklist", "removal", "scroll"]
     },
     {
       "id": "checklist-engine",

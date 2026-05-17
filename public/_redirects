@@ -1,0 +1,5 @@
+# www 與 apex 同時可訪問；canonical 統一指向 apex (見 root.tsx <link rel="canonical">)
+# 不做 www → apex 301，僅靠 canonical link 告訴搜尋引擎主版本。
+
+# 未命中的路徑回真實 404（避免 soft-404；prerender 已產出 /404/index.html）
+/* /404/index.html 404
