@@ -16,7 +16,7 @@
     {
       "id": "layout",
       "file": "03-repo-layout.md",
-      "keywords": ["directory", "src", "tests", "public", "github"]
+      "keywords": ["directory", "src", "tests", "public", "github", "scripts", "functions", "introduction-image", "avif", "webp", "Hero.svg", "siteConfig", "introImages", "homeHeroImage"]
     },
     {
       "id": "domain-model",
@@ -66,7 +66,7 @@
     {
       "id": "ci-deploy",
       "file": "14-ci-and-deploy.md",
-      "keywords": ["ci.yml", "pages-preview", "VITE_BASE_PATH", "gh-pages"]
+      "keywords": ["ci.yml", "pages-preview", "VITE_BASE_PATH", "gh-pages", "Cloudflare Pages", "wrangler", "_headers", "_redirects", "functions", "middleware", "noindex", "preview isolation"]
     },
     {
       "id": "release",

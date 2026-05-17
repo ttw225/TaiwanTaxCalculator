@@ -8,11 +8,14 @@ Paths are relative to repo root unless noted.
 |------|------|
 | [`package.json`](../package.json) | Dependencies, scripts, Node/pnpm version policy (`engines`, `packageManager`) |
 | [`pnpm-lock.yaml`](../pnpm-lock.yaml) | Lockfile |
+| [`pnpm-workspace.yaml`](../pnpm-workspace.yaml) | `allowBuilds` for native devDeps (`sharp`, `esbuild`) |
 | [`vite.config.ts`](../vite.config.ts) | Vite + React Router framework plugin + Tailwind plugin |
-| [`react-router.config.ts`](../react-router.config.ts) | React Router framework/prerender config |
+| [`react-router.config.ts`](../react-router.config.ts) | React Router framework/prerender config (`ssr: false`, prerender route list) |
+| [`wrangler.toml`](../wrangler.toml) | Cloudflare Pages deploy config (`pages_build_output_dir = "dist/client"`) |
 | [`tsconfig.json`](../tsconfig.json) | Project references |
 | [`tsconfig.app.json`](../tsconfig.app.json) | App + tests TS config |
 | [`tsconfig.node.json`](../tsconfig.node.json) | Node-side TS (Vite config) |
+| [`tsconfig.functions.json`](../tsconfig.functions.json) | TS config for `functions/` (uses `@cloudflare/workers-types`) |
 | [`eslint.config.js`](../eslint.config.js) | ESLint flat config |
 | [`Makefile`](../Makefile) | pnpm shortcuts |
 | [`cz.toml`](../cz.toml) | Commitizen / version bump settings |
@@ -24,16 +27,31 @@ Paths are relative to repo root unless noted.
 
 | Path | Role |
 |------|------|
-| [`src/root.tsx`](../src/root.tsx) | React Router root layout, meta links, scripts, site-wide JSON-LD |
+| [`src/root.tsx`](../src/root.tsx) | React Router root layout (`Layout`), static OG/meta, site-wide JSON-LD (Organization + WebSite), hero image warmup |
 | [`src/routes.ts`](../src/routes.ts) | React Router route config |
 | [`src/index.css`](../src/index.css) | Tailwind import + print media rules |
-| [`src/pages/`](../src/pages/) | Route modules: home, checklist start/results, content pages, shared checklist flow |
-| [`src/components/`](../src/components/) | UI: header/footer, intro, situation selector, results, cards |
+| [`src/pages/`](../src/pages/) | Route modules: `HomePage`, `ChecklistStartPage`, `ChecklistPage`, `ChecklistFlow`, `AboutPage`, `MethodologyPage`, `DeductionDetailPage`, `NotFoundPage`, `SiteLayout` |
+| [`src/components/`](../src/components/) | UI: header/footer, `IntroPage`, situation selector, results, cards |
 | [`src/content/`](../src/content/) | Structured zh-TW content: checklist and inline field defs |
 | [`src/data/numbers_2026.json`](../src/data/numbers_2026.json) | Canonical numeric snapshot for deployed year |
-| [`src/lib/`](../src/lib/) | Domain logic: checklist engine, numbers, [`grossIncome.ts`](../src/lib/grossIncome.ts), [`generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts), [`checklistCardCopy.ts`](../src/lib/checklistCardCopy.ts), [`taxScenarios.ts`](../src/lib/taxScenarios.ts), [`exportChecklist.ts`](../src/lib/exportChecklist.ts) (`formatChecklistMarkdown`), [`scenarioLabels.ts`](../src/lib/scenarioLabels.ts), storage, scroll, deploy, checklist entry routing, [`siteConfig.ts`](../src/lib/siteConfig.ts) |
-| [`src/types/content.ts`](../src/types/content.ts) | Shared content types |
-| [`src/assets/`](../src/assets/) | Static images (e.g. hero) |
+| [`src/lib/`](../src/lib/) | Domain logic — see table below |
+| [`src/types/`](../src/types/) | Shared content/types |
+
+### `src/lib/` notable files
+
+| File | Role |
+|------|------|
+| [`siteConfig.ts`](../src/lib/siteConfig.ts) | Site name, URL, tax year, OG image, official links — single source of truth for all SEO/meta values |
+| [`homeHeroImage.ts`](../src/lib/homeHeroImage.ts) | LCP hero: `HOME_HERO_IMAGE_SRC`, stable dimensions, `warmHomeHeroImage()` singleton warmup |
+| [`introImages.ts`](../src/lib/introImages.ts) | Maps intro-image basenames → AVIF/WebP/PNG URLs + intrinsic `{width, height}` for CLS prevention |
+| [`checklistSnapshot.ts`](../src/lib/checklistSnapshot.ts) | Load/save/serialize checklist state; navigation-state key for `/` → `/checklist` transition |
+| [`checklistEntryPath.ts`](../src/lib/checklistEntryPath.ts) | Thin helper: returns `/checklist` or `/checklist/start` from saved snapshot |
+| [`numbers.ts`](../src/lib/numbers.ts) | `getNumber()`, `getBrackets()` — reads `numbers_2026.json` |
+| [`storage.ts`](../src/lib/storage.ts) | SSR-safe `localStorage` helpers (`readLocal`, `writeLocal`, `removeLocal`, `hasLocalKey`) |
+| [`exportChecklist.ts`](../src/lib/exportChecklist.ts) | `formatChecklistMarkdown()` — Markdown + PDF export |
+| [`taxScenarios.ts`](../src/lib/taxScenarios.ts) | Tax scenario computation |
+| [`grossIncome.ts`](../src/lib/grossIncome.ts) | Gross income aggregation |
+| [`generalDeductionEffective.ts`](../src/lib/generalDeductionEffective.ts) | Effective general deduction logic |
 
 ## `tests/`
 
@@ -44,7 +62,38 @@ Vitest tests: [`tests/*.test.ts`](../tests/), [`tests/*.test.tsx`](../tests/). S
 
 ## `public/`
 
-Static assets served as-is (favicon, icon sprite).
+Static assets served as-is. **All files are copied verbatim into `dist/client/` at build time.**
+
+| Path | Role |
+|------|------|
+| [`favicon.svg`](../public/favicon.svg) | SVG favicon |
+| [`icons.svg`](../public/icons.svg) | Icon sprite |
+| [`site.webmanifest`](../public/site.webmanifest) | PWA manifest (name, theme, 192/512 icons) |
+| [`robots.txt`](../public/robots.txt) | Allow all; Sitemap pointer. Preview isolation via `functions/_middleware.ts`. |
+| [`_headers`](../public/_headers) | Cloudflare Pages response headers: immutable cache for `/assets/*`, 30-day for images/SVG, security headers (HSTS, CSP, Permissions-Policy, X-Frame-Options) |
+| [`_redirects`](../public/_redirects) | Cloudflare Pages redirect rules (currently empty; top-level `404.html` handles unmatched routes) |
+| [`Hero.svg`](../public/Hero.svg) | LCP hero image — SVG with AVIF-encoded embedded raster (~80 KB after Phase E optimization) |
+| `introduction-image/` | UI screenshot assets. Three formats per image: `.avif` (preferred), `.webp`, `.png` (fallback). All resized to ≤1920px longest edge. Re-generate with `pnpm tsx scripts/optimize-intro-images.ts`. |
+
+`sitemap.xml` is **not** in `public/` — it is generated post-build by [`scripts/generate-sitemap.ts`](../scripts/generate-sitemap.ts) and written directly to `dist/client/sitemap.xml`. Similarly `404.html` is copied from `dist/client/404/index.html` by the same script.
+
+## `scripts/`
+
+Node scripts run via `tsx`; they are not part of the Vite build pipeline.
+
+| File | When to run | Purpose |
+|------|-------------|---------|
+| [`generate-sitemap.ts`](../scripts/generate-sitemap.ts) | Automatically after `pnpm build` | Writes `dist/client/sitemap.xml`; copies `dist/client/404/index.html` → `dist/client/404.html` (Cloudflare Pages custom 404) |
+| [`optimize-intro-images.ts`](../scripts/optimize-intro-images.ts) | Manually when screenshots change | Re-encodes `public/introduction-image/*.png` → AVIF/WebP/optimized PNG via `sharp`. Idempotent (mtime-based skip). Run `--force` to re-encode all. |
+| [`optimize-hero-svg.ts`](../scripts/optimize-hero-svg.ts) | Manually when `Hero.svg` changes | Re-encodes any embedded base64 PNG raster in `Hero.svg` to AVIF. Run after regenerating the SVG. |
+
+## `functions/`
+
+Cloudflare Pages Functions.
+
+| File | Role |
+|------|------|
+| [`functions/_middleware.ts`](../functions/_middleware.ts) | Global middleware: injects `X-Robots-Tag: noindex, nofollow` on `*.pages.dev` and non-`main` branch preview deployments. Leaves production untouched. |
 
 ## `.github/`
 
