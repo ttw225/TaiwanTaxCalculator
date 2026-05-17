@@ -73,7 +73,7 @@ jobs:
           mkdir -p pages-worktree/dev
           rm -rf pages-worktree/dev
           mkdir -p pages-worktree/dev
-          cp -R dist/. pages-worktree/dev/
+          cp -R dist/client/. pages-worktree/dev/
           touch pages-worktree/.nojekyll
           bash .github/scripts/render-pages-index.sh pages-worktree
           cd pages-worktree
@@ -142,7 +142,7 @@ jobs:
           mkdir -p "$preview_path"
           rm -rf "$preview_path"
           mkdir -p "$preview_path"
-          cp -R dist/. "$preview_path/"
+          cp -R dist/client/. "$preview_path/"
           touch pages-worktree/.nojekyll
           bash .github/scripts/render-pages-index.sh pages-worktree
           cd pages-worktree

@@ -12,7 +12,7 @@
 
 ## Technical posture
 
-- **Static SPA**: no backend in this repo; inputs and preferences stay in the browser (`localStorage` for situation selection). See [`README.md`](../README.md).
+- **Static site (prerendered HTML)**: React Router v7 builds fully static pages to `dist/client/`; no backend in this repo. Checklist inputs and preferences stay in the browser (`localStorage`). Indexable marketing/content routes (`/`, `/about`, `/methodology`, `/deductions/:slug`) ship with per-route SEO metadata. See [`README.md`](../README.md).
 
 ## Deployment surfaces
 

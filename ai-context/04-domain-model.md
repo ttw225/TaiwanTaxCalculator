@@ -36,7 +36,7 @@ export interface Situation {
 
 - Labels/descriptions are **zh-TW** in [`src/content/deductions.ts`](../src/content/deductions.ts).
 - There is **no** separate `single` situation; the checklist engine adds the single-filer standard deduction as a result-page baseline item whenever `married` is not selected ([`08-checklist-engine.md`](./08-checklist-engine.md)).
-- `savings_investment` is a hidden derived id. It remains in the TypeScript union and checklist item mapping, but is omitted from public `SITUATIONS` / `SITUATION_GROUPS`; `App.tsx` adds it when `interest_income` is selected.
+- `savings_investment` is a hidden derived id. It remains in the TypeScript union and checklist item mapping, but is omitted from public `SITUATIONS` / `SITUATION_GROUPS`; [`ChecklistFlow.tsx`](../src/pages/ChecklistFlow.tsx) adds it when `interest_income` is selected.
 
 ## Situation groups (UI grouping only)
 

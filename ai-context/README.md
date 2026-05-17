@@ -18,7 +18,7 @@ Machine- and human-oriented documentation for this repository. Read this folder 
 | [04-domain-model.md](./04-domain-model.md) | Shared TypeScript types |
 | [05-tax-numbers.md](./05-tax-numbers.md) | `numbers_2026.json`, `getNumber`, brackets |
 | [06-content-modules.md](./06-content-modules.md) | Situations, checklist items, inline fields |
-| [07-app-flow-and-state.md](./07-app-flow-and-state.md) | `App.tsx` state machine and effects |
+| [07-app-flow-and-state.md](./07-app-flow-and-state.md) | Checklist routes, `ChecklistFlow` state, and effects |
 | [08-checklist-engine.md](./08-checklist-engine.md) | Publication gate, situation filter, category grouping |
 | [10-ui-components.md](./10-ui-components.md) | React components and props |
 | [11-storage-and-persistence.md](./11-storage-and-persistence.md) | localStorage keys and sync |

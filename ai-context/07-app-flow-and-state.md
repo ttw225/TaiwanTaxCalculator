@@ -22,6 +22,13 @@ The checklist workflow uses URL routes for top-level screens. Do not reintroduce
 - `/checklist/start` `handleGenerate`: non-empty selection writes selection + generated flag, then navigates to `/checklist` with a route-state snapshot.
 - `/checklist`: direct refresh still prerenders a stable loading skeleton because build-time HTML cannot read `localStorage`; after client hydration, if no saved selection exists, it replace-navigates to `/checklist/start`.
 
+## Home page performance (`HomePage`)
+
+- [`HomePage.tsx`](../src/pages/HomePage.tsx) `links()` emits `<link rel="preload" as="image">` for the LCP hero (`HOME_HERO_IMAGE_SRC` from [`homeHeroImage.ts`](../src/lib/homeHeroImage.ts)).
+- `useEffect` calls `warmHomeHeroImage()` to decode the hero while React mounts (preload already started the fetch).
+- On idle (`requestIdleCallback`, or `setTimeout` fallback), dynamically imports `ChecklistStartPage` and `ChecklistFlow` chunks so **開始試算** feels instant. Failures are swallowed.
+- Hero warmup lives only on `HomePage` — not [`root.tsx`](../src/root.tsx) — so `/about` and `/deductions/*` do not download `Hero.svg`.
+
 ## Core state
 
 `ChecklistFlow` owns state shared by `/checklist/start` and `/checklist`.

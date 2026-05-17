@@ -6,7 +6,7 @@ This repository is the **public frontend** for a Taiwan individual income tax (ç
 
 - **Build**: React Router v7 (framework mode, static prerender), Vite 8, React 19, TypeScript (project references: `tsconfig.app.json`, `tsconfig.node.json`)
 - **UI**: Tailwind CSS v4 (`@tailwindcss/vite` in `vite.config.ts`), `src/index.css`
-- **Test**: Vitest + jsdom (`pnpm test`, config in `vite.config.ts`)
+- **Test**: Vitest + jsdom (`pnpm test`, config in `vitest.config.ts`)
 - **Lint**: ESLint flat config (`eslint.config.js`), TypeScript ESLint recommended
 
 ## Commands
