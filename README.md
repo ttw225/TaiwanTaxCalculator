@@ -6,15 +6,15 @@
 
 本網站為純前端應用：計算與輸入的內容僅在瀏覽器內處理，不會傳送至任何伺服器；偏好與表單狀態等僅儲存在您的瀏覽器本機。
 
-本 repo 以 Vite + React + TypeScript 建置，稅額與欄位以站內資料與內容模組為準；內容僅供參考，不構成專業稅務或法律建議。
+本 repo 以 React Router v7（靜態預渲染）+ Vite + React + TypeScript 建置，稅額與欄位以站內資料與內容模組為準；內容僅供參考，不構成專業稅務或法律建議。
 
 ## Tech stack
 
-Vite、React 19、TypeScript、Tailwind CSS、Vitest、ESLint（flat config）。
+React Router v7、Vite 8、React 19、TypeScript、Tailwind CSS、Vitest、ESLint（flat config）。
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/) **24+** (Vite 8; see `engines` in [`package.json`](./package.json))
+- [Node.js](https://nodejs.org/) **24+** (see `engines` in [`package.json`](./package.json))
 - [pnpm](https://pnpm.io/) **11+** (see `engines` and `packageManager` in [`package.json`](./package.json))
 
 ### 基本安裝流程（nvm → Node → pnpm）

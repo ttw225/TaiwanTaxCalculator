@@ -9,12 +9,12 @@
 
 | Layer | Choice | Config / entry |
 |-------|--------|----------------|
-| Build | **Vite 8** | [`vite.config.ts`](../vite.config.ts) |
-| UI | **React 19** | [`src/main.tsx`](../src/main.tsx), [`src/App.tsx`](../src/App.tsx) |
+| Build | **React Router v7** (framework mode) + **Vite 8** | [`vite.config.ts`](../vite.config.ts), [`react-router.config.ts`](../react-router.config.ts) |
+| UI | **React 19** | [`src/root.tsx`](../src/root.tsx), [`src/routes.ts`](../src/routes.ts) |
 | Language | **TypeScript ~6** (strict) | [`tsconfig.app.json`](../tsconfig.app.json) |
 | CSS | **Tailwind CSS v4** via `@tailwindcss/vite` | [`vite.config.ts`](../vite.config.ts), [`src/index.css`](../src/index.css) |
 | Icons | **lucide-react** | Components as needed |
-| Test | **Vitest 4** + **jsdom** | [`vite.config.ts`](../vite.config.ts) `test` block |
+| Test | **Vitest 4** + **jsdom** | [`vitest.config.ts`](../vitest.config.ts) |
 | Lint | **ESLint 10** flat config, TS + React Hooks + React Refresh | [`eslint.config.js`](../eslint.config.js) |
 
 ## TypeScript compiler highlights (`tsconfig.app.json`)
@@ -27,19 +27,20 @@
 
 | Script | Command |
 |--------|---------|
-| `pnpm dev` | Vite dev server (default port **5173**) |
-| `pnpm build` | `tsc -b && vite build` |
+| `pnpm dev` | React Router dev server (default port **5173**) |
+| `pnpm build` | `react-router build && tsx scripts/generate-sitemap.ts` |
 | `pnpm typecheck` | `tsc --noEmit -p tsconfig.app.json` |
-| `pnpm test` | `vitest run` |
-| `pnpm test:watch` | `vitest` |
+| `pnpm test` | `vitest run -c vitest.config.ts` |
+| `pnpm test:watch` | `vitest -c vitest.config.ts` |
 | `pnpm lint` | `eslint .` |
-| `pnpm preview` | `vite preview` |
+| `pnpm preview` | `vite preview --outDir dist/client` |
 
-## Vite specifics
+## Framework and build specifics
 
 - **`base`**: `process.env.VITE_BASE_PATH ?? '/'` — required for GitHub Pages subpath deploys ([`14-ci-and-deploy.md`](./14-ci-and-deploy.md)).
-- Plugins: `@vitejs/plugin-react`, `@tailwindcss/vite`.
-- Vitest shares config via `defineConfig` from `vitest/config`.
+- `vite.config.ts` plugins: `reactRouter()` (`@react-router/dev/vite`) + `tailwindcss()`. **Not** `@vitejs/plugin-react` — the framework plugin handles React transformation for production builds.
+- `vitest.config.ts` uses a separate standalone `react()` plugin (`@vitejs/plugin-react`) — Vitest does not go through the React Router framework plugin.
+- `react-router.config.ts`: `ssr: false`, `prerender` list — builds fully static HTML to `dist/client/` at build time. No runtime server required.
 
 ## Makefile
 
