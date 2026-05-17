@@ -38,7 +38,7 @@ import { FormulaRow } from './checklist/FormulaRow'
 import { StandardItemizedPanel } from './checklist/StandardItemizedPanel'
 import { DeductionCard } from './DeductionCard'
 import { IncomeCard } from './IncomeCard'
-import { TaxSummaryPanel } from './TaxSummaryPanel'
+import { PrintScenarioCombinations, TaxSummaryPanel } from './TaxSummaryPanel'
 import { PageHeading } from './ui/PageHeading'
 import { Card, CardBody } from './ui/Card'
 import { ModalOverlay } from './ui/ModalOverlay'
@@ -693,7 +693,10 @@ export function ChecklistResult({
   }
 
   function handlePrint() {
+    const closedDetails = Array.from(document.querySelectorAll<HTMLDetailsElement>('details')).filter((d) => !d.open)
+    closedDetails.forEach((d) => { d.open = true })
     window.print()
+    closedDetails.forEach((d) => { d.open = false })
   }
 
   const isMarriedFiling = selectedSituations.includes('married')
@@ -1075,14 +1078,14 @@ export function ChecklistResult({
 
       <div
         ref={stickyHeadingRef}
-        className="no-print sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1 backdrop-blur"
+        className="checklist-page-header sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1 backdrop-blur"
       >
         <PageHeading
           title="節稅試算清單"
           description={`根據您選擇的 ${totalSelected} 項情況，找到 ${totalItems} 個值得確認的項目。`}
           className="[&_p]:mb-3 [&_p]:text-sm sm:[&_p]:text-base [&_.no-print]:mt-2"
           actions={(
-            <div className="flex items-center gap-3">
+            <div className="no-print flex items-center gap-3">
               <button
                 type="button"
                 onClick={handleResetClick}
@@ -1276,7 +1279,7 @@ export function ChecklistResult({
             ))}
           </div>
 
-          <Card className="mt-8 bg-gray-50">
+          <Card className="mt-8 bg-gray-50 checklist-reminder-card">
             <CardBody className="p-4">
               <p className="text-sm leading-relaxed text-gray-500">
                 <strong className="text-gray-700">使用提醒：</strong>
@@ -1287,7 +1290,7 @@ export function ChecklistResult({
             </CardBody>
           </Card>
 
-          <div className="print-only mt-8">
+          <div className="print-only print-tax-summary-stack mt-8">
             <TaxSummaryPanel
               grossIncome={grossIncomeAmount}
               overseasIncomeAmount={overseasIncomeAmount}
@@ -1302,6 +1305,9 @@ export function ChecklistResult({
               hasSpecialDeductions={hasSpecialDeductions}
               printMode
             />
+            {taxScenarioResult && taxScenarioResult.scenarios.length > 0 && (
+              <PrintScenarioCombinations scenarioResult={taxScenarioResult} />
+            )}
           </div>
         </div>
 

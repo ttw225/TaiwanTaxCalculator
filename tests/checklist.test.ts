@@ -14,8 +14,11 @@ import {
   serializeIncomeAmounts,
   serializeIncomeParticipants,
 } from '../src/lib/grossIncome'
+import { calcTaxScenarios } from '../src/lib/taxScenarios'
 import { ChecklistResult } from '../src/components/ChecklistResult'
 import { DeductionCard } from '../src/components/DeductionCard'
+import { SiteFooter } from '../src/components/SiteFooter'
+import { PrintScenarioCombinations } from '../src/components/TaxSummaryPanel'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS, WEALTH_CLAUSE_NOTICE } from '../src/lib/checklistCardCopy'
 import { ITEM_INLINE_FIELDS } from '../src/content/inlineFields'
 import type { CardInlineField, CardInputMap, ChecklistItem } from '../src/types/content'
@@ -912,7 +915,54 @@ describe('ChecklistResult export panel', () => {
   it('rendered markup includes print stylesheet hook classes', () => {
     expect(htmlWithResults).toContain('print-container')
     expect(htmlWithResults).toContain('print-card')
+    expect(htmlWithResults).toContain('print-tax-summary-stack')
+    expect(htmlWithResults).toContain('print-tax-summary-cards')
     expect(htmlWithResults).toContain('no-print')
+  })
+
+  it('footer marks the four main sections as print atomic blocks', () => {
+    const footerHtml = renderToStaticMarkup(createElement(SiteFooter))
+    const sectionHooks = footerHtml.match(/print-footer-section/g) ?? []
+
+    expect(footerHtml).toContain('site-footer')
+    expect(footerHtml).toContain('print-footer-content')
+    expect(sectionHooks).toHaveLength(4)
+    expect(footerHtml).toContain('關於本站')
+    expect(footerHtml).toContain('申報提醒')
+    expect(footerHtml).toContain('支持我們')
+    expect(footerHtml).toContain('意見回報')
+  })
+
+  it('print scenario combinations keeps its print hook classes', () => {
+    const scenarioResult = calcTaxScenarios({
+      isMarried: false,
+      persons: [
+        {
+          id: 'self',
+          label: '本人',
+          salaryNetIncome: 300_000,
+          dividendIncome: 500_000,
+          interestIncome: 0,
+          otherIncome: 0,
+        },
+      ],
+      exemptionAmount: 97_000,
+      selfExemptionAmount: 97_000,
+      spouseExemptionAmount: 0,
+      householdMemberCount: 1,
+      generalDeductionAmount: 131_000,
+      specialDeductionAmount: 0,
+      savingsInvestmentDeductionAmount: 0,
+      overseasIncome: 0,
+      overseasTaxPaid: 0,
+    })
+    const scenarioHtml = renderToStaticMarkup(
+      createElement(PrintScenarioCombinations, { scenarioResult }),
+    )
+
+    expect(scenarioHtml).toContain('print-scenarios-card')
+    expect(scenarioHtml).toContain('print-scenario-divider')
+    expect(scenarioHtml).toContain('所有稅額組合')
   })
 })
 

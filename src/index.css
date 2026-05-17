@@ -59,13 +59,21 @@ input.no-spin[type="number"] {
 @media print {
   @page {
     size: A4;
-    margin: 14mm;
+    margin: 14mm 14mm 26mm;
   }
 
   html,
   body {
     background: #fff !important;
-    color: #111827 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  *,
+  *::before,
+  *::after {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   .no-print {
@@ -91,11 +99,31 @@ input.no-spin[type="number"] {
     margin: 0 !important;
   }
 
+  .print-tax-summary-cards > .print-summary-card + .print-summary-card,
+  .print-tax-summary-cards + .print-scenarios-card,
+  .print-tax-summary-stack > .print-scenarios-card {
+    margin-top: 1rem !important;
+  }
+
   section,
   .print-card,
   .print-summary-card {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* Large scenario combinations card may exceed one page; allow internal
+     breaks so the first (recommended) scenario can continue from where the
+     preceding content ends rather than being pushed to a new page. */
+  .print-scenarios-card,
+  .print-scenarios-card section {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .print-scenarios-card .print-scenario-divider {
+    margin-top: 0.5rem !important;
+    margin-bottom: 1rem !important;
   }
 
   details > summary {
@@ -106,8 +134,121 @@ input.no-spin[type="number"] {
     display: block;
   }
 
-  a {
-    color: inherit !important;
-    text-decoration: none !important;
+  /* Strip page-level gray chrome; keep card/badge/radio backgrounds intact */
+  .min-h-screen {
+    background: #fff !important;
+    display: block !important;
+    min-height: auto !important;
+  }
+
+  main {
+    display: block !important;
+    flex: none !important;
+  }
+
+  /* Neutralize the 使用提醒 reminder card's gray fill in PDF */
+  .checklist-reminder-card {
+    background: #fff !important;
+  }
+
+  /* SiteFooter in print: start on a fresh page. The footer is site metadata,
+     not part of the calculated result, and keeping it separate prevents Chrome's
+     generated URL/page-number footer from clipping the final copyright line. */
+  footer.site-footer {
+    border-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  footer.site-footer > .print-footer-content {
+    border-top: 1px solid #e5e7eb !important;
+    break-before: page !important;
+    page-break-before: always !important;
+    padding-top: 1.25rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  /* Collapse the 2-col grid to plain block flow in print. Block layout is
+     used (not flex) because Chrome's break-inside: avoid is unreliable on
+     flex items — block flow respects it consistently so each section can
+     reflow to the next page intact if it doesn't fit. */
+  footer .grid {
+    display: block !important;
+  }
+  footer .grid > div + div {
+    margin-top: 0.75rem !important;
+  }
+  /* Spacing between the main content and the bottom copyright bar — keep
+     enough room so feedback links don't overlap the border-t separator,
+     and add visual breathing room before the closing separator line. */
+  footer .mb-8 {
+    margin-bottom: 3.5rem !important;
+  }
+  footer .border-t {
+    margin-top: 0 !important;
+    padding-top: 1.25rem !important;
+  }
+  /* Inter-section spacing inside each column (e.g. 支持我們 → 意見回報).
+     Tailwind v4 applies margin-block-end to :not(:last-child) for space-y-*,
+     so override that — not margin-top on the next sibling. */
+  footer .space-y-6 > *:not(:last-child) {
+    margin-block-end: 0.5rem !important;
+  }
+  footer .space-y-6 > * + * {
+    margin-top: 0 !important;
+  }
+  footer .pt-2 {
+    padding-top: 0 !important;
+  }
+  /* Keep each section block atomic — each of the four sections (關於本站,
+     申報提醒, 支持我們, 意見回報) reflows whole to the next page if it
+     doesn't fit, instead of being split mid-paragraph. */
+  footer .print-footer-section,
+  footer .print-footer-section > p,
+  footer .print-footer-section > div,
+  footer .border-t {
+    break-inside: avoid-page !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  footer .print-footer-section {
+    display: table !important;
+    width: 100% !important;
+  }
+  footer .print-footer-section > p {
+    display: block !important;
+    orphans: 3;
+    widows: 3;
+  }
+  /* Discourage splitting right after a heading. */
+  footer h3 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* SiteHeader is sticky on screen; in print, force static so it renders
+     once at the top of the document regardless of screen scroll position.
+     Also strip the gray background, stretch its inner container to full
+     width, and add a bottom separator before the page content. */
+  .site-header {
+    position: static !important;
+    top: auto !important;
+    z-index: auto !important;
+    width: 100% !important;
+    background: transparent !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    margin-bottom: 2rem !important;
+  }
+  .site-header > div {
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .checklist-page-header {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 }

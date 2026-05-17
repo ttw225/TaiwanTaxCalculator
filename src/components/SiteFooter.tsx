@@ -10,8 +10,8 @@ export function SiteFooter() {
   const deployInfo = getDeployInfo()
 
   return (
-    <footer className="mt-16 border-t border-gray-200 bg-white">
-      <div className="max-w-5xl mx-auto px-4 py-10">
+    <footer className="site-footer mt-16 border-t border-gray-200 bg-white">
+      <div className="print-footer-content max-w-5xl mx-auto px-4 py-10">
 
         {/* Main 2-col grid (Task 4.1) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -20,7 +20,7 @@ export function SiteFooter() {
           <div className="space-y-6">
 
             {/* About — Task 4.2 + 4.8 */}
-            <div>
+            <div className="print-footer-section">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">關於本站</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
                 台灣節稅資訊平台是自發整理的綜合所得稅參考工具，開源、完全免費、無商業贊助。
@@ -34,7 +34,7 @@ export function SiteFooter() {
             </div>
 
             {/* Disclaimer — Task 4.3 */}
-            <div className="pt-2">
+            <div className="print-footer-section pt-2">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">申報提醒</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
                 本網站內容供申報前整理與試算參考，
@@ -62,7 +62,7 @@ export function SiteFooter() {
           <div className="space-y-6">
 
             {/* Support / Buy me a coffee — Task 4.5 */}
-            <div>
+            <div className="print-footer-section">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">支持我們</h3>
               <p className="text-sm text-gray-600 mb-2">
                 如果這個工具對您有幫助，歡迎請我們喝杯咖啡 ☕
@@ -87,7 +87,7 @@ export function SiteFooter() {
             </div>
 
             {/* Feedback */}
-            <div className="pt-2">
+            <div className="print-footer-section pt-2">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">意見回報</h3>
               <p className="text-sm text-gray-600 mb-3">
                 發現資料有誤、連結失效，或有功能建議，歡迎透過以下方式告訴我們。
