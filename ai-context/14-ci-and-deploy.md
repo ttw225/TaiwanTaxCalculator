@@ -35,7 +35,7 @@ Post-build, [`scripts/generate-sitemap.ts`](../scripts/generate-sitemap.ts) writ
 Key rules:
 - `/assets/*` — `max-age=31536000, immutable` (Vite content-hashed bundles)
 - `/introduction-image/*` — 30-day cache + `stale-while-revalidate`
-- `/Hero.svg` — 30-day cache
+- `/Hero.*` — 30-day cache for homepage hero variants
 - `/*` — HSTS, CSP, `X-Content-Type-Options`, `X-Frame-Options`, `Permissions-Policy`, `Referrer-Policy`
 - CSP uses `script-src 'self' 'unsafe-inline'` — required because React Router v7 prerender emits per-page inline boot scripts (`__reactRouterContext`, Suspense reveal). There is no user-input injection and no third-party JS, so XSS surface is zero.
 

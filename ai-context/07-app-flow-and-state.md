@@ -24,10 +24,10 @@ The checklist workflow uses URL routes for top-level screens. Do not reintroduce
 
 ## Home page performance (`HomePage`)
 
-- [`HomePage.tsx`](../src/pages/HomePage.tsx) `links()` emits `<link rel="preload" as="image">` for the LCP hero (`HOME_HERO_IMAGE_SRC` from [`homeHeroImage.ts`](../src/lib/homeHeroImage.ts)).
+- [`HomePage.tsx`](../src/pages/HomePage.tsx) `links()` emits `<link rel="preload" as="image" type="image/webp">` for the LCP hero (`HOME_HERO_IMAGE_PRELOAD_SRC` from [`homeHeroImage.ts`](../src/lib/homeHeroImage.ts)).
 - `useEffect` calls `warmHomeHeroImage()` to decode the hero while React mounts (preload already started the fetch).
 - On idle (`requestIdleCallback`, or `setTimeout` fallback), dynamically imports `ChecklistStartPage` and `ChecklistFlow` chunks so **開始試算** feels instant. Failures are swallowed.
-- Hero warmup lives only on `HomePage` — not [`root.tsx`](../src/root.tsx) — so `/about` and `/deductions/*` do not download `Hero.svg`.
+- Hero warmup lives only on `HomePage` — not [`root.tsx`](../src/root.tsx) — so `/about` and `/deductions/*` do not download the LCP hero image.
 
 ## Core state
 

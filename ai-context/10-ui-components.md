@@ -21,7 +21,7 @@ interface Props { onStart: () => void }
 ```
 
 - Marketing walkthrough with step screenshots. Images use [`introImages.ts`](../src/lib/introImages.ts) + `<picture>` with **AVIF → WebP → PNG** sources and intrinsic `width`/`height` to limit CLS.
-- Hero uses [`HOME_HERO_IMAGE_SRC`](../src/lib/homeHeroImage.ts) with `fetchPriority="high"` and `loading="eager"`.
+- Hero uses [`homeHeroImage.ts`](../src/lib/homeHeroImage.ts) constants in a WebP-first `<picture>` with `fetchPriority="high"` and `loading="eager"`. Do not point the homepage hero back to `Hero.svg`; Safari can render its embedded AVIF black after client navigation.
 
 ## `ModalOverlay.tsx` / `useModalDismiss.ts` (`src/components/ui/`)
 
