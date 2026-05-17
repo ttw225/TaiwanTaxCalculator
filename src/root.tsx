@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import { Outlet, Scripts, ScrollRestoration, Meta, Links, isRouteErrorResponse, useRouteError } from 'react-router'
 import { SITE_CONFIG } from './lib/siteConfig'
+import { createPublicAssetUrl } from './lib/publicAsset'
 import './index.css'
 
 const SITE_URL = SITE_CONFIG.siteUrl
@@ -59,9 +60,9 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
         <meta name="twitter:image:alt" content={`${SITE_NAME} — ${TAX_YEAR} 年度節稅清單`} />
         {/* Favicon / manifest */}
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" type="image/svg+xml" href={createPublicAssetUrl('favicon.svg')} />
+        <link rel="apple-touch-icon" href={createPublicAssetUrl('apple-touch-icon.png')} />
+        <link rel="manifest" href={createPublicAssetUrl('site.webmanifest')} />
         {/* Per-route Meta + Links append here */}
         <Meta />
         <Links />

@@ -1,11 +1,15 @@
 import type { Config } from '@react-router/dev/config'
 
+const basePath = process.env.VITE_BASE_PATH ?? '/'
+const basename = basePath === '/' ? '/' : basePath.replace(/\/$/, '')
+
 // Build-time prerender of every route to static HTML. No runtime SSR.
 // Output goes to dist/client/ (Cloudflare Pages reads
 // pages_build_output_dir = "dist/client", see wrangler.toml).
 export default {
   appDirectory: 'src',
   buildDirectory: 'dist',
+  basename,
   ssr: false,
   prerender: async () => {
     // Lazy-import content so this config stays light at startup.
