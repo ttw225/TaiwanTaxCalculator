@@ -1,5 +1,11 @@
 import { getNumber } from '../lib/numbers'
-import { HOME_HERO_IMAGE_HEIGHT, HOME_HERO_IMAGE_SRC, HOME_HERO_IMAGE_WIDTH } from '../lib/homeHeroImage'
+import {
+  HOME_HERO_IMAGE_HEIGHT,
+  HOME_HERO_IMAGE_AVIF_SRC,
+  HOME_HERO_IMAGE_SRC,
+  HOME_HERO_IMAGE_WEBP_SRC,
+  HOME_HERO_IMAGE_WIDTH,
+} from '../lib/homeHeroImage'
 import { getIntroImage } from '../lib/introImages'
 
 interface Props {
@@ -185,16 +191,20 @@ export function IntroPage({ onStart }: Props) {
               <span className="text-sm text-gray-700 tabular-nums">年所得若低於 NT$ {fmt(threshold)} 免報稅</span>
             </div>
             <div className="mt-7 sm:mt-8">
-              <img
-                src={HOME_HERO_IMAGE_SRC}
-                alt="報稅流程示意圖"
-                width={HOME_HERO_IMAGE_WIDTH}
-                height={HOME_HERO_IMAGE_HEIGHT}
-                className="w-full h-auto object-contain"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-              />
+              <picture>
+                <source type="image/webp" srcSet={HOME_HERO_IMAGE_WEBP_SRC} />
+                <source type="image/avif" srcSet={HOME_HERO_IMAGE_AVIF_SRC} />
+                <img
+                  src={HOME_HERO_IMAGE_SRC}
+                  alt="報稅流程示意圖"
+                  width={HOME_HERO_IMAGE_WIDTH}
+                  height={HOME_HERO_IMAGE_HEIGHT}
+                  className="w-full h-auto object-contain"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                />
+              </picture>
             </div>
           </div>
 

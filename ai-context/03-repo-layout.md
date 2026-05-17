@@ -42,7 +42,7 @@ Paths are relative to repo root unless noted.
 | File | Role |
 |------|------|
 | [`siteConfig.ts`](../src/lib/siteConfig.ts) | Site name, URL, tax year, OG image, official links — single source of truth for all SEO/meta values |
-| [`homeHeroImage.ts`](../src/lib/homeHeroImage.ts) | LCP hero: `HOME_HERO_IMAGE_SRC`, stable dimensions, `warmHomeHeroImage()` singleton warmup |
+| [`homeHeroImage.ts`](../src/lib/homeHeroImage.ts) | LCP hero: WebP/PNG URLs, stable dimensions, `warmHomeHeroImage()` singleton warmup |
 | [`introImages.ts`](../src/lib/introImages.ts) | Maps intro-image basenames → AVIF/WebP/PNG URLs + intrinsic `{width, height}` for CLS prevention |
 | [`checklistSnapshot.ts`](../src/lib/checklistSnapshot.ts) | Load/save/serialize checklist state; navigation-state key for `/` → `/checklist` transition |
 | [`checklistEntryPath.ts`](../src/lib/checklistEntryPath.ts) | Thin helper: returns `/checklist` or `/checklist/start` from saved snapshot |
@@ -69,9 +69,10 @@ Static assets served as-is. **All files are copied verbatim into `dist/client/` 
 | [`favicon.svg`](../public/favicon.svg) | SVG favicon |
 | [`icons.svg`](../public/icons.svg) | Icon sprite |
 | [`robots.txt`](../public/robots.txt) | Allow all; Sitemap pointer. Preview isolation via `functions/_middleware.ts`. |
-| [`_headers`](../public/_headers) | Cloudflare Pages response headers: immutable cache for `/assets/*`, image/SVG cache rules, security headers (HSTS, CSP, Permissions-Policy, X-Frame-Options) |
+| [`_headers`](../public/_headers) | Cloudflare Pages response headers: immutable cache for `/assets/*`, image cache rules, security headers (HSTS, CSP, Permissions-Policy, X-Frame-Options) |
 | [`_redirects`](../public/_redirects) | Cloudflare Pages redirect rules (currently empty; top-level `404.html` handles unmatched routes) |
-| [`Hero.svg`](../public/Hero.svg) | LCP hero image — SVG with AVIF-encoded embedded raster (~80 KB after Phase E optimization) |
+| [`Hero.webp`](../public/Hero.webp), [`Hero.avif`](../public/Hero.avif), [`Hero.png`](../public/Hero.png) | LCP hero image variants. WebP is listed first and used for preload; AVIF is secondary; PNG is the fallback. |
+| [`Hero.svg`](../public/Hero.svg) | Legacy/source hero image. Do not use it directly for the homepage LCP image; Safari can render the embedded AVIF black after client navigation. |
 | `introduction-image/` | UI screenshot assets. Three formats per image: `.avif` (preferred), `.webp`, `.png` (fallback). All resized to ≤1920px longest edge. Re-generate with `pnpm tsx scripts/optimize-intro-images.ts`. |
 
 No PWA manifest, Apple touch icon, 192/512 app icons, or OG cover image are emitted until those image assets exist in `public/`.
@@ -86,7 +87,7 @@ Node scripts run via `tsx`; they are not part of the Vite build pipeline.
 |------|-------------|---------|
 | [`generate-sitemap.ts`](../scripts/generate-sitemap.ts) | Automatically after `pnpm build` | Writes `dist/client/sitemap.xml`; copies `dist/client/404/index.html` → `dist/client/404.html` (Cloudflare Pages custom 404) |
 | [`optimize-intro-images.ts`](../scripts/optimize-intro-images.ts) | Manually when screenshots change | Re-encodes `public/introduction-image/*.png` → AVIF/WebP/optimized PNG via `sharp`. Idempotent (mtime-based skip). Run `--force` to re-encode all. |
-| [`optimize-hero-svg.ts`](../scripts/optimize-hero-svg.ts) | Manually when `Hero.svg` changes | Re-encodes any embedded base64 PNG raster in `Hero.svg` to AVIF. Run after regenerating the SVG. |
+| [`optimize-hero-svg.ts`](../scripts/optimize-hero-svg.ts) | Legacy/manual when `Hero.svg` changes | Re-encodes any embedded base64 PNG raster in `Hero.svg` to AVIF. The homepage should still consume raster variants, not the SVG directly. |
 
 ## `functions/`
 
