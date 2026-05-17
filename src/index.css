@@ -86,7 +86,9 @@ input.no-spin[type="number"] {
 
   .print-container {
     max-width: none !important;
-    padding: 0 !important;
+    /* Keep a 2px right inset so card borders don't sit exactly on the
+       @page edge — Safari's print raster clips that 1px border otherwise. */
+    padding: 0 2px 0 0 !important;
   }
 
   .print-main-layout {
@@ -95,7 +97,7 @@ input.no-spin[type="number"] {
 
   .print-summary-card {
     width: 100% !important;
-    max-width: none !important;
+    max-width: 100% !important;
     margin: 0 !important;
   }
 
@@ -110,6 +112,13 @@ input.no-spin[type="number"] {
   .print-summary-card {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* Drop card shadows in print — they carry no meaning on paper. */
+  .print-card,
+  .print-summary-card,
+  .print-scenarios-card {
+    box-shadow: none !important;
   }
 
   /* Large scenario combinations card may exceed one page; allow internal
