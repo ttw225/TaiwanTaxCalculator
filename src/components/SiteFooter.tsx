@@ -73,7 +73,7 @@ export function SiteFooter() {
                     href={googleFormUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-full px-3 py-1 hover:bg-teal-100 hover:text-teal-800 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-800 transition-colors"
                   >
                     <ClipboardList size={13} />
                     填寫意見表單
@@ -124,14 +124,14 @@ export function SiteFooter() {
                   href={buyMeCoffeeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-800 transition-colors"
                 >
                   Buy me a coffee <ExternalLink size={13} />
                 </a>
               ) : (
                 <span
                   aria-disabled="true"
-                  className="inline-flex items-center gap-1.5 text-sm text-gray-300 cursor-not-allowed select-none"
+                  className="inline-flex items-center gap-1.5 text-sm text-gray-300 border border-gray-100 rounded-full px-3 py-1 cursor-not-allowed select-none"
                 >
                   Buy me a coffee <ExternalLink size={13} />
                 </span>
