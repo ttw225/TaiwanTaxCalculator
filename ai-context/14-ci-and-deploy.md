@@ -96,7 +96,8 @@ Run these once after the production domain serves real content:
 
 - **Permissions**: `contents: write`, `pull-requests: write`.
 - **Concurrency**: group `github-pages-previews`, `cancel-in-progress: false`.
-- Builds with `VITE_BASE_PATH` injected so assets resolve correctly under the GitHub Pages subpath.
+- Builds with `VITE_BASE_PATH` injected so assets and React Router client navigation resolve correctly under the GitHub Pages subpath.
+- `react-router.config.ts` derives `basename` from `VITE_BASE_PATH`. Because React Router prerenders HTML under that basename path, `scripts/generate-sitemap.ts` flattens the basename output back into `dist/client/` before the workflow copies it into `gh-pages`.
 
 #### Job `deploy-dev`
 

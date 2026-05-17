@@ -1,12 +1,11 @@
 import { type ReactNode } from 'react'
 import { Outlet, Scripts, ScrollRestoration, Meta, Links, isRouteErrorResponse, useRouteError } from 'react-router'
 import { SITE_CONFIG } from './lib/siteConfig'
+import { createPublicAssetUrl } from './lib/publicAsset'
 import './index.css'
 
 const SITE_URL = SITE_CONFIG.siteUrl
-const DEFAULT_OG_IMAGE = SITE_CONFIG.defaultOgImage
 const SITE_NAME = SITE_CONFIG.name
-const TAX_YEAR = SITE_CONFIG.taxYear
 
 // Site-wide JSON-LD (Organization + WebSite). Injected statically into every
 // prerendered HTML; per-route JSON-LD (Article / WebApplication / Breadcrumb)
@@ -20,7 +19,6 @@ const SITE_JSON_LD = {
       name: SITE_NAME,
       alternateName: SITE_CONFIG.nameEn,
       url: `${SITE_URL}/`,
-      logo: `${SITE_URL}/icon-512.png`,
     },
     {
       '@type': 'WebSite',
@@ -50,18 +48,8 @@ export function Layout({ children }: { children: ReactNode }) {
         {/* OG globals (route may override og:url / og:title / og:description / og:type) */}
         <meta property="og:site_name" content={SITE_NAME} />
         <meta property="og:locale" content="zh_TW" />
-        <meta property="og:image" content={DEFAULT_OG_IMAGE} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={`${SITE_NAME} — ${TAX_YEAR} 年度節稅清單`} />
-        {/* Twitter globals */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
-        <meta name="twitter:image:alt" content={`${SITE_NAME} — ${TAX_YEAR} 年度節稅清單`} />
-        {/* Favicon / manifest */}
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
+        {/* Favicon */}
+        <link rel="icon" type="image/svg+xml" href={createPublicAssetUrl('favicon.svg')} />
         {/* Per-route Meta + Links append here */}
         <Meta />
         <Links />

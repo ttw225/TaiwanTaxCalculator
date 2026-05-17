@@ -68,12 +68,13 @@ Static assets served as-is. **All files are copied verbatim into `dist/client/` 
 |------|------|
 | [`favicon.svg`](../public/favicon.svg) | SVG favicon |
 | [`icons.svg`](../public/icons.svg) | Icon sprite |
-| [`site.webmanifest`](../public/site.webmanifest) | PWA manifest (name, theme, 192/512 icons) |
 | [`robots.txt`](../public/robots.txt) | Allow all; Sitemap pointer. Preview isolation via `functions/_middleware.ts`. |
-| [`_headers`](../public/_headers) | Cloudflare Pages response headers: immutable cache for `/assets/*`, 30-day for images/SVG, security headers (HSTS, CSP, Permissions-Policy, X-Frame-Options) |
+| [`_headers`](../public/_headers) | Cloudflare Pages response headers: immutable cache for `/assets/*`, image/SVG cache rules, security headers (HSTS, CSP, Permissions-Policy, X-Frame-Options) |
 | [`_redirects`](../public/_redirects) | Cloudflare Pages redirect rules (currently empty; top-level `404.html` handles unmatched routes) |
 | [`Hero.svg`](../public/Hero.svg) | LCP hero image — SVG with AVIF-encoded embedded raster (~80 KB after Phase E optimization) |
 | `introduction-image/` | UI screenshot assets. Three formats per image: `.avif` (preferred), `.webp`, `.png` (fallback). All resized to ≤1920px longest edge. Re-generate with `pnpm tsx scripts/optimize-intro-images.ts`. |
+
+No PWA manifest, Apple touch icon, 192/512 app icons, or OG cover image are emitted until those image assets exist in `public/`.
 
 `sitemap.xml` is **not** in `public/` — it is generated post-build by [`scripts/generate-sitemap.ts`](../scripts/generate-sitemap.ts) and written directly to `dist/client/sitemap.xml`. Similarly `404.html` is copied from `dist/client/404/index.html` by the same script.
 
