@@ -2,7 +2,7 @@
 
 ## Runner configuration
 
-- **Vitest** embedded in Vite: [`vite.config.ts`](../vite.config.ts) — `environment: 'jsdom'`, `include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx']`.
+- **Vitest** standalone config: [`vitest.config.ts`](../vitest.config.ts) — `environment: 'jsdom'`, `include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx']`, `setupFiles: ['tests/setup.ts']`. Uses `@vitejs/plugin-react` (not the React Router framework plugin).
 - Tests **import** APIs from `'vitest'` (`describe`, `it`, `expect`, `vi`, etc.) — not Vitest `globals` mode.
 
 ## Test inventory
@@ -14,8 +14,9 @@
 | [`tests/generalDeductionEffective.test.ts`](../tests/generalDeductionEffective.test.ts) | `resolveGeneralDeduction` + `getItemizedItemAmount` (includes itemized calc context: donation cap vs gross income, mortgage vs savings-investment dependency) |
 | [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown` (unit cases), `DeductionCard` (including exemption native radios) |
 | [`tests/exportChecklistFixtures.test.ts`](../tests/exportChecklistFixtures.test.ts) | `formatChecklistMarkdown` end-to-end via [`tests/fixtures/exportChecklist/`](../tests/fixtures/exportChecklist/) — **full** (married + dividend + overseas + AMT), **single**, **partial** (待填寫) |
-| [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, App clear integration |
-| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: intro vs selecting when selection exists but not generated, add modal, scroll target, selection-driven add/remove, non-removable cards, remove dialog copy (`移除 {itemTitle}` title, `已填寫的資料將一併清除。`, last-card `因為這是最後一張項目，回到選擇頁時也會清除：免稅額。` when exemption had input), **last removable card** removes without dialog when target and exemption are empty, full reset after last removable card (selection + inputs + view state), tax summary dialogs (formula / rules / combinations), **試算規則** copy (五種計稅方式 list, 28% 分開計稅 prose, AMT threshold lines, 推薦 disclaimer, eTax `tax-saving-manual` footer link — not scenario formula dump), recommendation prefix only when multiple scenarios, AMT copy gated on overseas income, legacy key removal |
+| [`tests/home-hero-image.test.tsx`](../tests/home-hero-image.test.tsx) | Hero LCP: `IntroPage` image attrs, `HomePage` `links()` preload, `warmHomeHeroImage()` singleton |
+| [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, `ChecklistFlow` clear integration |
+| [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | Route page flows (`MemoryRouter`): home vs `/checklist/start` when selection exists but not generated, add modal, scroll target, selection-driven add/remove, non-removable cards, remove dialog copy (`移除 {itemTitle}` title, `已填寫的資料將一併清除。`, last-card `因為這是最後一張項目，回到選擇頁時也會清除：免稅額。` when exemption had input), **last removable card** removes without dialog when target and exemption are empty, full reset after last removable card (selection + inputs + view state), tax summary dialogs (formula / rules / combinations), **試算規則** copy (五種計稅方式 list, 28% 分開計稅 prose, AMT threshold lines, 推薦 disclaimer, eTax `tax-saving-manual` footer link — not scenario formula dump), recommendation prefix only when multiple scenarios, AMT copy gated on overseas income, legacy key removal |
 | [`tests/taxScenarios.test.ts`](../tests/taxScenarios.test.ts) | [`taxScenarios.ts`](../src/lib/taxScenarios.ts): `calcTaxScenarios`, `hasOverseasIncome` / `hasAmt`, AMT formula lines vs zero overseas income, official couple goldens |
 | [`tests/back-to-top-button.test.tsx`](../tests/back-to-top-button.test.tsx) | `BackToTopButton` threshold, scroll animation vs reduced motion |
 | [`tests/schema-fixture.ts`](../tests/schema-fixture.ts) | **Compile-only** `ChecklistItem` fixture for `pnpm typecheck`; **not** picked up by Vitest `include` |

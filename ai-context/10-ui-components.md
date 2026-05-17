@@ -1,6 +1,27 @@
 # UI components
 
-All under [`src/components/`](../src/components/) unless noted. User-visible strings are **zh-TW** in source.
+All under [`src/components/`](../src/components/) unless noted. Route modules under [`src/pages/`](../src/pages/) export React Router `meta()` / `links()` for SEO. User-visible strings are **zh-TW** in source.
+
+## Route pages (`src/pages/`)
+
+| Module | Role |
+|--------|------|
+| [`HomePage.tsx`](../src/pages/HomePage.tsx) | Landing + `IntroPage`; `meta()` WebApplication JSON-LD; hero preload + idle route prefetch (see [`07-app-flow-and-state.md`](./07-app-flow-and-state.md)) |
+| [`ChecklistStartPage.tsx`](../src/pages/ChecklistStartPage.tsx) / [`ChecklistPage.tsx`](../src/pages/ChecklistPage.tsx) | Thin wrappers mounting `ChecklistFlow` at `/checklist/start` and `/checklist` |
+| [`ChecklistFlow.tsx`](../src/pages/ChecklistFlow.tsx) | Shared checklist state machine (formerly monolithic `App.tsx`) |
+| [`SiteLayout.tsx`](../src/pages/SiteLayout.tsx) | Header/footer shell for content routes |
+| [`AboutPage.tsx`](../src/pages/AboutPage.tsx), [`MethodologyPage.tsx`](../src/pages/MethodologyPage.tsx) | Static content; `meta()` + JSON-LD (`AboutPage`, `TechArticle`) |
+| [`DeductionDetailPage.tsx`](../src/pages/DeductionDetailPage.tsx) | `/deductions/:slug`; Article + BreadcrumbList JSON-LD |
+| [`NotFoundPage.tsx`](../src/pages/NotFoundPage.tsx) | `/404` and splat; `robots: noindex` |
+
+## `IntroPage.tsx`
+
+```ts
+interface Props { onStart: () => void }
+```
+
+- Marketing walkthrough with step screenshots. Images use [`introImages.ts`](../src/lib/introImages.ts) + `<picture>` with **AVIF → WebP → PNG** sources and intrinsic `width`/`height` to limit CLS.
+- Hero uses [`HOME_HERO_IMAGE_SRC`](../src/lib/homeHeroImage.ts) with `fetchPriority="high"` and `loading="eager"`.
 
 ## `ModalOverlay.tsx` / `useModalDismiss.ts` (`src/components/ui/`)
 

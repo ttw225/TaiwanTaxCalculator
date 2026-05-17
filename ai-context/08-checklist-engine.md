@@ -16,7 +16,7 @@ export function filterBySituations(items: ChecklistItem[], selected: SituationId
   - otherwise include `standard-deduction-single`
 - Non-baseline items match when `item.situations.some(s => selected.includes(s))`.
 - Baseline item content uses `situations: []`; the engine derives all result cards from `selected`.
-- `src/lib/checklist.ts` itself is intentionally pure and does not enforce cross-situation links. `App.tsx` normalizes `interest_income` ↔ hidden `savings_investment` before calling the engine, so the savings-investment card is present whenever interest income is active even though it is not publicly selectable.
+- `src/lib/checklist.ts` itself is intentionally pure and does not enforce cross-situation links. [`ChecklistFlow.tsx`](../src/pages/ChecklistFlow.tsx) normalizes `interest_income` ↔ hidden `savings_investment` before calling the engine, so the savings-investment card is present whenever interest income is active even though it is not publicly selectable.
 
 ## `CATEGORY_ORDER` / `CATEGORY_LABELS`
 

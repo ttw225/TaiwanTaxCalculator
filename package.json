@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "react-router dev",
+    "dev:clean": "rm -rf node_modules/.vite && react-router dev",
     "build": "react-router build && tsx scripts/generate-sitemap.ts",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run -c vitest.config.ts",
