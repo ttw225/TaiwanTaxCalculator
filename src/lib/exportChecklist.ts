@@ -1,6 +1,10 @@
 import type { CardInputMap, CategoryId, ChecklistItem } from '../types/content'
 import type { CategoryGroup } from './checklist'
-import { checklistExportMarkdownHeader } from './checklistCardCopy'
+import {
+  checklistExportMarkdownHeader,
+  checklistExportSiteFooter,
+  checklistExportSiteHeader,
+} from './checklistCardCopy'
 import {
   resolveGeneralDeduction,
   getItemizedItemAmount,
@@ -816,7 +820,7 @@ function renderSummary(data: DerivedData, lines: string[]) {
   lines.push('', '---', '', '## 填寫摘要')
   lines.push(`- 綜合所得總額：${fmtMoney(data.grossIncomeMergedAmount)}`)
   if (data.hasOverseasIncomeSection) {
-    lines.push(`- 海外所得：${fmt(data.overseasIncomeAmount)} 元 / 已繳國外稅額：${fmt(data.overseasTaxPaidAmount)} 元`)
+    lines.push(`- 海外所得：${fmt(data.overseasIncomeAmount)} 元`)
   }
   lines.push(`- 免稅額：${fmtMoney(data.exemption?.amount ?? null)}`)
   const generalLabel = data.generalDeductionMethod === 'itemized'
@@ -828,7 +832,6 @@ function renderSummary(data: DerivedData, lines: string[]) {
   if (data.hasSpecialDeductions) {
     lines.push(`- 特別扣除額：${fmtMoney(data.specialDeductionAmount)}`)
   }
-  lines.push(`- 基本生活費差額：${fmtMoney(data.basicLivingExpenseDifference)}`)
 }
 
 function renderResultBlock(data: DerivedData, lines: string[]) {
@@ -839,12 +842,8 @@ function renderResultBlock(data: DerivedData, lines: string[]) {
     return
   }
   const best = result.bestScenario
-  const hasMultiple = result.scenarios.length > 1
   lines.push(`- **推薦組合**：${displayScenarioTitle(best.title)}`)
   lines.push(`- **應繳納稅額**：${fmt(best.finalTax)} 元`)
-  if (hasMultiple && result.secondBestScenario) {
-    lines.push(`- 比次佳組合（${displayScenarioTitle(result.secondBestScenario.title)}）節稅 ${fmt(result.savings)} 元`)
-  }
 }
 
 // ── Section dispatcher ───────────────────────────────────────────────────────
@@ -896,6 +895,8 @@ export function formatChecklistMarkdown(input: ExportInput): string {
   const totalItems = input.groups.reduce((sum, g) => sum + g.items.length, 0)
 
   const lines: string[] = [
+    checklistExportSiteHeader(),
+    '',
     checklistExportMarkdownHeader(),
     '',
     `根據您選擇的 ${input.totalSelected} 項情況，找到 ${totalItems} 個值得確認的項目。`,
@@ -916,6 +917,7 @@ export function formatChecklistMarkdown(input: ExportInput): string {
     renderScenarios(data.taxScenarioResult, lines)
   }
 
+  lines.push('', checklistExportSiteFooter())
   lines.push('', FOOTER)
   return lines.join('\n')
 }

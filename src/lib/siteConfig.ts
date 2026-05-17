@@ -8,12 +8,13 @@ export const SITE_CONFIG = {
   taxYear: '114',
   dataYear: '2026',
   lastUpdated: '2026-05',
+  siteUrl: 'https://taiwantaxcalculator.com/',
 
   // Task 1.5: fill in once Buy Me a Coffee / Ko-fi account is created
   buyMeCoffeeUrl: '',
 
   // 意見回報 Google 表單（一般用戶）
-  googleFormUrl: '',
+  googleFormUrl: 'https://forms.gle/ZsYHAPD5jDhGjtsZA',
 
   // GitHub issue（開發者回報）
   githubNewIssueUrl: 'https://github.com/ttw225/TaiwanTaxCalculator/issues/new/choose',

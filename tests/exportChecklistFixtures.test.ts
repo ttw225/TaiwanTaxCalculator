@@ -41,20 +41,35 @@ describe('formatChecklistMarkdown · full fixture (married + AMT)', () => {
     expect(md).not.toContain('**產生時間**')
   })
 
-  it('includes 填寫摘要 with gross income, exemption, deductions, basic living difference', () => {
+  it('includes 填寫摘要 aligned with the on-site summary panel (no 基本生活費差額)', () => {
     expect(md).toContain('## 填寫摘要')
     expect(md).toContain('綜合所得總額')
     expect(md).toContain('免稅額')
     expect(md).toContain('一般扣除額')
     expect(md).toContain('特別扣除額')
-    expect(md).toContain('基本生活費差額')
+    // Basic-living difference is part of the formula breakdown, not the summary
+    const summarySection = md.split('## 填寫摘要')[1]?.split(/^## /m)[0] ?? ''
+    expect(summarySection).not.toContain('基本生活費差額')
   })
 
-  it('includes a recommended-scenario block with savings vs second best', () => {
+  it('summary 海外所得 row shows only the amount, not 已繳國外稅額', () => {
+    const summarySection = md.split('## 填寫摘要')[1]?.split(/^## /m)[0] ?? ''
+    expect(summarySection).toMatch(/- 海外所得：[\d,]+ 元\s*$/m)
+    expect(summarySection).not.toContain('已繳國外稅額')
+  })
+
+  it('試算結果 block does not include the second-best savings line', () => {
     expect(md).toContain('## 試算結果')
     expect(md).toContain('推薦組合')
     expect(md).toContain('應繳納稅額')
-    expect(md).toMatch(/比次佳組合（.+?）節稅/)
+    const resultSection = md.split('## 試算結果')[1]?.split(/^## /m)[0] ?? ''
+    expect(resultSection).not.toMatch(/比次佳組合（.+?）節稅/)
+  })
+
+  it('wraps the export with site header and site footer', () => {
+    expect(md).toContain('台灣節稅資訊平台')
+    expect(md).toContain('## 關於本站')
+    expect(md).toContain('## 申報提醒')
   })
 
   it('lists all scenarios with the first marked ★ 推薦', () => {
