@@ -58,36 +58,11 @@ export function SiteFooter() {
             </div>
           </div>
 
-          {/* Right: Support + Feedback */}
+          {/* Right: Feedback + Support */}
           <div className="space-y-6">
 
-            {/* Support / Buy me a coffee — Task 4.5 */}
-            <div className="print-footer-section">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">支持我們</h3>
-              <p className="text-sm text-gray-600 mb-2">
-                如果這個工具對您有幫助，歡迎請我們喝杯咖啡 ☕
-              </p>
-              {buyMeCoffeeUrl ? (
-                <a
-                  href={buyMeCoffeeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800"
-                >
-                  Buy me a coffee <ExternalLink size={13} />
-                </a>
-              ) : (
-                <span
-                  aria-disabled="true"
-                  className="inline-flex items-center gap-1.5 text-sm text-gray-300 cursor-not-allowed select-none"
-                >
-                  Buy me a coffee <ExternalLink size={13} />
-                </span>
-              )}
-            </div>
-
             {/* Feedback */}
-            <div className="print-footer-section pt-2">
+            <div className="print-footer-section">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">意見回報</h3>
               <p className="text-sm text-gray-600 mb-3">
                 發現資料有誤、連結失效，或有功能建議，歡迎透過以下方式告訴我們。
@@ -136,6 +111,31 @@ export function SiteFooter() {
                   </span>
                 )}
               </div>
+            </div>
+
+            {/* Support / Buy me a coffee — Task 4.5 */}
+            <div className="print-footer-section pt-2">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">支持我們</h3>
+              <p className="text-sm text-gray-600 mb-2">
+                如果這個工具對您有幫助，歡迎請我們喝杯咖啡 ☕
+              </p>
+              {buyMeCoffeeUrl ? (
+                <a
+                  href={buyMeCoffeeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-800"
+                >
+                  Buy me a coffee <ExternalLink size={13} />
+                </a>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  className="inline-flex items-center gap-1.5 text-sm text-gray-300 cursor-not-allowed select-none"
+                >
+                  Buy me a coffee <ExternalLink size={13} />
+                </span>
+              )}
             </div>
           </div>
         </div>
