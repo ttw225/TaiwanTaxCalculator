@@ -10,7 +10,6 @@
   },
   "scripts": {
     "dev": "react-router dev",
-    "dev:clean": "rm -rf node_modules/.vite && react-router dev",
     "build": "react-router build && tsx scripts/generate-sitemap.ts",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run -c vitest.config.ts",
@@ -43,6 +42,8 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "jsdom": "^29.1.0",
+    "sharp": "^0.34.5",
+    "svgo": "^4.0.1",
     "tsx": "^4.22.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
