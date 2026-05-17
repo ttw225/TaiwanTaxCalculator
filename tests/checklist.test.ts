@@ -14,8 +14,11 @@ import {
   serializeIncomeAmounts,
   serializeIncomeParticipants,
 } from '../src/lib/grossIncome'
+import { calcTaxScenarios } from '../src/lib/taxScenarios'
 import { ChecklistResult } from '../src/components/ChecklistResult'
 import { DeductionCard } from '../src/components/DeductionCard'
+import { SiteFooter } from '../src/components/SiteFooter'
+import { PrintScenarioCombinations } from '../src/components/TaxSummaryPanel'
 import { CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS, WEALTH_CLAUSE_NOTICE } from '../src/lib/checklistCardCopy'
 import { ITEM_INLINE_FIELDS } from '../src/content/inlineFields'
 import type { CardInlineField, CardInputMap, ChecklistItem } from '../src/types/content'
@@ -919,7 +922,54 @@ describe('ChecklistResult export panel', () => {
   it('rendered markup includes print stylesheet hook classes', () => {
     expect(htmlWithResults).toContain('print-container')
     expect(htmlWithResults).toContain('print-card')
+    expect(htmlWithResults).toContain('print-tax-summary-stack')
+    expect(htmlWithResults).toContain('print-tax-summary-cards')
     expect(htmlWithResults).toContain('no-print')
+  })
+
+  it('footer marks the four main sections as print atomic blocks', () => {
+    const footerHtml = renderToStaticMarkup(createElement(SiteFooter))
+    const sectionHooks = footerHtml.match(/print-footer-section/g) ?? []
+
+    expect(footerHtml).toContain('site-footer')
+    expect(footerHtml).toContain('print-footer-content')
+    expect(sectionHooks).toHaveLength(4)
+    expect(footerHtml).toContain('關於本站')
+    expect(footerHtml).toContain('申報提醒')
+    expect(footerHtml).toContain('支持我們')
+    expect(footerHtml).toContain('意見回報')
+  })
+
+  it('print scenario combinations keeps its print hook classes', () => {
+    const scenarioResult = calcTaxScenarios({
+      isMarried: false,
+      persons: [
+        {
+          id: 'self',
+          label: '本人',
+          salaryNetIncome: 300_000,
+          dividendIncome: 500_000,
+          interestIncome: 0,
+          otherIncome: 0,
+        },
+      ],
+      exemptionAmount: 97_000,
+      selfExemptionAmount: 97_000,
+      spouseExemptionAmount: 0,
+      householdMemberCount: 1,
+      generalDeductionAmount: 131_000,
+      specialDeductionAmount: 0,
+      savingsInvestmentDeductionAmount: 0,
+      overseasIncome: 0,
+      overseasTaxPaid: 0,
+    })
+    const scenarioHtml = renderToStaticMarkup(
+      createElement(PrintScenarioCombinations, { scenarioResult }),
+    )
+
+    expect(scenarioHtml).toContain('print-scenarios-card')
+    expect(scenarioHtml).toContain('print-scenario-divider')
+    expect(scenarioHtml).toContain('所有稅額組合')
   })
 })
 
@@ -948,7 +998,13 @@ describe('formatChecklistMarkdown', () => {
     },
   ]
 
-  const md = formatChecklistMarkdown(groups, { totalSelected: 1 })
+  const md = formatChecklistMarkdown({
+    groups,
+    cardInputMap: {},
+    isMarriedFiling: false,
+    totalSelected: 1,
+    exportTime: '2026/05/16 12:00:00',
+  })
 
   // Requirement: Markdown Export Content — section/content
   it('contains the category label as a heading', () => {
@@ -975,8 +1031,12 @@ describe('formatChecklistMarkdown', () => {
     expect(md).toContain('財政部電子申報系統')
   })
 
-  it('includes selected situation count', () => {
-    expect(md).toContain('1 項')
+  it('includes selected situation count in new copy', () => {
+    expect(md).toContain('根據您選擇的 1 項情況')
+  })
+
+  it('uses the new "本文件產生時間" label', () => {
+    expect(md).toContain('本文件產生時間')
   })
 
   it('does not contain raw source_id', () => {
@@ -993,7 +1053,13 @@ describe('formatChecklistMarkdown', () => {
   })
 
   it('uses the updated usage reminder in header without removed badge wording', () => {
-    const headerMd = formatChecklistMarkdown([], { totalSelected: 0 })
+    const headerMd = formatChecklistMarkdown({
+      groups: [],
+      cardInputMap: {},
+      isMarriedFiling: false,
+      totalSelected: 0,
+      exportTime: '2026/05/16 12:00:00',
+    })
     expect(headerMd).toContain(CHECKLIST_USAGE_REMINDER_COMPLEX_ITEMS)
     expect(headerMd).not.toContain('標示「需進一步確認」的項目')
   })

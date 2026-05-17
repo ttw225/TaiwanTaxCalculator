@@ -42,10 +42,10 @@ export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
       />
     )}
     {/* position: sticky — no layout offset, unlike fixed */}
-    <header className="sticky top-0 z-50 bg-gray-50">
+    <header className="site-header sticky top-0 z-50 bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
 
-        {/* Logo — left-aligned on all viewports (Task 1.2) */}
+        {/* Logo — left-aligned on all viewports */}
         {onHome ? (
           <button
             type="button"

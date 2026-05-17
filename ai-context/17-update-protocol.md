@@ -11,6 +11,8 @@ When you change behavior or contracts, update the **English** docs in [`ai-conte
 | `App.tsx` state, removal rules, `cardInputMap` | [`07-app-flow-and-state.md`](./07-app-flow-and-state.md) |
 | Storage key format or legacy cleanup | [`11-storage-and-persistence.md`](./11-storage-and-persistence.md) |
 | New component or major prop change | [`10-ui-components.md`](./10-ui-components.md) |
+| `exportChecklist.ts` / `formatChecklistMarkdown` output shape or export copy | [`10-ui-components.md`](./10-ui-components.md), [`13-testing.md`](./13-testing.md); update [`tests/fixtures/exportChecklist/`](../tests/fixtures/exportChecklist/) when golden contracts change |
+| Print CSS or print-only layout classes | [`12-styling-and-print.md`](./12-styling-and-print.md), [`10-ui-components.md`](./10-ui-components.md) if component hooks change |
 | Checklist engine rules (`checklist.ts`) | [`08-checklist-engine.md`](./08-checklist-engine.md) |
 | `grossIncome.ts`, `gross-income` card fields, or sidebar gross total semantics | [`04-domain-model.md`](./04-domain-model.md), [`10-ui-components.md`](./10-ui-components.md), [`13-testing.md`](./13-testing.md) |
 | CI / Pages / env vars | [`14-ci-and-deploy.md`](./14-ci-and-deploy.md) |

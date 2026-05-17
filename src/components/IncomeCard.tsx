@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type WheelEventHandler } from 'react'
 import { ModalOverlay } from './ui/ModalOverlay'
 import type { ChecklistItem } from '../types/content'
 import {
@@ -17,6 +17,10 @@ import {
   type IncomeParticipant,
 } from '../lib/grossIncome'
 import { ChecklistCardShell } from './checklist/ChecklistCardShell'
+
+const blurOnWheel: WheelEventHandler<HTMLInputElement> = (event) => {
+  event.currentTarget.blur()
+}
 
 interface Props {
   item: ChecklistItem
@@ -164,6 +168,7 @@ function PersonRow({
           min="0"
           value={incomeRaw}
           onChange={(e) => onIncomeChange(e.target.value)}
+          onWheel={blurOnWheel}
           placeholder="輸入金額"
           data-testid={`income-input-${config.id}-${person.id}`}
           className="no-spin w-40 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none"

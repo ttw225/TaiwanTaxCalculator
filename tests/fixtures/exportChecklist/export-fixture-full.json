@@ -1,0 +1,81 @@
+{
+  "selection": {
+    "selected": [
+      "salary_income",
+      "interest_income",
+      "savings_investment",
+      "other_income",
+      "dividends",
+      "medical_expenses",
+      "education_tuition",
+      "long_term_care",
+      "childcare",
+      "rent",
+      "married",
+      "overseas_income",
+      "donations",
+      "mortgage_interest",
+      "insurance",
+      "disability"
+    ]
+  },
+  "inputs": {
+    "cardInputMap": {
+      "dividend-income": {
+        "self_income": "3000"
+      },
+      "income-participants": {
+        "persons_json": "[{\"id\":\"extra-0\",\"label\":\"親屬1\"}]"
+      },
+      "other-income": {
+        "persons_json": "[{\"id\":\"spouse\",\"income\":30000},{\"id\":\"extra-0\",\"income\":600}]",
+        "self_income": "2000"
+      },
+      "exemption-general": {
+        "self_age_band": "under_70",
+        "exemption_over70_count": "2",
+        "spouse_age_band": "under_70",
+        "exemption_under70_count": "4"
+      },
+      "medical-deduction": {
+        "medical_amount": "100000"
+      },
+      "childcare-deduction": {
+        "childcare_count": "1"
+      },
+      "long-term-care-deduction": {
+        "long_term_care_count": "1"
+      },
+      "rent-deduction": {
+        "rent_amount": "200000"
+      },
+      "gross-income": {
+        "self_income": "2000000",
+        "persons_json": "[{\"id\":\"spouse\",\"income\":1200000}]"
+      },
+      "interest-income": {
+        "persons_json": "[{\"id\":\"spouse\",\"income\":10000}]"
+      },
+      "overseas-income-amt": {
+        "overseas_income_amount": "17800000",
+        "overseas_income_tax_paid": "200000"
+      },
+      "donations-deduction": {
+        "donation_amount_qualified": "300000"
+      },
+      "insurance-deduction": {
+        "insurance_personal_amount": "100000",
+        "insurance_nhi_amount": "8000"
+      },
+      "mortgage-interest-deduction": {
+        "mortgage_interest_amount": "88000"
+      },
+      "disability-special-deduction": {
+        "disability_count": "1"
+      },
+      "education-tuition-deduction": {
+        "education_count": "2"
+      }
+    }
+  }
+}

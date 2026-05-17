@@ -1,6 +1,10 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, WheelEventHandler } from 'react'
 import type { CardInlineFeedbackContext, CardInlineField } from '../../types/content'
 import { getNumber } from '../../lib/numbers'
+
+const blurOnWheel: WheelEventHandler<HTMLInputElement> = (event) => {
+  event.currentTarget.blur()
+}
 
 /** Mirrors IncomeCard row display: implicit-zero income shows 0 when storage is empty. */
 function getInlineFieldDisplayValue(field: CardInlineField, stored: string | undefined): string {
@@ -337,6 +341,7 @@ function ExemptionDependentCountRow({
           step="1"
           value={value}
           onChange={(e) => onInputChange?.(field.id, e.target.value)}
+          onWheel={blurOnWheel}
           data-testid={`card-input-exemption-general-${field.id}`}
           className="w-24 rounded border border-gray-300 bg-white px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none"
           placeholder="0"
@@ -472,6 +477,7 @@ export function ChecklistInlineAmountFields({
                     step={field.perUnitKey || field.splitPerUnitKeys ? '1' : undefined}
                     value={displayValue}
                     onChange={(e) => onInputChange?.(field.id, e.target.value)}
+                    onWheel={blurOnWheel}
                     data-testid={`card-input-${itemId}-${field.id}`}
                     className={[
                       'w-36 rounded border border-gray-300 px-2 py-1 text-base text-gray-800 focus:border-blue-400 focus:outline-none',

@@ -2,6 +2,12 @@ import { Fragment, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { calcTax, getBrackets } from '../lib/numbers'
+import {
+  COUPLE_LABEL_MAP,
+  COUPLE_TYPE_MAP,
+  DIVIDEND_LABEL_MAP,
+  displayScenarioTitle,
+} from '../lib/scenarioLabels'
 import type { TakeMinCandidate, TaxScenario, TaxScenarioResult } from '../lib/taxScenarios'
 import { Card, CardBody, CardHeader } from './ui/Card'
 import { ModalOverlay } from './ui/ModalOverlay'
@@ -305,15 +311,6 @@ function ScenarioRulesDialog({ onClose }: { onClose: () => void }) {
 
 type SortCol = 'couple' | 'coupleType' | 'dividend' | 'finalTax'
 
-const COUPLE_TYPE_MAP: Record<string, string> = {
-  single: '合併',
-  joint: '合併',
-  self_salary_separate: '分開',
-  spouse_salary_separate: '分開',
-  self_all_income_separate: '分開',
-  spouse_all_income_separate: '分開',
-}
-
 function SortIndicator({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortCol; sortDir: 'asc' | 'desc' }) {
   if (sortCol === col) {
     return (
@@ -336,25 +333,6 @@ function SortIndicator({ col, sortCol, sortDir }: { col: SortCol; sortCol: SortC
       <path d="M2 4l3-3 3 3M2 6l3 3 3-3" />
     </svg>
   )
-}
-
-const COUPLE_LABEL_MAP: Record<string, string> = {
-  single: '單身申報',
-  joint: '配偶所得合併',
-  self_salary_separate: '本人薪資所得分開',
-  spouse_salary_separate: '配偶薪資所得分開',
-  self_all_income_separate: '本人各類所得分開',
-  spouse_all_income_separate: '配偶各類所得分開',
-}
-
-const DIVIDEND_LABEL_MAP: Record<string, string | null> = {
-  none: null,
-  merged: '股利合併',
-  separate_28: '股利分開',
-}
-
-function displayScenarioTitle(title: string): string {
-  return title.replaceAll('計稅', '')
 }
 
 function ChevronIcon({ open }: { open: boolean }) {
@@ -470,10 +448,16 @@ function TakeMinBlock({ candidates, winner }: { candidates: TakeMinCandidate[]; 
   )
 }
 
-function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
+function ScenarioFormulaSections({
+  scenario,
+  testidPrefix = 'scenario',
+}: {
+  scenario: TaxScenario
+  testidPrefix?: string
+}) {
   return (
     <div
-      data-testid={`scenario-formula-sections-${scenario.id}`}
+      data-testid={`${testidPrefix}-formula-sections-${scenario.id}`}
       className="rounded-lg border border-gray-200 bg-white"
     >
       {scenario.formulaSections.map((section, sectionIndex) => {
@@ -481,7 +465,7 @@ function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
         return (
         <section
           key={`${scenario.id}-${section.title}`}
-          data-testid={`scenario-formula-section-${scenario.id}-${sectionIndex}`}
+          data-testid={`${testidPrefix}-formula-section-${scenario.id}-${sectionIndex}`}
           className="px-3 py-3"
         >
           <h4 className={`mb-2.5 text-base font-semibold text-gray-900 ${withDividerTitle ? 'border-b border-gray-200 pb-1.5' : ''}`}>{section.title}</h4>
@@ -493,7 +477,7 @@ function ScenarioFormulaSections({ scenario }: { scenario: TaxScenario }) {
               return (
                 <div
                   key={`${scenario.id}-${sectionIndex}-${equationIndex}`}
-                  data-testid={`scenario-formula-equation-${scenario.id}-${sectionIndex}-${equationIndex}`}
+                  data-testid={`${testidPrefix}-formula-equation-${scenario.id}-${sectionIndex}-${equationIndex}`}
                   className={equationIndex > 0 ? 'border-t border-dashed border-gray-200 pt-3 mt-3' : ''}
                 >
                   {showEquationLabel && <div className="mb-2.5 text-base text-gray-600">{equationLabel}</div>}
@@ -787,6 +771,87 @@ function TaxScenarioCombinationsDialog({
 }
 
 
+export function PrintScenarioCombinations({
+  scenarioResult,
+}: {
+  scenarioResult: TaxScenarioResult
+}) {
+  if (!scenarioResult || scenarioResult.scenarios.length === 0) return null
+
+  const bestId = scenarioResult.bestScenario.id
+  const hasMultipleScenarios = scenarioResult.scenarios.length > 1
+  const hasSpouseScenarios = scenarioResult.scenarios.some((s) => s.coupleMode !== 'single')
+  const hasAssumptions = scenarioResult.scenarios.some((s) => s.assumptions.length > 0)
+
+  // Recommended first, then remaining sorted by finalTax asc.
+  const orderedScenarios = [
+    scenarioResult.bestScenario,
+    ...scenarioResult.scenarios
+      .filter((s) => s.id !== bestId)
+      .sort((a, b) => a.finalTax - b.finalTax),
+  ]
+
+  return (
+    <Card variant="summary" className="print-summary-card print-scenarios-card mt-3">
+      <CardHeader variant="summary" className="border-b-0">
+        <h3 className="text-lg font-semibold uppercase tracking-wide text-gray-700">
+          所有稅額組合（共 {scenarioResult.scenarios.length} 種）
+        </h3>
+      </CardHeader>
+      <div className="print-scenario-divider mx-4 border-b border-gray-100" />
+      <CardBody variant="summary" className="space-y-4">
+        {hasAssumptions && (
+          <p className="w-full rounded border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-800">
+            各類所得分開試算中，僅有儲蓄投資特別扣除額有計入分開計稅方。若您或配偶個人有較高的扣除額，請以國稅局計算為準。
+          </p>
+        )}
+        {orderedScenarios.map((scenario) => {
+          const isBest = scenario.id === bestId
+          const coupleLabel = COUPLE_LABEL_MAP[scenario.coupleMode] ?? scenario.coupleMode
+          const coupleType = COUPLE_TYPE_MAP[scenario.coupleMode] ?? null
+          const dividendLabel = DIVIDEND_LABEL_MAP[scenario.dividendMode] ?? null
+          return (
+            <div
+              key={`print-${scenario.id}`}
+              data-testid={`print-scenario-${scenario.id}`}
+              className={`rounded-xl border ${isBest ? 'border-blue-200 bg-blue-50/60' : 'border-gray-200 bg-white'}`}
+            >
+              <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 px-3 py-2.5">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className={`text-base font-medium ${isBest ? 'text-blue-900' : 'text-gray-900'}`}>
+                    {coupleLabel}
+                  </span>
+                  {isBest && hasMultipleScenarios && (
+                    <span className="inline-flex shrink-0 items-center rounded-full bg-blue-600 px-2 py-0.5 text-sm font-semibold text-white">
+                      推薦
+                    </span>
+                  )}
+                  {hasSpouseScenarios && coupleType && (
+                    <span className="text-sm text-gray-600">· {coupleType}</span>
+                  )}
+                  {scenarioResult.hasDividend && dividendLabel && (
+                    <span className="text-sm text-gray-600">· {dividendLabel}</span>
+                  )}
+                </div>
+                <div className="tabular-nums">
+                  <span className={`text-base font-semibold ${isBest ? 'text-blue-900' : 'text-gray-900'}`}>
+                    {fmt(scenario.finalTax)}
+                  </span>
+                  <span className="ml-0.5 text-[11px] text-gray-500">元</span>
+                </div>
+              </header>
+              <div className="px-3 pb-3">
+                <ScenarioFormulaSections scenario={scenario} testidPrefix="print-scenario" />
+              </div>
+            </div>
+          )
+        })}
+      </CardBody>
+    </Card>
+  )
+}
+
+
 interface SummaryBodyProps {
   grossIncome: number | null
   exemptionAmount: number | null
@@ -1004,7 +1069,7 @@ export function TaxSummaryPanel({
   const taxAmount = taxScenarioResult?.bestScenario.finalTax ?? (netIncome !== null ? calcTax(netIncome) : null)
 
   return (
-    <div>
+    <div className={printMode ? 'print-tax-summary-cards' : undefined}>
       {!printMode && (dialogState === 'scenario' || dialogState === 'formula' || dialogState === 'rules') && taxScenarioResult && (
         <TaxScenarioCombinationsDialog
           scenarioResult={taxScenarioResult}
