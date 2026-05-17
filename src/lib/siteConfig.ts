@@ -11,7 +11,6 @@ export const SITE_CONFIG = {
   // Full ISO date for schema.org dateModified (must be Date/DateTime, not YYYY-MM).
   lastUpdatedIso: '2026-05-01',
   siteUrl: 'https://taiwantaxcalculator.com',
-  defaultOgImage: 'https://taiwantaxcalculator.com/og-cover.png',
   defaultDescription:
     '互動式 114 年度（2026 申報）綜合所得稅試算與節稅清單，輸入家庭情況即可估算可用之免稅額、扣除額與稅額減免，全程在瀏覽器運算，不上傳任何個資。',
   shortDescription: '互動式綜合所得稅節稅試算，全程在瀏覽器運算，不上傳個資。',
