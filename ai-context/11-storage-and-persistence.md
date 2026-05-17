@@ -92,13 +92,13 @@ This key is legacy after route-level checklist pages were introduced. Page ident
 
 ## Checklist generated flag
 
-Used by [`src/pages/ChecklistFlow.tsx`](../src/pages/ChecklistFlow.tsx) and [`src/lib/checklistEntryPath.ts`](../src/lib/checklistEntryPath.ts).
+Used through [`src/lib/checklistSnapshot.ts`](../src/lib/checklistSnapshot.ts) by [`src/pages/ChecklistFlow.tsx`](../src/pages/ChecklistFlow.tsx), home/header navigation, and [`src/lib/checklistEntryPath.ts`](../src/lib/checklistEntryPath.ts).
 
 ### Storage key
 
 - **`tax.checklist.generated.v1`** — JSON `true` when the user has generated the checklist with a non-empty selection; removed when cleared.
 
-Used with saved selection to choose the checklist nav entry route (`/checklist` vs `/checklist/start`) and to hydrate **`hasGeneratedChecklist`** (no selection → always `false`). Cleared on **`resetChecklistState`**.
+Used with saved selection to choose the checklist nav entry route (`/checklist` vs `/checklist/start`) and to hydrate **`hasGeneratedChecklist`** (no selection → always `false`). Client navigations to `/checklist` also pass a transient React Router state snapshot so the first results frame can render without waiting for the hydration effect. Cleared on **`resetChecklistState`**.
 
 ## Cross-tab sync
 

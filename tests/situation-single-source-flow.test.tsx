@@ -9,9 +9,9 @@ import HomePage from '../src/pages/HomePage'
 import { CHECKLIST_INPUT_STORAGE_KEY } from '../src/lib/checklistInputStorage'
 import { CHECKLIST_VIEW_STATE_STORAGE_KEY } from '../src/lib/checklistViewStateStorage'
 import { SITUATION_SELECTION_STORAGE_KEY } from '../src/lib/situationSelectionStorage'
+import { CHECKLIST_GENERATED_STORAGE_KEY } from '../src/lib/checklistSnapshot'
 
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
-const CHECKLIST_GENERATED_STORAGE_KEY = 'tax.checklist.generated.v1'
 
 let container: HTMLDivElement
 let scrollToSpy: ReturnType<typeof vi.fn>
@@ -441,6 +441,53 @@ describe('situation single-source flow', () => {
     clickButtonByText('開始試算')
 
     expect(container.textContent).toContain('節稅試算清單')
+  })
+
+  it('goes to generated results from intro without showing the loading fallback', () => {
+    localStorage.setItem(SITUATION_SELECTION_STORAGE_KEY, JSON.stringify({ selected: ['rent'] }))
+    localStorage.setItem(CHECKLIST_GENERATED_STORAGE_KEY, JSON.stringify(true))
+    localStorage.setItem(
+      CHECKLIST_INPUT_STORAGE_KEY,
+      JSON.stringify({ cardInputMap: { 'rent-deduction': { rent_amount: '120000' } } }),
+    )
+
+    renderApp({ autoStart: false, route: '/' })
+    act(() => {
+      window.scrollTo(0, 420)
+    })
+    const scrollSnapshots: Array<{ text: string; y: number }> = []
+    scrollToSpy.mockImplementation((x: number, y: number) => {
+      void x
+      scrollYValue = y
+      scrollSnapshots.push({ text: container.textContent ?? '', y })
+    })
+    scrollToSpy.mockClear()
+
+    clickButtonByText('開始試算')
+
+    expect(currentPath).toBe('/checklist')
+    expect(container.textContent).toContain('節稅試算清單')
+    const restoredInput = container.querySelector<HTMLInputElement>('[data-testid="card-input-rent-deduction-rent_amount"]')
+    expect(restoredInput?.value).toBe('120000')
+    expect(scrollSnapshots.some((snapshot) =>
+      snapshot.y === 0 && snapshot.text.includes('節稅試算清單'),
+    )).toBe(true)
+    expect(scrollSnapshots.some((snapshot) =>
+      snapshot.y === 0 && snapshot.text.includes('正在載入節稅清單'),
+    )).toBe(false)
+  })
+
+  it('generates results from selecting without showing the loading fallback', () => {
+    renderApp({ autoStart: false, route: '/' })
+    clickButtonByText('開始試算')
+    clickButtonByText('薪資收入')
+    scrollToSpy.mockClear()
+
+    clickButtonByText('產生節稅清單')
+
+    expect(currentPath).toBe('/checklist')
+    expect(container.textContent).toContain('節稅試算清單')
+    expect(container.textContent).not.toContain('正在載入節稅清單')
   })
 
   it('goes to results from header nav after checklist has been generated and user returns to intro', () => {

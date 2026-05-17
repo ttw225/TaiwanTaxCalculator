@@ -6,9 +6,13 @@ import { SiteHeader } from '../components/SiteHeader'
 import { SiteFooter } from '../components/SiteFooter'
 import { BackToTopButton } from '../components/BackToTopButton'
 import { SITE_CONFIG } from '../lib/siteConfig'
-import { getChecklistEntryPath } from '../lib/checklistEntryPath'
 import { PageHeading } from '../components/ui/PageHeading'
 import { HOME_HERO_IMAGE_SRC } from '../lib/homeHeroImage'
+import {
+  createChecklistNavigationState,
+  getChecklistEntryPathFromSnapshot,
+  loadSavedChecklistSnapshot,
+} from '../lib/checklistSnapshot'
 
 export function links() {
   if (typeof document === 'undefined') return []
@@ -61,23 +65,32 @@ export default function HomePage() {
   }, [])
 
   function navigateToChecklistEntry() {
-    const destination = getChecklistEntryPath()
+    const snapshot = loadSavedChecklistSnapshot()
+    const destination = getChecklistEntryPathFromSnapshot(snapshot)
+    if (destination === '/checklist') {
+      navigate(destination, {
+        state: createChecklistNavigationState(snapshot),
+        preventScrollReset: true,
+        flushSync: true,
+      })
+      window.scrollTo(0, 0)
+      return
+    }
+
     flushSync(() => setPendingChecklistDestination(destination))
     window.scrollTo(0, 0)
     navigate(destination, { preventScrollReset: true, flushSync: true })
   }
 
   const content = pendingChecklistDestination === '/checklist/start'
-    ? (
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <PageHeading
-            title="選擇符合 114 年度的報稅項目"
-            description="選擇符合您今年度情況的項目，系統將列出值得確認的扣除清單。不需要登入或填寫任何個人資料。"
-          />
-        </div>
-      )
-    : pendingChecklistDestination === '/checklist'
-      ? <div className="max-w-5xl mx-auto px-4 py-12 text-gray-500">正在載入節稅清單...</div>
+      ? (
+          <div className="max-w-5xl mx-auto px-4 py-8">
+            <PageHeading
+              title="選擇符合 114 年度的報稅項目"
+              description="選擇符合您今年度情況的項目，系統將列出值得確認的扣除清單。不需要登入或填寫任何個人資料。"
+            />
+          </div>
+        )
       : <IntroPage onStart={navigateToChecklistEntry} />
 
   return (

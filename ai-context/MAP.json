@@ -36,7 +36,7 @@
     {
       "id": "app-flow",
       "file": "07-app-flow-and-state.md",
-      "keywords": ["ChecklistFlow", "routes", "checklist/start", "checklist", "removal", "scroll"]
+      "keywords": ["ChecklistFlow", "routes", "checklist/start", "checklist", "route state", "snapshot", "removal", "scroll"]
     },
     {
       "id": "checklist-engine",
@@ -51,7 +51,7 @@
     {
       "id": "storage",
       "file": "11-storage-and-persistence.md",
-      "keywords": ["localStorage", "situationSelection", "BASE_URL", "storage event"]
+      "keywords": ["localStorage", "situationSelection", "checklistSnapshot", "route state", "BASE_URL", "storage event"]
     },
     {
       "id": "styling",

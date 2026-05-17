@@ -12,18 +12,24 @@ import { filterBySituations, groupByCategory } from '../lib/checklist'
 import type { CategoryGroup } from '../lib/checklist'
 import {
   clearSavedChecklistInputMap,
-  loadSavedChecklistInputMap,
   saveChecklistInputMap,
 } from '../lib/checklistInputStorage'
 import { clearSavedChecklistViewState } from '../lib/checklistViewStateStorage'
-import { readLocal, removeLocal, writeLocal } from '../lib/storage'
+import { removeLocal } from '../lib/storage'
 import {
   clearSavedSituationSelection,
-  loadSavedSituationSelection,
   parseSavedSituationSelection,
   saveSituationSelection,
   SITUATION_SELECTION_STORAGE_KEY,
 } from '../lib/situationSelectionStorage'
+import {
+  createChecklistNavigationState,
+  createChecklistSnapshot,
+  getChecklistSnapshotFromNavigationState,
+  loadSavedChecklistSnapshot,
+  normalizeChecklistSituations,
+  saveChecklistGeneratedFlag,
+} from '../lib/checklistSnapshot'
 import { INCOME_CARD_IDS, INCOME_PARTICIPANTS_ITEM_ID } from '../lib/grossIncome'
 import { SituationSelector } from '../components/SituationSelector'
 import { ChecklistResult } from '../components/ChecklistResult'
@@ -31,13 +37,13 @@ import type { RemovalImpactPreview } from '../components/ChecklistResult'
 import { SiteHeader } from '../components/SiteHeader'
 import { SiteFooter } from '../components/SiteFooter'
 import { BackToTopButton } from '../components/BackToTopButton'
+import { PageHeading } from '../components/ui/PageHeading'
 
 const SITUATION_IDS = SITUATIONS.map((s) => s.id)
 const VISIBLE_SITUATION_ID_SET = new Set<SituationId>(SITUATION_IDS)
 const ITEM_BY_ID = new Map(CHECKLIST_ITEMS.map((item) => [item.id, item]))
 const SITUATION_LABEL_BY_ID = new Map(SITUATIONS.map((s) => [s.id, s.label]))
 const LEGACY_MANUAL_OVERRIDES_STORAGE_KEY = 'tax.checklist.manualOverrides.v1'
-const CHECKLIST_GENERATED_STORAGE_KEY = 'tax.checklist.generated.v1'
 
 type ChecklistFlowScreen = 'start' | 'results'
 
@@ -101,16 +107,6 @@ function omitIdsFromCardInputMap(map: CardInputMap, itemIds: string[]): CardInpu
     delete next[itemId]
   }
   return next
-}
-
-function normalizeLinkedSituations(selected: SituationId[]): SituationId[] {
-  const next = new Set(selected)
-  if (next.has('interest_income')) {
-    next.add('savings_investment')
-  } else {
-    next.delete('savings_investment')
-  }
-  return Array.from(next)
 }
 
 function countVisibleSelectedSituations(selected: SituationId[]): number {
@@ -179,31 +175,51 @@ function getItemSourceSituationLabelsById(
   return itemSourceSituationLabelsById
 }
 
-function loadSavedChecklistGeneratedFlag(): boolean {
-  const parsed = readLocal<unknown>(CHECKLIST_GENERATED_STORAGE_KEY)
-  if (parsed === null) return false
-  if (typeof parsed === 'boolean') return parsed
-  if (typeof parsed === 'object' && parsed !== null && 'generated' in parsed) {
-    return Boolean((parsed as { generated?: unknown }).generated)
-  }
-  return false
-}
-
-function saveChecklistGeneratedFlag(generated: boolean): void {
-  if (generated) {
-    writeLocal(CHECKLIST_GENERATED_STORAGE_KEY, true)
-    return
-  }
-  removeLocal(CHECKLIST_GENERATED_STORAGE_KEY)
+function ChecklistResultsFallback() {
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-8 min-h-[calc(100vh-3.5rem)]">
+      <PageHeading
+        title="節稅試算清單"
+        description="正在載入節稅清單，稍候會顯示已儲存的項目與填寫資料。"
+      />
+      <div className="mt-5 lg:grid lg:grid-cols-[1fr_360px] lg:gap-6 lg:items-start">
+        <div className="space-y-4">
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="h-4 w-32 rounded bg-gray-200" />
+              <div className="mt-3 h-3 w-full max-w-xl rounded bg-gray-100" />
+              <div className="mt-2 h-3 w-2/3 rounded bg-gray-100" />
+              <div className="mt-4 h-10 rounded-lg bg-gray-50" />
+            </div>
+          ))}
+        </div>
+        <aside className="no-print mt-6 lg:mt-0">
+          <div className="rounded-xl border border-gray-200 bg-white p-4">
+            <div className="h-4 w-24 rounded bg-gray-200" />
+            <div className="mt-4 space-y-3">
+              <div className="h-3 rounded bg-gray-100" />
+              <div className="h-3 rounded bg-gray-100" />
+              <div className="h-3 w-3/4 rounded bg-gray-100" />
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  )
 }
 
 export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const [selected, setSelected] = useState<SituationId[]>([])
-  const [hasGeneratedChecklist, setHasGeneratedChecklist] = useState<boolean>(false)
-  const [cardInputMap, setCardInputMap] = useState<CardInputMap>({})
-  const [isHydrated, setIsHydrated] = useState(false)
+  const navigationSnapshot = screen === 'results'
+    ? getChecklistSnapshotFromNavigationState(location.state)
+    : null
+  const [selected, setSelected] = useState<SituationId[]>(() => navigationSnapshot?.selected ?? [])
+  const [hasGeneratedChecklist, setHasGeneratedChecklist] = useState<boolean>(
+    () => navigationSnapshot?.hasGeneratedChecklist ?? false,
+  )
+  const [cardInputMap, setCardInputMap] = useState<CardInputMap>(() => navigationSnapshot?.cardInputMap ?? {})
+  const [isHydrated, setIsHydrated] = useState(() => navigationSnapshot !== null)
 
   const [pendingRemovalEffect, setPendingRemovalEffect] = useState<RemovalEffect | null>(null)
   const [scrollToItemId, setScrollToItemId] = useState<string | null>(null)
@@ -214,25 +230,23 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
   }, [screen])
 
   useEffect(() => {
-    const hydratedSelection = normalizeLinkedSituations(
-      loadSavedSituationSelection(SITUATION_IDS),
-    )
-    const hydratedInputMap = loadSavedChecklistInputMap()
-    const hydratedGenerated =
-      hydratedSelection.length > 0 ? loadSavedChecklistGeneratedFlag() : false
+    const hydratedSnapshot = screen === 'results'
+      ? getChecklistSnapshotFromNavigationState(location.state) ?? loadSavedChecklistSnapshot()
+      : loadSavedChecklistSnapshot()
+    const hydratedSelection = hydratedSnapshot.selected
 
     shouldRedirectEmptyResults.current = screen === 'results' && hydratedSelection.length === 0
 
     /* eslint-disable react-hooks/set-state-in-effect */
     setSelected(hydratedSelection)
-    setCardInputMap(hydratedInputMap)
-    setHasGeneratedChecklist(hydratedGenerated)
+    setCardInputMap(hydratedSnapshot.cardInputMap)
+    setHasGeneratedChecklist(hydratedSnapshot.hasGeneratedChecklist)
     setIsHydrated(true)
     /* eslint-enable react-hooks/set-state-in-effect */
 
     clearSavedChecklistViewState()
     removeLocal(LEGACY_MANUAL_OVERRIDES_STORAGE_KEY)
-  }, [screen])
+  }, [location.state, screen])
 
   useEffect(() => {
     if (!isHydrated) return
@@ -260,7 +274,7 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
   useEffect(() => {
     function handleStorage(event: StorageEvent) {
       if (event.key === SITUATION_SELECTION_STORAGE_KEY) {
-        const syncedSelection = normalizeLinkedSituations(parseSavedSituationSelection(event.newValue, SITUATION_IDS))
+        const syncedSelection = normalizeChecklistSituations(parseSavedSituationSelection(event.newValue, SITUATION_IDS))
         setSelected(syncedSelection)
         if (syncedSelection.length === 0) {
           setHasGeneratedChecklist(false)
@@ -280,24 +294,34 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
     if (id === 'savings_investment') return
     setSelected((prev) => {
       const toggled = prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-      return normalizeLinkedSituations(toggled)
+      return normalizeChecklistSituations(toggled)
     })
   }
 
   function handleGenerate() {
     if (selected.length > 0) {
+      const snapshot = createChecklistSnapshot(selected, true, cardInputMap)
       setScrollToItemId(null)
       setHasGeneratedChecklist(true)
       saveSituationSelection(selected)
       saveChecklistGeneratedFlag(true)
-      navigate('/checklist', { preventScrollReset: true, flushSync: true })
+      navigate('/checklist', {
+        state: createChecklistNavigationState(snapshot),
+        preventScrollReset: true,
+        flushSync: true,
+      })
     }
   }
 
   function navigateToChecklistFlow() {
     setScrollToItemId(null)
     const destination = hasGeneratedChecklist && selected.length > 0 ? '/checklist' : '/checklist/start'
-    navigate(destination, { preventScrollReset: true, flushSync: true })
+    const snapshot = createChecklistSnapshot(selected, hasGeneratedChecklist, cardInputMap)
+    navigate(destination, {
+      state: destination === '/checklist' ? createChecklistNavigationState(snapshot) : undefined,
+      preventScrollReset: true,
+      flushSync: true,
+    })
     if (location.pathname === destination) window.scrollTo(0, 0)
   }
 
@@ -332,7 +356,7 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
     setPendingRemovalEffect(null)
     if (ids.length === 0) return
 
-    const nextSelected = normalizeLinkedSituations(Array.from(new Set([...selected, ...ids])))
+    const nextSelected = normalizeChecklistSituations(Array.from(new Set([...selected, ...ids])))
     if (nextSelected.length === selected.length) return
 
     setScrollToItemId(getScrollTargetAfterAdd(selected, nextSelected))
@@ -347,7 +371,7 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
     if (itemId === 'interest-income') {
       removedSituationIds.add('savings_investment')
     }
-    const nextSelected = normalizeLinkedSituations(
+    const nextSelected = normalizeChecklistSituations(
       selected.filter((situationId) => !removedSituationIds.has(situationId)),
     )
     const resetClearedItemTitles = nextSelected.length === 0
@@ -377,7 +401,7 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
     if (effect.itemId === 'interest-income') {
       removedSituationIds.add('savings_investment')
     }
-    const nextSelected = normalizeLinkedSituations(
+    const nextSelected = normalizeChecklistSituations(
       selected.filter((situationId) => !removedSituationIds.has(situationId)),
     )
     if (nextSelected.length === 0) {
@@ -438,7 +462,7 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
   const content = screen === 'results'
     ? (
         !isHydrated || selected.length === 0 ? (
-          <div className="max-w-5xl mx-auto px-4 py-12 text-gray-500">正在載入節稅清單...</div>
+          <ChecklistResultsFallback />
         ) : (
           <ChecklistResult
             groups={groups}

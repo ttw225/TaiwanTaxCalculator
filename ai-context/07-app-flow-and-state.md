@@ -16,11 +16,11 @@ The checklist workflow uses URL routes for top-level screens. Do not reintroduce
 
 ## Navigation
 
-- Home CTA and active checklist nav call `getChecklistEntryPath()` from [`src/lib/checklistEntryPath.ts`](../src/lib/checklistEntryPath.ts).
-- `getChecklistEntryPath()` returns `/checklist` only when saved selection exists and `tax.checklist.generated.v1` is true; otherwise it returns `/checklist/start`.
+- Home CTA and active checklist nav use [`src/lib/checklistSnapshot.ts`](../src/lib/checklistSnapshot.ts) to load a saved snapshot and choose `/checklist` only when saved selection exists and `tax.checklist.generated.v1` is true; otherwise they go to `/checklist/start`.
+- Client navigations to `/checklist` pass the snapshot in React Router `location.state`. This lets the result page render the first client frame from already-known state instead of flashing a short loading placeholder.
 - `ChecklistFlow` header logo navigates to `/`.
-- `/checklist/start` `handleGenerate`: non-empty selection writes selection + generated flag, navigates to `/checklist`, then scrolls top.
-- `/checklist`: after client hydration, if no saved selection exists, replace-navigates to `/checklist/start`.
+- `/checklist/start` `handleGenerate`: non-empty selection writes selection + generated flag, then navigates to `/checklist` with a route-state snapshot.
+- `/checklist`: direct refresh still prerenders a stable loading skeleton because build-time HTML cannot read `localStorage`; after client hydration, if no saved selection exists, it replace-navigates to `/checklist/start`.
 
 ## Core state
 
@@ -33,7 +33,7 @@ The checklist workflow uses URL routes for top-level screens. Do not reintroduce
 | `cardInputMap` | `CardInputMap` — per-card field strings |
 | `pendingRemovalEffect` | removal confirm dialog payload or `null` |
 | `scrollToItemId` | checklist item id or section token to scroll into view after add |
-| `isHydrated` | client storage has been read; `/checklist` shows a route-specific loading message until then |
+| `isHydrated` | client storage or route-state snapshot has been read; `/checklist` shows a stable skeleton only when neither is available yet |
 
 There is no active `appState` route selector. The old `tax.checklist.view.v1` key is cleared/ignored; URL is the page identity.
 
@@ -48,7 +48,7 @@ There is no active `appState` route selector. The old `tax.checklist.view.v1` ke
 
 ## Persistence and effects
 
-On hydration, `ChecklistFlow` loads:
+On hydration, `ChecklistFlow` prefers a valid `/checklist` route-state snapshot when present, otherwise it loads:
 
 - `selected` from `SITUATION_SELECTION_STORAGE_KEY`
 - `cardInputMap` from `CHECKLIST_INPUT_STORAGE_KEY`
