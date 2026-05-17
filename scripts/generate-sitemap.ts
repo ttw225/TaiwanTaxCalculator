@@ -2,7 +2,7 @@
 // /404 page to dist/client/404.html so Cloudflare Pages auto-serves it as the
 // custom 404 page (with HTTP 404 status) for unmatched routes.
 // Runs after `react-router build` (see package.json "build" script).
-import { copyFile, mkdir, writeFile } from 'node:fs/promises'
+import { copyFile, cp, mkdir, readdir, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CHECKLIST_ITEMS } from '../src/content/deductions'
@@ -10,6 +10,7 @@ import { SITE_CONFIG } from '../src/lib/siteConfig'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const PROJECT_ROOT = join(__dirname, '..')
+const BASE_PATH = process.env.VITE_BASE_PATH ?? '/'
 
 const SEO_INDEXABLE_CATEGORIES = new Set([
   'exemptions',
@@ -56,9 +57,38 @@ ${items}
 `
 }
 
+function getBasePathSegments(): string[] {
+  return BASE_PATH === '/'
+    ? []
+    : BASE_PATH.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean)
+}
+
+async function flattenBasenamePrerenderOutput(outDir: string) {
+  const basePathSegments = getBasePathSegments()
+  if (basePathSegments.length === 0) return
+
+  const prerenderOutDir = join(outDir, ...basePathSegments)
+  const prerenderOutDirStats = await stat(prerenderOutDir).catch(() => null)
+  if (!prerenderOutDirStats?.isDirectory()) return
+
+  const entries = await readdir(prerenderOutDir)
+  await Promise.all(
+    entries.map((entry) =>
+      cp(join(prerenderOutDir, entry), join(outDir, entry), {
+        recursive: true,
+        force: true,
+      }),
+    ),
+  )
+  await rm(join(outDir, basePathSegments[0]), { recursive: true, force: true })
+  console.log(`Flattened React Router basename output from ${prerenderOutDir} into ${outDir}`)
+}
+
 async function main() {
   const outDir = join(PROJECT_ROOT, 'dist', 'client')
   await mkdir(outDir, { recursive: true })
+  await flattenBasenamePrerenderOutput(outDir)
+
   const xml = renderXml(buildEntries())
   await writeFile(join(outDir, 'sitemap.xml'), xml, 'utf8')
   console.log(`Wrote sitemap with ${buildEntries().length} URLs to dist/client/sitemap.xml`)
