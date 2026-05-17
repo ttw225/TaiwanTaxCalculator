@@ -1,7 +1,8 @@
 import type { Config } from '@react-router/dev/config'
 
 // Build-time prerender of every route to static HTML. No runtime SSR.
-// Output goes to dist/ (Cloudflare Pages reads pages_build_output_dir = "dist").
+// Output goes to dist/client/ (Cloudflare Pages reads
+// pages_build_output_dir = "dist/client", see wrangler.toml).
 export default {
   appDirectory: 'src',
   buildDirectory: 'dist',

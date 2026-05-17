@@ -1,0 +1,5 @@
+name = "taiwan-tax-calculator"
+compatibility_date = "2026-05-01"
+
+# React Router v7 framework mode (ssr: false) outputs client assets to dist/client/
+pages_build_output_dir = "dist/client"

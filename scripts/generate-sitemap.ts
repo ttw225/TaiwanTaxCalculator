@@ -1,6 +1,8 @@
-// Generate dist/client/sitemap.xml from the same route list as react-router.config.ts.
+// Post-build script: generates dist/client/sitemap.xml and copies the prerendered
+// /404 page to dist/client/404.html so Cloudflare Pages auto-serves it as the
+// custom 404 page (with HTTP 404 status) for unmatched routes.
 // Runs after `react-router build` (see package.json "build" script).
-import { mkdir, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CHECKLIST_ITEMS } from '../src/content/deductions'
@@ -60,6 +62,13 @@ async function main() {
   const xml = renderXml(buildEntries())
   await writeFile(join(outDir, 'sitemap.xml'), xml, 'utf8')
   console.log(`Wrote sitemap with ${buildEntries().length} URLs to dist/client/sitemap.xml`)
+
+  // Cloudflare Pages auto-serves a top-level `404.html` for unmatched routes
+  // with HTTP 404 status. React Router prerender outputs `404/index.html`, so
+  // copy it up one level. (`_redirects` 404-status rewrites are not a
+  // documented Cloudflare Pages feature.)
+  await copyFile(join(outDir, '404', 'index.html'), join(outDir, '404.html'))
+  console.log('Copied dist/client/404/index.html -> dist/client/404.html')
 }
 
 main().catch((err) => {

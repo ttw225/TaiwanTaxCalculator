@@ -29,6 +29,7 @@
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260516.1",
     "@eslint/js": "^10.0.1",
     "@react-router/dev": "^7.15.1",
     "@types/node": "^24.12.2",
