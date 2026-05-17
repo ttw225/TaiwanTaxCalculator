@@ -164,13 +164,15 @@ input.no-spin[type="number"] {
      not part of the calculated result, and keeping it separate prevents Chrome's
      generated URL/page-number footer from clipping the final copyright line. */
   footer.site-footer {
+    display: block !important;
     border-top: 0 !important;
     margin-top: 0 !important;
+    break-before: page !important;
+    page-break-before: always !important;
+    break-inside: auto !important;
   }
   footer.site-footer > .print-footer-content {
     border-top: 1px solid #e5e7eb !important;
-    break-before: page !important;
-    page-break-before: always !important;
     padding-top: 1.25rem !important;
     padding-bottom: 0.5rem !important;
   }

@@ -990,7 +990,7 @@ function TaxResultBody({ taxAmount, taxScenarioResult, onOpenScenarioDialog }: T
   return (
     <CardBody variant="summary">
       <div className="pb-2.5 pt-0.5 transition-all">
-        {taxScenarioResult && onOpenScenarioDialog && (
+        {taxScenarioResult && (
           <div className="mb-1.5 text-base text-blue-800">
             {taxScenarioResult.scenarios.length > 1 && (
               <span className="font-semibold">推薦：</span>
