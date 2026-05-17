@@ -17,6 +17,12 @@ export const SITE_CONFIG = {
   shortDescription: '互動式綜合所得稅節稅試算，全程在瀏覽器運算，不上傳個資。',
   twitterHandle: '',
 
+  // Cloudflare Web Analytics token. Free site analytics + Core Web Vitals,
+  // no cookies, no PII. Get a token at:
+  //   https://dash.cloudflare.com → Web Analytics → Add a site
+  // Leave empty to disable the beacon (no script tag rendered).
+  cloudflareAnalyticsToken: '1c8569a4c21142b78957bd87c0652bd5',
+
   // Buy Me a Coffee / Ko-fi URL — fill in when account is ready
   buyMeCoffeeUrl: '',
 

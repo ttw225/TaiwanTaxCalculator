@@ -59,6 +59,24 @@ These cannot be set via files; configure once in the Cloudflare dashboard:
 - **Caching → Tiered Cache**: enabled
 - **SSL/TLS → Always Use HTTPS + HSTS**: consistent with `_headers` HSTS rule
 - **DNS**: both apex and `www` CNAME → Pages project
+- **Web Analytics**: Web Analytics → Add a site → custom domain. Copy the token into `siteConfig.cloudflareAnalyticsToken`. The beacon is conditionally rendered in [`root.tsx`](../src/root.tsx); CSP already whitelists the Cloudflare Insights script + endpoint.
+
+---
+
+## Post-launch SEO submission
+
+Run these once after the production domain serves real content:
+
+1. **Google Search Console** ([search.google.com/search-console](https://search.google.com/search-console))
+   - Add property: `https://taiwantaxcalculator.com` (Domain property; verify via Cloudflare DNS TXT).
+   - Submit sitemap: `https://taiwantaxcalculator.com/sitemap.xml`.
+   - Watch *Pages* → *Indexed* and *Core Web Vitals* reports over ~14 days.
+2. **Bing Webmaster Tools** ([bing.com/webmasters](https://www.bing.com/webmasters))
+   - Import from Search Console (one click) or add manually with the same sitemap URL.
+3. **Rich Results Test** ([search.google.com/test/rich-results](https://search.google.com/test/rich-results))
+   - Spot-check `/`, `/methodology`, a `/deductions/:slug`. Each should show its declared schema (WebApplication / TechArticle / Article+BreadcrumbList) with no errors.
+4. **PageSpeed Insights** ([pagespeed.web.dev](https://pagespeed.web.dev/))
+   - Run against `/` and `/checklist`. Target: Performance ≥ 90 (mobile), SEO ≥ 95, all CWV "Good".
 
 ---
 

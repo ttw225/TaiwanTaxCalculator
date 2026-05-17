@@ -1,6 +1,5 @@
-import { useEffect, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Outlet, Scripts, ScrollRestoration, Meta, Links, isRouteErrorResponse, useRouteError } from 'react-router'
-import { warmHomeHeroImage } from './lib/homeHeroImage'
 import { SITE_CONFIG } from './lib/siteConfig'
 import './index.css'
 
@@ -76,16 +75,23 @@ export function Layout({ children }: { children: ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        {/* Cloudflare Web Analytics — free, cookieless, includes Core Web Vitals.
+            Renders only when a token is configured (see siteConfig). */}
+        {SITE_CONFIG.cloudflareAnalyticsToken ? (
+          <script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={`{"token": "${SITE_CONFIG.cloudflareAnalyticsToken}"}`}
+          />
+        ) : null}
       </body>
     </html>
   )
 }
 
 export default function Root() {
-  useEffect(() => {
-    void warmHomeHeroImage()
-  }, [])
-
+  // Hero image warmup moved to HomePage — warming from Root caused every page
+  // (including /about, /deductions/*) to fetch the 468 KB Hero.svg.
   return <Outlet />
 }
 

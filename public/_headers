@@ -49,4 +49,8 @@
   # ($RC/$RV) inline per-page, and their contents differ per route, so per-file
   # CSP hashes are impractical. There is no user input or third-party JS on
   # this static site, so the XSS surface is effectively zero.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  # Cloudflare Insights (Web Analytics + CWV beacon) hosts script at
+  # static.cloudflareinsights.com and POSTs metrics to cloudflareinsights.com.
+  # Allowed unconditionally so the policy works whether or not the beacon is
+  # currently enabled in siteConfig.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
