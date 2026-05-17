@@ -1,4 +1,6 @@
+import { useEffect, type ReactNode } from 'react'
 import { Outlet, Scripts, ScrollRestoration, Meta, Links, isRouteErrorResponse, useRouteError } from 'react-router'
+import { warmHomeHeroImage } from './lib/homeHeroImage'
 import { SITE_CONFIG } from './lib/siteConfig'
 import './index.css'
 
@@ -33,7 +35,7 @@ const SITE_JSON_LD = {
   ],
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-Hant-TW">
       <head>
@@ -80,6 +82,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
+  useEffect(() => {
+    void warmHomeHeroImage()
+  }, [])
+
   return <Outlet />
 }
 

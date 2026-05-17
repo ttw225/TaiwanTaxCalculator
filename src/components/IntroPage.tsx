@@ -1,5 +1,6 @@
 import { getNumber } from '../lib/numbers'
 import { createPublicAssetUrl } from '../lib/publicAsset'
+import { HOME_HERO_IMAGE_HEIGHT, HOME_HERO_IMAGE_SRC, HOME_HERO_IMAGE_WIDTH } from '../lib/homeHeroImage'
 
 interface Props {
   onStart: () => void
@@ -65,7 +66,6 @@ export function IntroPage({ onStart }: Props) {
     getNumber('standard_deduction_single') +
     getNumber('special_deduction_salary')
   const fmt = (n: number) => n.toLocaleString('zh-TW')
-  const heroImageSrc = createPublicAssetUrl('Hero.svg')
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-16 sm:pt-20 lg:pt-24 pb-8">
@@ -111,10 +111,14 @@ export function IntroPage({ onStart }: Props) {
             </div>
             <div className="mt-7 sm:mt-8">
               <img
-                src={heroImageSrc}
+                src={HOME_HERO_IMAGE_SRC}
                 alt="報稅流程示意圖"
+                width={HOME_HERO_IMAGE_WIDTH}
+                height={HOME_HERO_IMAGE_HEIGHT}
                 className="w-full h-auto object-contain"
-                loading="lazy"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
               />
             </div>
           </div>

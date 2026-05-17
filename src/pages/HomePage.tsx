@@ -8,6 +8,20 @@ import { BackToTopButton } from '../components/BackToTopButton'
 import { SITE_CONFIG } from '../lib/siteConfig'
 import { getChecklistEntryPath } from '../lib/checklistEntryPath'
 import { PageHeading } from '../components/ui/PageHeading'
+import { HOME_HERO_IMAGE_SRC } from '../lib/homeHeroImage'
+
+export function links() {
+  if (typeof document === 'undefined') return []
+
+  return [
+    {
+      rel: 'preload',
+      as: 'image',
+      href: HOME_HERO_IMAGE_SRC,
+      fetchPriority: 'high',
+    },
+  ]
+}
 
 export function meta() {
   const title = `${SITE_CONFIG.name}｜${SITE_CONFIG.taxYear} 年度所得稅節稅清單`
