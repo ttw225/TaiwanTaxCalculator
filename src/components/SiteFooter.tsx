@@ -13,13 +13,12 @@ export function SiteFooter() {
     <footer className="site-footer mt-16 border-t border-gray-200 bg-white">
       <div className="print-footer-content max-w-5xl mx-auto px-4 py-10">
 
-        {/* Main 2-col grid (Task 4.1) */}
+        {/* Main 2-col grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
 
           {/* Left: About + Disclaimer */}
           <div className="space-y-6">
 
-            {/* About — Task 4.2 + 4.8 */}
             <div className="print-footer-section">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">關於本站</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
@@ -33,7 +32,7 @@ export function SiteFooter() {
               </p>
             </div>
 
-            {/* Disclaimer — Task 4.3 */}
+            {/* Disclaimer */}
             <div className="print-footer-section pt-2">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">申報提醒</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
@@ -113,7 +112,7 @@ export function SiteFooter() {
               </div>
             </div>
 
-            {/* Support / Buy me a coffee — Task 4.5 */}
+            {/* Support / Buy me a coffee */}
             <div className="print-footer-section pt-2">
               <h3 className="text-sm font-semibold text-gray-900 mb-2">支持我們</h3>
               <p className="text-sm text-gray-600 mb-2">
@@ -140,7 +139,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        {/* Bottom bar — Task 4.6 */}
+        {/* Bottom bar */}
         <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-x-2 gap-y-1 text-sm text-gray-400">
           <span>© {dataYear} {name} · {nameEn}</span>
           {deployInfo && (

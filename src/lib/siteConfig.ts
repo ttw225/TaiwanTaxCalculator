@@ -10,7 +10,7 @@ export const SITE_CONFIG = {
   lastUpdated: '2026-05',
   siteUrl: 'https://taiwantaxcalculator.com/',
 
-  // Task 1.5: fill in once Buy Me a Coffee / Ko-fi account is created
+  // Buy Me a Coffee / Ko-fi URL — fill in when account is ready
   buyMeCoffeeUrl: '',
 
   // 意見回報 Google 表單（一般用戶）
@@ -26,7 +26,7 @@ export const SITE_CONFIG = {
   ] satisfies Array<{ label: string; url: string }>,
 } as const
 
-// Navigation items in display order (Task 1.3).
+// Navigation items in display order.
 // 'active' = live feature; 'coming-soon' = disabled placeholder.
 export type NavItemStatus = 'active' | 'coming-soon'
 
@@ -41,9 +41,8 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'payment-rewards', label: '繳稅回饋', status: 'coming-soon' },
 ]
 
-// Primary colour tokens (Task 1.1): brand blue.
+// Brand blue Tailwind class tokens for header/footer.
 // Used as Tailwind class strings throughout header/footer components.
-// Mobile logo position (Task 1.2): left-aligned.
 export const BRAND = {
   primary: 'text-blue-600',
   primaryBorder: 'border-blue-600',
