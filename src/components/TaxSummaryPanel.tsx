@@ -590,7 +590,7 @@ function TaxScenarioCombinationsDialog({
   const bestId = scenarioResult.bestScenario.id
   const hasMultipleScenarios = scenarioResult.scenarios.length > 1
   const hasSpouseScenarios = scenarioResult.scenarios.some((scenario) => scenario.coupleMode !== 'single')
-  // 申報組合 + 配偶計稅方式 (couple only) + 股利申報方式 (conditional) + 最終稅額 + chevron
+  // 申報組合 + 配偶計稅方式 (couple only) + 股利申報方式 (conditional) + 應繳納稅額 + chevron
   const colCount = 3 + (hasSpouseScenarios ? 1 : 0) + (scenarioResult.hasDividend ? 1 : 0)
 
   const dialog = (
@@ -680,7 +680,7 @@ function TaxScenarioCombinationsDialog({
                     onClick={() => handleSort('finalTax')}
                     className="group sticky top-0 z-20 border-b border-gray-200 bg-gray-50 px-4 py-2.5 text-right font-medium cursor-pointer select-none first:rounded-tl-xl last:rounded-tr-xl focus:outline-none hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   >
-                    最終稅額<SortIndicator col="finalTax" sortCol={sortCol} sortDir={sortDir} />
+                    應繳納稅額<SortIndicator col="finalTax" sortCol={sortCol} sortDir={sortDir} />
                   </th>
                     <th className="sticky top-0 z-20 w-9 border-b border-gray-200 bg-gray-50 px-2 py-2.5 first:rounded-tl-xl last:rounded-tr-xl" />
                   </tr>
@@ -871,6 +871,29 @@ interface TaxResultBodyProps {
   onOpenScenarioDialog?: () => void
 }
 
+function IncompleteTaxHint() {
+  return (
+    <div
+      data-testid="tax-result-incomplete-hint"
+      className="py-2 flex flex-col items-center justify-center gap-2 px-3 text-center"
+    >
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        className="shrink-0 text-gray-300"
+        fill="currentColor"
+      >
+        <path d="M12 2.75l2.855 5.786 6.386.929-4.62 4.504 1.091 6.36L12 17.326l-5.712 3.003 1.091-6.36-4.62-4.504 6.386-.929L12 2.75z" />
+      </svg>
+      <p className="text-base leading-relaxed text-muted">
+        填寫完畢後，將推薦稅額組合
+      </p>
+    </div>
+  )
+}
+
 function TaxSummaryBody({
   grossIncome,
   exemptionAmount,
@@ -966,14 +989,8 @@ function TaxSummaryBody({
 function TaxResultBody({ taxAmount, taxScenarioResult, onOpenScenarioDialog }: TaxResultBodyProps) {
   return (
     <CardBody variant="summary">
-      <div
-        className={`rounded-xl border px-3 py-2.5 transition-all ${
-          taxAmount !== null
-            ? 'border-blue-200 bg-blue-50'
-            : 'border-dashed border-gray-200 bg-gray-50'
-        }`}
-      >
-        {taxScenarioResult && (
+      <div className="pb-2.5 pt-0.5 transition-all">
+        {taxScenarioResult && onOpenScenarioDialog && (
           <div className="mb-1.5 text-base text-blue-800">
             {taxScenarioResult.scenarios.length > 1 && (
               <span className="font-semibold">推薦：</span>
@@ -981,22 +998,22 @@ function TaxResultBody({ taxAmount, taxScenarioResult, onOpenScenarioDialog }: T
             <span className="font-semibold">{displayScenarioTitle(taxScenarioResult.bestScenario.title)}</span>
           </div>
         )}
-        <div className="flex items-center justify-between gap-2">
-          <span className={`text-base font-semibold ${taxAmount !== null ? 'text-blue-800' : 'text-muted'}`}>
-            {taxScenarioResult ? '應繳納稅額' : '應納稅額'}
-          </span>
-          {taxAmount !== null ? (
+        {taxAmount !== null ? (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-base font-semibold text-blue-800">
+              {taxScenarioResult ? '應繳納稅額' : '應納稅額'}
+            </span>
             <span className="text-base font-bold tabular-nums text-blue-700">{fmt(taxAmount)} 元</span>
-          ) : (
-            <span className="text-base text-muted">待計算</span>
-          )}
-        </div>
+          </div>
+        ) : (
+          <IncompleteTaxHint />
+        )}
         {taxScenarioResult && onOpenScenarioDialog && (
-          <div className="mt-1.5">
+          <div className="mt-2.5">
             <button
               type="button"
               onClick={onOpenScenarioDialog}
-              className="inline-flex w-full items-center justify-center rounded-lg border border-blue-200 bg-white px-2.5 py-1 text-sm font-medium text-blue-700 hover:bg-blue-100"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-gray-300 bg-white px-2.5 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
               查看所有稅額組合
             </button>

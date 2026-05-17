@@ -437,6 +437,13 @@ describe('ChecklistResult standard vs itemized filing reminder panel', () => {
     expect(summary).not.toContain('所得淨額')
   })
 
+  it('shows incomplete tax hint with finalized recommendation copy when tax cannot be calculated yet', () => {
+    const html = renderResult(['salary_income'])
+    expect(html).toContain('data-testid="tax-result-incomplete-hint"')
+    expect(html).toContain('填寫完畢後，將推薦稅額組合')
+    expect(html).not.toContain('待計算')
+  })
+
   it('shows overseas income amount without including overseas tax paid in summary', () => {
     const html = renderResult(['salary_income', 'overseas_income'], {
       'overseas-income-amt': {
@@ -1158,7 +1165,7 @@ describe('DeductionCard inline input fields', () => {
     expect(html).toContain('aria-pressed="true"')
   })
 
-  it('renders exemption inputs as four compact rows with native radio controls', () => {
+  it('renders exemption inputs with stacked age rows and a single dependent heading', () => {
     const html = renderToStaticMarkup(
       createElement(DeductionCard, {
         item: makeItem({ id: 'exemption-general' }),
@@ -1176,9 +1183,12 @@ describe('DeductionCard inline input fields', () => {
     expect(html).toContain('name="exemption-general-spouse_age_band"')
     expect(html).toContain('checked=""')
     expect(html).toContain('peer-focus-visible:ring-2')
+    expect(html).toContain('data-testid="card-choice-exemption-general-self_age_band"')
+    expect(html).toContain('data-testid="card-choice-exemption-general-spouse_age_band"')
     expect(html).toContain('本人年齡')
     expect(html).toContain('配偶年齡')
     expect(html).toContain('其他親屬')
+    expect((html.match(/其他親屬/g) ?? []).length).toBe(1)
     expect(html).toContain('data-testid="card-input-exemption-general-exemption_under70_count"')
     expect(html).toContain('data-testid="card-input-exemption-general-exemption_over70_count"')
     expect(html).not.toContain('一般免稅額人數（未滿 70 歲）')
