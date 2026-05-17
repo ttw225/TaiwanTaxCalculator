@@ -12,7 +12,8 @@
 | [`tests/foundation.test.ts`](../tests/foundation.test.ts) | `numbers_2026.json`, `getNumber`, `getBrackets`, `readLocal` / `writeLocal` / `removeLocal` |
 | [`tests/grossIncome.test.ts`](../tests/grossIncome.test.ts) | [`grossIncome.ts`](../src/lib/grossIncome.ts): cap, per-person deduction/net, legacy salary parsing, shared income participants, explicit salary vs default-zero non-salary income |
 | [`tests/generalDeductionEffective.test.ts`](../tests/generalDeductionEffective.test.ts) | `resolveGeneralDeduction` + `getItemizedItemAmount` (includes itemized calc context: donation cap vs gross income, mortgage vs savings-investment dependency) |
-| [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown`, `DeductionCard` (including exemption native radios) |
+| [`tests/checklist.test.ts`](../tests/checklist.test.ts) | Situation filtering, `groupByCategory`, content integrity, traceability UI, standard/itemized panel, export / `formatChecklistMarkdown` (unit cases), `DeductionCard` (including exemption native radios) |
+| [`tests/exportChecklistFixtures.test.ts`](../tests/exportChecklistFixtures.test.ts) | `formatChecklistMarkdown` end-to-end via [`tests/fixtures/exportChecklist/`](../tests/fixtures/exportChecklist/) — **full** (married + dividend + overseas + AMT), **single**, **partial** (待填寫) |
 | [`tests/situation-selection-storage.test.tsx`](../tests/situation-selection-storage.test.tsx) | Storage key with `BASE_URL`, load/save, App clear integration |
 | [`tests/situation-single-source-flow.test.tsx`](../tests/situation-single-source-flow.test.tsx) | App flows: intro vs selecting when selection exists but not generated, add modal, scroll target, selection-driven add/remove, non-removable cards, remove dialog copy (`移除 {itemTitle}` title, `已填寫的資料將一併清除。`, last-card `因為這是最後一張項目，回到選擇頁時也會清除：免稅額。` when exemption had input), **last removable card** removes without dialog when target and exemption are empty, full reset after last removable card (selection + inputs + view state), tax summary dialogs (formula / rules / combinations), **試算規則** copy (五種計稅方式 list, 28% 分開計稅 prose, AMT threshold lines, 推薦 disclaimer, eTax `tax-saving-manual` footer link — not scenario formula dump), recommendation prefix only when multiple scenarios, AMT copy gated on overseas income, legacy key removal |
 | [`tests/taxScenarios.test.ts`](../tests/taxScenarios.test.ts) | [`taxScenarios.ts`](../src/lib/taxScenarios.ts): `calcTaxScenarios`, `hasOverseasIncome` / `hasAmt`, AMT formula lines vs zero overseas income, official couple goldens |
@@ -31,6 +32,13 @@
 - **Categories**: order `gross_income` → `overseas_income` → `exemptions` → `general_deductions` → `special_deductions`; gross income source cards remain in salary → dividends → interest → other order.
 - **Situations**: count **15 public situations**; every public `SituationId` has at least one checklist item; `SITUATION_GROUPS` union equals public ids, no duplicates, fixed subgroup ordering tests. Hidden derived `savings_investment` is tested through interest-income linkage.
 - **Sources**: every item has `source_refs`, `why_it_matters`; `source_id` pattern; export markdown excludes internal fields like raw `source_id`.
+- **Markdown export** (`formatChecklistMarkdown`):
+  - Header uses **`本文件產生時間`** (not legacy `已選情境數` / `項目數` / `產生時間`).
+  - **`## 填寫摘要`** matches sidebar rows; summary omits 基本生活費差額 and overseas 已繳國外稅額.
+  - **`## 試算結果`**: 推薦組合 + 應繳納稅額; no “second-best savings” line; pending copy when not computable.
+  - **`## 所有申報組合`**: scenarios sorted by `finalTax` asc; **`★ 推薦`** only when multiple scenarios; per-scenario **計算過程**; 配偶計稅方式 / 股利申報方式 rows when applicable.
+  - Site banner/footer from `checklistCardCopy`; privacy blockquote (瀏覽器中產生 / 請自行保管).
+  - Partial fixture: **`待填寫`**, no 所有申報組合 when tax not computable.
 - **AMT**: threshold **1_000_000** inclusive boundary; summary scenario tests cover the 7,500,000 basic-income deduction, 20% basic-tax rate, overseas-tax credit, and supplement. **Combinations dialog** header never shows **AMT**; with positive overseas income, **AMT** appears only after expanding a scenario row (`ScenarioFormulaSections`, **AMT 計算**). `taxScenarios` tests assert `hasOverseasIncome` / `hasAmt`, `formulaSections`, and derived `formulas` (flat rows via **`deriveFormulaLinesFromSections`**).
 - **Basic living expense difference**: tax scenario tests cover positive differences reducing taxable income; zero/negative differences remain floored at 0 by the existing baseline examples.
 - **Itemized dependencies**:

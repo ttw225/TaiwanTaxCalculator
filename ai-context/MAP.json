@@ -46,7 +46,7 @@
     {
       "id": "ui-components",
       "file": "10-ui-components.md",
-      "keywords": ["ChecklistResult", "DeductionCard", "SiteHeader", "print", "a11y"]
+      "keywords": ["ChecklistResult", "DeductionCard", "SiteHeader", "print", "a11y", "exportChecklist", "formatChecklistMarkdown", "PrintScenarioCombinations"]
     },
     {
       "id": "storage",
@@ -56,12 +56,12 @@
     {
       "id": "styling",
       "file": "12-styling-and-print.md",
-      "keywords": ["index.css", "Tailwind", "print", "no-print", "A4"]
+      "keywords": ["index.css", "Tailwind", "print", "no-print", "print-only", "A4"]
     },
     {
       "id": "testing",
       "file": "13-testing.md",
-      "keywords": ["Vitest", "jsdom", "tests/", "invariants", "mock"]
+      "keywords": ["Vitest", "jsdom", "tests/", "invariants", "mock", "exportChecklistFixtures", "formatChecklistMarkdown"]
     },
     {
       "id": "ci-deploy",
