@@ -14,8 +14,8 @@
 /favicon.svg
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
 
-# Hero SVG used for LCP: 30-day cache
-/Hero.svg
+# Hero image variants used for LCP: 30-day cache
+/Hero.*
   Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
 
 # NOTE: HTML cache headers omitted — `_headers` matches request URLs, not file
