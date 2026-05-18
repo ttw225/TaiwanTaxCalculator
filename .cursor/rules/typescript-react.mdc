@@ -1,0 +1,13 @@
+---
+description: TypeScript and React conventions for this Vite app
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# TypeScript / React
+
+- Follow existing patterns in nearby files (imports, component structure, hooks).
+- Use TypeScript types from `src/types/` and domain helpers from `src/lib/` instead of duplicating shapes.
+- ESLint flat config is `eslint.config.js` (recommended TS + React Hooks + React Refresh for Vite).
+- Prefer functional components; match formatting and naming already used in `src/components/`.
+- For content-driven UI, read from `src/content/` and config from `src/lib/siteConfig.ts` rather than hardcoding site-wide labels.

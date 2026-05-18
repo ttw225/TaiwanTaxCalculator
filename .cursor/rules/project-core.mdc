@@ -1,0 +1,13 @@
+---
+description: Core project context, language, verification, tax-content boundaries
+alwaysApply: true
+---
+
+# tax-web — core
+
+- Public Vite + React 19 + TypeScript frontend for Taiwan individual income tax guidance; details in root `AGENTS.md`.
+- **User-facing strings**: Traditional Chinese (zh-TW) unless the product adds another locale.
+- **Tax numbers and brackets**: use `src/data/numbers_2026.json` via `src/lib/numbers.ts` (or existing content); do not invent rates, thresholds, or filing dates.
+- After meaningful logic or schema changes, prefer running `pnpm test` and `pnpm lint`.
+- Do not commit private research text or paste it into public issues/PRs.
+- Optional maintainer-only paths for the private `tax` repo belong in root **`AGENTS.local.md`** (gitignored); see **`AGENTS.md`** for policy.

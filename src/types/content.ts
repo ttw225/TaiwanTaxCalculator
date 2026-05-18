@@ -1,0 +1,91 @@
+export type SituationId =
+  | 'salary_income'
+  | 'married'
+  | 'disability'
+  | 'long_term_care'
+  | 'donations'
+  | 'insurance'
+  | 'medical_expenses'
+  | 'mortgage_interest'
+  | 'rent'
+  | 'childcare'
+  | 'education_tuition'
+  | 'savings_investment'
+  | 'dividends'
+  | 'interest_income'
+  | 'other_income'
+  | 'overseas_income'
+
+export interface Situation {
+  id: SituationId
+  label: string
+  description: string
+}
+
+export interface SituationGroup {
+  id: string
+  title: string
+  description: string
+  situationIds: SituationId[]
+}
+
+export type CategoryId =
+  | 'gross_income'
+  | 'overseas_income'
+  | 'exemptions'
+  | 'general_deductions'
+  | 'special_deductions'
+
+export interface SourceRef {
+  source_id: string
+  label: string
+  authority?: string
+  url?: string
+}
+
+export interface ChecklistItem {
+  id: string
+  title: string
+  category: CategoryId
+  situations: SituationId[]
+  why_it_matters: string
+  eligibility_cues: string[]
+  documents_to_prepare: string[]
+  source_refs: SourceRef[]
+  /** When true, card footer shows the standard wealth-clause / case notice. */
+  show_wealth_clause_notice: boolean
+}
+
+export interface CardInlineField {
+  id: string
+  label: string
+  type: 'number' | 'choice'
+  unit: string
+  capKey: string | null
+  /** For choice fields: finite, explicit values shown as a segmented control. */
+  choices?: { value: string; label: string }[]
+  /** If set: field shows contextual limit feedback that cannot be represented by a static capKey. */
+  feedbackRule?: 'qualified-donation' | 'mortgage-interest' | 'unlimited'
+  /** If set: user enters a count; deduction = count × getNumber(perUnitKey) */
+  perUnitKey?: string
+  /** If set: first unit uses firstKey rate, additional units use additionalKey rate */
+  splitPerUnitKeys?: { firstKey: string; additionalKey: string }
+  /** Optional upper bound enforced in the input element */
+  max?: number
+  /** Like salary income: raw string, no 「（選填）」 label suffix; placeholder 輸入金額 */
+  salaryLikeInput?: boolean
+  /** Like dividend/interest: empty storage shows 0 in the input without writing to map */
+  implicitZeroWhenEmpty?: boolean
+}
+
+export interface CardInlineFeedbackContext {
+  grossIncomeAmount: number | null
+  dividendMergedGrossIncomeAmount: number | null
+  dividendSeparateGrossIncomeAmount: number | null
+  savingsInvestmentEnabled: boolean
+  savingsInvestmentDeductionAmount: number | null
+  onScrollToSection?: (categoryId: string) => void
+  onScrollToItem?: (itemId: string) => void
+}
+
+export type CardInputMap = Record<string, Record<string, string>>

@@ -1,0 +1,228 @@
+name: GitHub Pages previews
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-dev:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-previews
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build dev test site
+        run: pnpm build
+        env:
+          VITE_BASE_PATH: /TaiwanTaxCalculator/dev/
+          VITE_DEPLOY_CONTEXT: dev
+          VITE_DEPLOY_LABEL: DEV
+          VITE_COMMIT_SHA: ${{ github.sha }}
+
+      - name: Deploy dev test site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          remote_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git clone --branch gh-pages --single-branch "$remote_url" pages-worktree
+          else
+            mkdir pages-worktree
+            git -C pages-worktree init
+            git -C pages-worktree checkout -b gh-pages
+            git -C pages-worktree remote add origin "$remote_url"
+          fi
+          git -C pages-worktree config user.name "github-actions[bot]"
+          git -C pages-worktree config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p pages-worktree/dev
+          rm -rf pages-worktree/dev
+          mkdir -p pages-worktree/dev
+          cp -R dist/client/. pages-worktree/dev/
+          touch pages-worktree/.nojekyll
+          bash .github/scripts/render-pages-index.sh pages-worktree
+          cd pages-worktree
+          git add .nojekyll index.html 404.html dev
+          if git diff --cached --quiet; then
+            echo "No dev test site changes to deploy."
+          else
+            git commit -m "deploy: update dev test site"
+            git push origin HEAD:gh-pages
+          fi
+
+  deploy-pr-preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-previews
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build PR preview
+        run: pnpm build
+        env:
+          VITE_BASE_PATH: /TaiwanTaxCalculator/pr-preview/pr-${{ github.event.pull_request.number }}/
+          VITE_DEPLOY_CONTEXT: pr-preview
+          VITE_PR_NUMBER: ${{ github.event.pull_request.number }}
+          VITE_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+
+      - name: Deploy PR preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          remote_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git clone --branch gh-pages --single-branch "$remote_url" pages-worktree
+          else
+            mkdir pages-worktree
+            git -C pages-worktree init
+            git -C pages-worktree checkout -b gh-pages
+            git -C pages-worktree remote add origin "$remote_url"
+          fi
+          git -C pages-worktree config user.name "github-actions[bot]"
+          git -C pages-worktree config user.email "github-actions[bot]@users.noreply.github.com"
+          preview_path="pages-worktree/pr-preview/pr-${{ github.event.pull_request.number }}"
+          mkdir -p "$preview_path"
+          rm -rf "$preview_path"
+          mkdir -p "$preview_path"
+          cp -R dist/client/. "$preview_path/"
+          touch pages-worktree/.nojekyll
+          bash .github/scripts/render-pages-index.sh pages-worktree
+          cd pages-worktree
+          git add .nojekyll index.html 404.html pr-preview/pr-${{ github.event.pull_request.number }}
+          if git diff --cached --quiet; then
+            echo "No PR preview changes to deploy."
+          else
+            git commit -m "deploy: update pr-${{ github.event.pull_request.number }} preview"
+            git push origin HEAD:gh-pages
+          fi
+
+      - name: Comment preview URL
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const marker = '<!-- tax-web-pr-preview -->'
+            const previewUrl = `https://${context.repo.owner}.github.io/TaiwanTaxCalculator/pr-preview/pr-${context.issue.number}/`
+            const body = `${marker}\nPR preview: ${previewUrl}`
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            })
+            const existing = comments.find((comment) =>
+              comment.user.type === 'Bot' && comment.body.includes(marker)
+            )
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              })
+            }
+
+  cleanup-pr-preview:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-previews
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: dev
+
+      - name: Remove PR preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          remote_url="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if ! git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            echo "No gh-pages branch exists; nothing to clean up."
+            exit 0
+          fi
+          git clone --branch gh-pages --single-branch "$remote_url" pages-worktree
+          git -C pages-worktree config user.name "github-actions[bot]"
+          git -C pages-worktree config user.email "github-actions[bot]@users.noreply.github.com"
+          preview_path="pages-worktree/pr-preview/pr-${{ github.event.pull_request.number }}"
+          if [ ! -d "$preview_path" ]; then
+            echo "No PR preview directory exists; nothing to clean up."
+            exit 0
+          fi
+          rm -rf "$preview_path"
+          bash .github/scripts/render-pages-index.sh pages-worktree
+          cd pages-worktree
+          git add -A index.html 404.html pr-preview
+          if git diff --cached --quiet; then
+            echo "No PR preview changes to clean up."
+          else
+            git commit -m "deploy: remove pr-${{ github.event.pull_request.number }} preview"
+            git push origin HEAD:gh-pages
+          fi

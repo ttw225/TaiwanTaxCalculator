@@ -1,0 +1,45 @@
+{
+  "selection": {
+    "selected": [
+      "salary_income",
+      "interest_income",
+      "savings_investment",
+      "other_income",
+      "dividends",
+      "medical_expenses",
+      "education_tuition",
+      "long_term_care",
+      "childcare",
+      "rent"
+    ]
+  },
+  "inputs": {
+    "cardInputMap": {
+      "dividend-income": {
+        "self_income": "3000"
+      },
+      "income-participants": {
+        "persons_json": "[{\"id\":\"extra-0\",\"label\":\"親屬1\"}]"
+      },
+      "other-income": {
+        "persons_json": "[{\"id\":\"extra-0\",\"income\":600}]"
+      },
+      "exemption-general": {
+        "self_age_band": "under_70",
+        "exemption_over70_count": "2"
+      },
+      "medical-deduction": {
+        "medical_amount": "100000"
+      },
+      "childcare-deduction": {
+        "childcare_count": "1"
+      },
+      "long-term-care-deduction": {
+        "long_term_care_count": "1"
+      },
+      "rent-deduction": {
+        "rent_amount": "200000"
+      }
+    }
+  }
+}

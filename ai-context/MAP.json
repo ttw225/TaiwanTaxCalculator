@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "generated": "manual",
+  "repository": "tax-web",
+  "topics": [
+    {
+      "id": "overview",
+      "file": "01-overview.md",
+      "keywords": ["product", "deployment", "Cloudflare", "GitHub Pages", "scope"]
+    },
+    {
+      "id": "stack",
+      "file": "02-stack-and-tooling.md",
+      "keywords": ["Vite", "React", "TypeScript", "Tailwind", "Vitest", "ESLint", "pnpm", "Node"]
+    },
+    {
+      "id": "layout",
+      "file": "03-repo-layout.md",
+      "keywords": ["directory", "src", "tests", "public", "github", "scripts", "functions", "introduction-image", "avif", "webp", "Hero.svg", "siteConfig", "introImages", "homeHeroImage"]
+    },
+    {
+      "id": "domain-model",
+      "file": "04-domain-model.md",
+      "keywords": ["SituationId", "ChecklistItem", "CategoryId", "SourceRef", "CardInlineField", "income participants"]
+    },
+    {
+      "id": "tax-numbers",
+      "file": "05-tax-numbers.md",
+      "keywords": ["numbers_2026.json", "getNumber", "getBrackets", "TWD", "brackets"]
+    },
+    {
+      "id": "content",
+      "file": "06-content-modules.md",
+      "keywords": ["deductions.ts", "CHECKLIST_ITEMS", "SITUATIONS", "inlineFields", "interest income", "other income"]
+    },
+    {
+      "id": "app-flow",
+      "file": "07-app-flow-and-state.md",
+      "keywords": ["ChecklistFlow", "routes", "checklist/start", "checklist", "route state", "snapshot", "removal", "scroll"]
+    },
+    {
+      "id": "checklist-engine",
+      "file": "08-checklist-engine.md",
+      "keywords": ["filterBySituations", "groupByCategory", "CATEGORY_LABELS", "CategoryGroup", "married rule"]
+    },
+    {
+      "id": "ui-components",
+      "file": "10-ui-components.md",
+      "keywords": ["ChecklistResult", "DeductionCard", "SiteHeader", "print", "a11y", "exportChecklist", "formatChecklistMarkdown", "PrintScenarioCombinations"]
+    },
+    {
+      "id": "storage",
+      "file": "11-storage-and-persistence.md",
+      "keywords": ["localStorage", "situationSelection", "checklistSnapshot", "route state", "BASE_URL", "storage event"]
+    },
+    {
+      "id": "styling",
+      "file": "12-styling-and-print.md",
+      "keywords": ["index.css", "Tailwind", "print", "no-print", "print-only", "A4"]
+    },
+    {
+      "id": "testing",
+      "file": "13-testing.md",
+      "keywords": ["Vitest", "jsdom", "tests/", "invariants", "mock", "exportChecklistFixtures", "formatChecklistMarkdown"]
+    },
+    {
+      "id": "ci-deploy",
+      "file": "14-ci-and-deploy.md",
+      "keywords": ["ci.yml", "pages-preview", "VITE_BASE_PATH", "gh-pages", "Cloudflare Pages", "wrangler", "_headers", "_redirects", "functions", "middleware", "noindex", "preview isolation"]
+    },
+    {
+      "id": "release",
+      "file": "15-release-process.md",
+      "keywords": ["commitizen", "bumpversion", "cz.toml", "main", "dev"]
+    },
+    {
+      "id": "policies",
+      "file": "16-conventions-and-policies.md",
+      "keywords": ["zh-TW", "AGENTS", "cursor rules", "no invented numbers"]
+    },
+    {
+      "id": "update-protocol",
+      "file": "17-update-protocol.md",
+      "keywords": ["documentation", "sync", "PR checklist", "ai-context"]
+    }
+  ]
+}

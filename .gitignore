@@ -3,8 +3,10 @@ node_modules/
 
 # Build output
 dist/
+dist-ssr/
 build/
 coverage/
+.react-router/
 
 # Environment
 .env
@@ -12,14 +14,26 @@ coverage/
 !.env.example
 
 # Logs
+logs/
 *.log
 npm-debug.log*
-pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# OS and editor
-.DS_Store
+# Local machine files / maintainer overlays (paths, secrets — do not commit)
+*.local
+*.local.md
+.claude/worktrees/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
 .idea/
-.vscode/
-
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

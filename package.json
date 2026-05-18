@@ -1,0 +1,54 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@11.0.8+sha512.4c4097e1dd2d42372c4e7fa5a791ff28fc75a484c7ac192e64b1df0fdef17594ba982f9b4fed9adfb3c757846f565b799b2763fb3733d1de1bcb82cf46684912",
+  "engines": {
+    "node": "^24.0.0",
+    "pnpm": "^11.0.0"
+  },
+  "scripts": {
+    "dev": "react-router dev",
+    "dev:clean": "rm -rf node_modules/.vite && react-router dev",
+    "build": "react-router build && tsx scripts/generate-sitemap.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "test": "vitest run -c vitest.config.ts",
+    "test:watch": "vitest -c vitest.config.ts",
+    "lint": "eslint .",
+    "preview": "vite preview --outDir dist/client"
+  },
+  "dependencies": {
+    "@react-router/node": "^7.15.1",
+    "@tailwindcss/vite": "^4.2.4",
+    "isbot": "^5",
+    "lucide-react": "^1.14.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router": "^7.15.1",
+    "tailwindcss": "^4.2.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260516.1",
+    "@eslint/js": "^10.0.1",
+    "@react-router/dev": "^7.15.1",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/ui": "^4.1.5",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "jsdom": "^29.1.0",
+    "sharp": "^0.34.5",
+    "svgo": "^4.0.1",
+    "tsx": "^4.22.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.2",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
+  }
+}
