@@ -1,3 +1,9 @@
+## 0.1.3 (2026-05-18)
+
+### Fix
+
+- **FormulaRow**: wrap with flex-wrap + atomic groups to prevent mobile overflow
+
 ## 0.1.2 (2026-05-18)
 
 ### Fix
