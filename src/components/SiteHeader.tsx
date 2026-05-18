@@ -36,7 +36,7 @@ export function SiteHeader({ currentFeatureId, onHome, onNavClick }: Props) {
     <>
     {menuOpen && (
       <div
-        className="md:hidden fixed inset-0 z-40 bg-black/30"
+        className="md:hidden fixed inset-0 z-[45] bg-black/30"
         aria-hidden="true"
         onClick={() => setMenuOpen(false)}
       />

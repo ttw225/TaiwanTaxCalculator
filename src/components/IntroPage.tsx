@@ -177,7 +177,7 @@ export function IntroPage({ onStart }: Props) {
                 </svg>
                 GitHub
               </a>
-              ，內容透明可查。
+              ，內容透明公開。
             </p>
             <div className="flex items-center gap-4 flex-wrap">
               <button
