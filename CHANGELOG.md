@@ -1,3 +1,9 @@
+## 0.1.1 (2026-05-18)
+
+### Fix
+
+- **deploy**: allow workerd build script for wrangler in pnpm
+
 ## 0.1.0 (2026-05-18)
 
 ### Feat
