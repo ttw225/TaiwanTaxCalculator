@@ -1123,7 +1123,7 @@ export function ChecklistResult({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 pt-2 pb-8 lg:pt-8 print-container">
+    <div className="mx-auto max-w-5xl px-4 pt-0 pb-8 lg:pt-6 print-container">
       <AddSituationModal
         groups={addableSituationGroups}
         isOpen={isAddModalOpen}
@@ -1149,12 +1149,12 @@ export function ChecklistResult({
 
       <div
         ref={stickyHeadingRef}
-        className="checklist-page-header sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1 backdrop-blur will-change-transform"
+        className="checklist-page-header sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-8 pb-1 backdrop-blur will-change-transform lg:pt-2"
       >
         <PageHeading
           title="節稅試算清單"
           description={`根據您選擇的 ${totalSelected} 項情況，找到 ${totalItems} 個值得確認的項目。`}
-          className="[&_p]:mb-3 [&_p]:text-sm sm:[&_p]:text-base [&_.no-print]:mt-2"
+          className="[&_.no-print]:-mt-2 sm:[&_.no-print]:mt-0"
           actions={(
             <div className="no-print flex items-center gap-3">
               <button
