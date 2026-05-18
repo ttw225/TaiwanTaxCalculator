@@ -668,14 +668,14 @@ export function ChecklistResult({
       }
     }
 
+    const headerElAtSetup = stickyHeadingRef.current
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onResize)
       if (rafId !== null) cancelAnimationFrame(rafId)
-      const headerEl = stickyHeadingRef.current
-      if (headerEl) headerEl.style.transform = ''
+      if (headerElAtSetup) headerElAtSetup.style.transform = ''
     }
   }, [exportMenuOpen])
 
