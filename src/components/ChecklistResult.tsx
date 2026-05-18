@@ -1177,7 +1177,7 @@ export function ChecklistResult({
                     匯出
                   </button>
                   {exportMenuOpen && (
-                    <div className={['absolute right-0 z-10 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg', exportMenuDirection === 'above' ? 'bottom-full mb-2' : 'top-full mt-2'].join(' ')}>
+                    <div className={['absolute left-0 sm:left-auto sm:right-0 z-10 w-44 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg', exportMenuDirection === 'above' ? 'bottom-full mb-2' : 'top-full mt-2'].join(' ')}>
                       <button
                         type="button"
                         onClick={() => {
