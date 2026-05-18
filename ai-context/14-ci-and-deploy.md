@@ -4,7 +4,7 @@
 
 | Surface | URL | How deployed |
 |---------|-----|-------------|
-| **Production** | `https://taiwantaxcalculator.com` (apex + `www`) | Cloudflare Pages — auto-deploy on push to `main` |
+| **Production** | `https://taiwantaxcalculator.com` (apex + `www`) | GitHub Actions `release.yml` — commitizen 升版後 `wrangler pages deploy` |
 | **Dev test site** | `https://<org>.github.io/TaiwanTaxCalculator/dev/` | GitHub Actions `pages-preview.yml` → `gh-pages` branch |
 | **PR previews** | `https://<org>.github.io/TaiwanTaxCalculator/pr-preview/pr-N/` | Same workflow; cleaned up on PR close |
 
@@ -14,11 +14,13 @@ Canonical URL is always the apex (`https://taiwantaxcalculator.com/`). `www` is 
 
 ## Cloudflare Pages (production)
 
+部署由 GitHub Actions [`release.yml`](../.github/workflows/release.yml) 用 `wrangler pages deploy` 推送 — Cloudflare 端 **不再連 Git**（dashboard → Builds & deployments → Production branch automatic deployments 已關閉）。詳見下方「GitHub Actions CI → `release.yml`」。
+
 ### Build config
 
-- **Build command**: `pnpm build` (`react-router build && tsx scripts/generate-sitemap.ts`)
+- **Build command**: `pnpm build` (`react-router build && tsx scripts/generate-sitemap.ts`)，在 Actions runner 上跑
 - **Output directory**: `dist/client/` (set in [`wrangler.toml`](../wrangler.toml): `pages_build_output_dir = "dist/client"`)
-- **Node version**: 24 (set in Cloudflare Pages dashboard or `NODE_VERSION` env var)
+- **Node version**: 24（在 `release.yml` 中由 `actions/setup-node` + `node-version-file: package.json` 解析）
 
 ### Static file handling
 
@@ -89,6 +91,21 @@ Run these once after the production domain serves real content:
 - **Triggers**: `pull_request`, `push` to `main` / `dev`, `workflow_dispatch`.
 - **Permissions**: `contents: read`.
 - **Job** `check` on `ubuntu-latest`: checkout → pnpm setup → Node **24** with pnpm cache → `pnpm install --frozen-lockfile` → `pnpm typecheck` → `pnpm lint` → `pnpm test` → `pnpm build`.
+
+### `release.yml`
+
+[`release.yml`](../.github/workflows/release.yml)
+
+- **Triggers**: `push` to `main`, `workflow_dispatch`.
+- **Top-level permissions**: `contents: read`（job 層再各自提升）。
+- **Concurrency**: group `release-main`, `cancel-in-progress: false` — 避免兩個 PR 同時 merge 時 bump push race。
+
+兩個 jobs：
+
+1. **`bump-version`**（permissions `contents: write`）：只在 push 且 commit message 不是 `bump:` / `auto:` 開頭時跑。用 [`commitizen-tools/commitizen-action`](https://github.com/commitizen-tools/commitizen-action)（pin 到 SHA）依 conventional commits 升版、寫 changelog、push `bump: x.y.z` commit 回 main，並用 `ncipollo/release-action` 建 GitHub Release。透過 SHA 比對輸出 `bumped` (true/false) 與升版後的 `sha`。需要 `secrets.PERSONAL_ACCESS_TOKEN`。
+2. **`deploy`**（`needs: bump-version`）：當 `workflow_dispatch` 或 `bumped == 'true'` 時跑。checkout 升版後的 SHA（手動觸發時 fallback 到 `github.sha`），跑 `pnpm install` + `pnpm build`，用 [`cloudflare/wrangler-action@v3`](https://github.com/cloudflare/wrangler-action) 執行 `wrangler pages deploy dist/client --project-name=taiwan-tax-calculator --branch=main`。需要 `secrets.CLOUDFLARE_API_TOKEN`（Pages:Edit 最小權限）與 `secrets.CLOUDFLARE_ACCOUNT_ID`。
+
+「沒升版時不部署」是刻意的：純 `chore:` / `docs:` PR 不會 bump，也不會出新版到線上。需要手動補部署時走 `workflow_dispatch`。
 
 ### `pages-preview.yml`
 

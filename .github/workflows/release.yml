@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  bump-version:
+    if: github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'bump:') && !startsWith(github.event.head_commit.message, 'auto:')
+    runs-on: ubuntu-latest
+    name: "Bump version and create changelog with commitizen"
+    permissions:
+      contents: write
+    outputs:
+      bumped: ${{ steps.detect.outputs.bumped }}
+      sha: ${{ steps.detect.outputs.sha }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+        with:
+          token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+      - name: Record HEAD before bump
+        id: before
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Create bump and changelog
+        uses: commitizen-tools/commitizen-action@338bbd841b75aaee6bf5340e1fa12f6ab58ff9ff  # 0.27.1
+        with:
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          changelog_increment_filename: body.md
+      - name: Detect whether HEAD advanced
+        id: detect
+        run: |
+          git fetch origin main
+          AFTER=$(git rev-parse origin/main)
+          if [ "$AFTER" != "${{ steps.before.outputs.sha }}" ]; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+            echo "sha=$AFTER" >> "$GITHUB_OUTPUT"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Release
+        if: steps.detect.outputs.bumped == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.REVISION }}
+          bodyFile: "body.md"
+          skipIfReleaseExists: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    needs: bump-version
+    if: |
+      always() && (
+        github.event_name == 'workflow_dispatch' ||
+        needs.bump-version.outputs.bumped == 'true'
+      )
+    runs-on: ubuntu-latest
+    name: "Deploy to Cloudflare Pages"
+    steps:
+      - name: Check out
+        uses: actions/checkout@v6
+        with:
+          # Production only ships main: manual dispatch always deploys main HEAD;
+          # auto path deploys the post-bump SHA captured by bump-version.
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || needs.bump-version.outputs.sha }}
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/client --project-name=taiwan-tax-calculator --branch=main
