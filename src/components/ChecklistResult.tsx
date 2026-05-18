@@ -552,6 +552,7 @@ export function ChecklistResult({
   const [exportMenuDirection, setExportMenuDirection] = useState<'above' | 'below'>('below')
   const [pendingSituationIds, setPendingSituationIds] = useState<SituationId[]>([])
   const [stickyHeadingHeight, setStickyHeadingHeight] = useState(0)
+  const programmaticScrollUntil = useRef(0)
   const stickyHeadingRef = useRef<HTMLDivElement | null>(null)
   const exportMenuRef = useRef<HTMLDivElement | null>(null)
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -568,13 +569,18 @@ export function ChecklistResult({
     return SITE_HEADER_HEIGHT + effectiveStickyHeadingHeight + CONTENT_TOP_GAP + SECTION_HEADER_BUFFER_PX
   }, [stickyHeadingHeight])
 
+  const jumpScrollTo = useCallback((y: number) => {
+    programmaticScrollUntil.current = performance.now() + 600
+    animateScrollToY(y)
+  }, [])
+
   useEffect(() => {
     if (!scrollToItemId) return
     if (scrollToItemId.startsWith('section:')) {
       const categoryId = scrollToItemId.slice('section:'.length)
       const target = sectionRefs.current[categoryId as CategoryId]
       if (target) {
-        animateScrollToY(target.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
+        jumpScrollTo(target.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
       }
       onScrollHandled?.()
       return
@@ -586,10 +592,10 @@ export function ChecklistResult({
         0,
         Math.round(target.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset()),
       )
-      animateScrollToY(targetY)
+      jumpScrollTo(targetY)
     }
     onScrollHandled?.()
-  }, [getSectionScrollOffset, onScrollHandled, scrollToItemId])
+  }, [getSectionScrollOffset, jumpScrollTo, onScrollHandled, scrollToItemId])
 
   useEffect(() => {
     function updateStickyHeadingHeight() {
@@ -607,6 +613,71 @@ export function ChecklistResult({
     window.addEventListener('resize', updateStickyHeadingHeight)
     return () => window.removeEventListener('resize', updateStickyHeadingHeight)
   }, [])
+
+  useEffect(() => {
+    const DESKTOP_MIN_WIDTH = 1024
+    let lastY = window.scrollY
+    let offset = 0
+    let rafId: number | null = null
+
+    function apply(headerEl: HTMLElement, value: number) {
+      headerEl.style.transform = value === 0 ? '' : `translateY(${value}px)`
+    }
+
+    function update() {
+      rafId = null
+      const headerEl = stickyHeadingRef.current
+      if (!headerEl) return
+
+      if (window.innerWidth >= DESKTOP_MIN_WIDTH) {
+        offset = 0
+        apply(headerEl, 0)
+        lastY = window.scrollY
+        return
+      }
+
+      const maxOffset = headerEl.offsetHeight
+      const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+      const y = Math.max(0, Math.min(window.scrollY, maxY))
+      const dy = y - lastY
+      lastY = y
+
+      const focusInHeader = headerEl.contains(document.activeElement)
+      const lockShow =
+        performance.now() < programmaticScrollUntil.current ||
+        focusInHeader ||
+        exportMenuOpen
+
+      if (lockShow) {
+        offset = 0
+      } else {
+        offset = Math.max(-maxOffset, Math.min(0, offset - dy))
+      }
+      apply(headerEl, offset)
+    }
+
+    function onScroll() {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(update)
+      }
+    }
+
+    function onResize() {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(update)
+      }
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      if (rafId !== null) cancelAnimationFrame(rafId)
+      const headerEl = stickyHeadingRef.current
+      if (headerEl) headerEl.style.transform = ''
+    }
+  }, [exportMenuOpen])
 
   useEffect(() => {
     if (!exportMenuOpen) return
@@ -875,14 +946,14 @@ export function ChecklistResult({
   const handleScrollToSection = useCallback((categoryId: string) => {
     const el = sectionRefs.current[categoryId as CategoryId]
     if (!el) return
-    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
-  }, [getSectionScrollOffset])
+    jumpScrollTo(el.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
+  }, [getSectionScrollOffset, jumpScrollTo])
 
   const handleScrollToItem = useCallback((itemId: string) => {
     const el = itemRefs.current[itemId]
     if (!el) return
-    animateScrollToY(el.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
-  }, [getSectionScrollOffset])
+    jumpScrollTo(el.getBoundingClientRect().top + window.scrollY - getSectionScrollOffset())
+  }, [getSectionScrollOffset, jumpScrollTo])
 
   const itemizedCalculationContext: Partial<ItemizedCalcContext> = useMemo(
     () => ({
@@ -1052,7 +1123,7 @@ export function ChecklistResult({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 print-container">
+    <div className="mx-auto max-w-5xl px-4 pt-2 pb-8 lg:pt-8 print-container">
       <AddSituationModal
         groups={addableSituationGroups}
         isOpen={isAddModalOpen}
@@ -1078,7 +1149,7 @@ export function ChecklistResult({
 
       <div
         ref={stickyHeadingRef}
-        className="checklist-page-header sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1 backdrop-blur"
+        className="checklist-page-header sticky top-14 z-40 -mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1 backdrop-blur will-change-transform"
       >
         <PageHeading
           title="節稅試算清單"
