@@ -1,3 +1,12 @@
+## 0.1.2 (2026-05-18)
+
+### Fix
+
+- **deploy**: allow workerd build script for wrangler in pnpm
+- **hero**: avoid Safari black hero image after 404 navigation (#62)
+- **url-base**: fix github page build error (#61)
+- **deploy**: copy dist/client for gh-pages and sync ai-context
+
 ## 0.1.1 (2026-05-18)
 
 ### Fix
