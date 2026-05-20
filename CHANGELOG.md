@@ -1,3 +1,9 @@
+## 0.2.0 (2026-05-20)
+
+### Feat
+
+- **contact-email**: add contact email at footer (#74)
+
 ## 0.1.3 (2026-05-18)
 
 ### Fix
