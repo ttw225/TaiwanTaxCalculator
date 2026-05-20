@@ -1,4 +1,4 @@
-import { ClipboardList, ExternalLink } from 'lucide-react'
+import { ClipboardList, ExternalLink, Mail } from 'lucide-react'
 import { getDeployInfo } from '../lib/deployInfo'
 import { SITE_CONFIG } from '../lib/siteConfig'
 
@@ -110,6 +110,16 @@ export function SiteFooter() {
                   </span>
                 )}
               </div>
+              <p className="mt-3 text-sm text-gray-500">
+                客服信箱：
+                <a
+                  href="mailto:taiwantaxcalculator@gmail.com"
+                  className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-800 hover:underline"
+                >
+                  <Mail size={13} />
+                  taiwantaxcalculator@gmail.com
+                </a>
+              </p>
             </div>
 
             {/* Support / Buy me a coffee */}
