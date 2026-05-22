@@ -22,7 +22,7 @@ export const SITE_CONFIG = {
   // Leave empty to disable the beacon (no script tag rendered).
   cloudflareAnalyticsToken: '1c8569a4c21142b78957bd87c0652bd5',
 
-  // Buy Me a Coffee / Ko-fi URL — fill in when account is ready
+  // Buy Me a Coffee / Ko-fi URL
   buyMeCoffeeUrl: 'https://p.ecpay.com.tw/359B419',
 
   // 意見回報 Google 表單（一般用戶）
