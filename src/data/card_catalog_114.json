@@ -1,0 +1,177 @@
+{
+  "tax_year": "114",
+  "schema_version": "v1.0",
+  "generated_at": "2026-05-23",
+  "notes": "卡別目錄。只登錄出現在 tax_payment_rewards_114.json 任何 campaign 的 eligible_card_ids 中的卡別 metadata。card_id 格式：bank{bank_code}_{slug}，正規式 ^bank\\d{3}_[a-z0-9_]+$。is_generic=true 用於表示『該行該類別／網路下任一卡別』的代表條目（例如該行金融卡、該行某網路全卡別），false 用於特定卡面。",
+  "cards": [
+    {
+      "card_id": "bank005_jcb_premium",
+      "bank_code": "005",
+      "bank_name": "土地銀行",
+      "display_name_zh": "土地銀行 JCB 極緻卡",
+      "type": "credit",
+      "card_network": "JCB",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+    {
+      "card_id": "bank005_jcb_crystal",
+      "bank_code": "005",
+      "bank_name": "土地銀行",
+      "display_name_zh": "土地銀行 JCB 晶緻卡",
+      "type": "credit",
+      "card_network": "JCB",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+
+    {
+      "card_id": "bank006_world",
+      "bank_code": "006",
+      "bank_name": "合作金庫",
+      "display_name_zh": "合作金庫世界卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+    {
+      "card_id": "bank006_hilai_world",
+      "bank_code": "006",
+      "bank_name": "合作金庫",
+      "display_name_zh": "合作金庫漢來美食世界卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+
+    {
+      "card_id": "bank007_glory_plus_world",
+      "bank_code": "007",
+      "bank_name": "第一銀行",
+      "display_name_zh": "第一銀行 GLORY+ 世界卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+    {
+      "card_id": "bank007_eskyland",
+      "bank_code": "007",
+      "bank_name": "第一銀行",
+      "display_name_zh": "第一銀行義享天地聯名卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+    {
+      "card_id": "bank007_titanium_business",
+      "bank_code": "007",
+      "bank_name": "第一銀行",
+      "display_name_zh": "第一銀行鈦金商旅卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+    {
+      "card_id": "bank007_dual_currency",
+      "bank_code": "007",
+      "bank_name": "第一銀行",
+      "display_name_zh": "第一銀行雙幣卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+    {
+      "card_id": "bank007_taoyuan",
+      "bank_code": "007",
+      "bank_name": "第一銀行",
+      "display_name_zh": "第一銀行桃園卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+    {
+      "card_id": "bank007_ileo",
+      "bank_code": "007",
+      "bank_name": "第一銀行",
+      "display_name_zh": "第一銀行 iLEO 信用卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": null
+    },
+
+    {
+      "card_id": "bank013_world",
+      "bank_code": "013",
+      "bank_name": "國泰世華",
+      "display_name_zh": "國泰世華世界卡",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": false,
+      "image_url": null,
+      "notes": "回饋活動不含聯名卡。"
+    },
+    {
+      "card_id": "bank013_cube",
+      "bank_code": "013",
+      "bank_name": "國泰世華",
+      "display_name_zh": "國泰世華 CUBE 信用卡",
+      "type": "credit",
+      "card_network": null,
+      "is_generic": false,
+      "image_url": null,
+      "notes": "Level 為持卡人權益等級，非不同卡別；活動回饋對 Level 2、3 適用，細則以 campaign 內容為準。"
+    },
+
+    {
+      "card_id": "bank017_mastercard",
+      "bank_code": "017",
+      "bank_name": "兆豐銀行",
+      "display_name_zh": "兆豐 Mastercard 信用卡（全卡別）",
+      "type": "credit",
+      "card_network": "Mastercard",
+      "is_generic": true,
+      "image_url": null,
+      "notes": "大戶方案以網路為單位指定，非單張卡。"
+    },
+    {
+      "card_id": "bank017_visa",
+      "bank_code": "017",
+      "bank_name": "兆豐銀行",
+      "display_name_zh": "兆豐 VISA 信用卡（全卡別）",
+      "type": "credit",
+      "card_network": "VISA",
+      "is_generic": true,
+      "image_url": null,
+      "notes": "大戶方案以網路為單位指定，非單張卡。"
+    },
+    {
+      "card_id": "bank048_debit",
+      "bank_code": "048",
+      "bank_name": "王道銀行",
+      "display_name_zh": "王道銀行簽帳金融卡",
+      "type": "debit",
+      "card_network": null,
+      "is_generic": true,
+      "image_url": null,
+      "notes": "繳稅活動限實體簽帳金融卡，不含行動支付（Apple Pay、LINE Pay 等）。"
+    }
+  ]
+}

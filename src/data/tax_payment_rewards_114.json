@@ -1,0 +1,1900 @@
+{
+  "tax_year": "114",
+  "schema_version": "v2.5",
+  "generated_at": "2026-05-23",
+  "verification_legend": {
+    "verified": "使用者於 verified_at 親自核對銀行官網／活動頁",
+    "unverified": "自舊資料遷移，尚未本人覆核，前端應降階顯示",
+    "dropped": "核對後確認無此活動或已下架，前端不顯示"
+  },
+  "banks": [
+    {
+      "bank_code": "004",
+      "bank_name": "臺灣銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-20",
+      "campaigns": [
+        {
+          "campaign_id": "twpay_200",
+          "title": "台灣 Pay 掃碼繳綜所稅享回饋金 200 元",
+          "source_url": "https://www.bot.com.tw/tw/other-pages/more-offers/detail/49bbfaff-7c21-f011-a6fe-98f2b3145f40",
+          "source_id": "tp_bank_004_tax_114_1",
+          "eligible_cards": "臺灣銀行信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay"
+          ],
+          "rebate": {
+            "summary": "以臺灣銀行信用卡透過「台灣 Pay」掃碼繳綜所稅達 200 元以上，回饋 200 元",
+            "rate_or_amount": "定額 200 元",
+            "cap": "限量 10,000 筆，每身分證限 1 次；正附卡分開計算",
+            "requires_registration": false,
+            "period": null,
+            "mode": "fixed",
+            "fixed": 200,
+            "fixed_unit": "元刷卡金",
+            "min": 200,
+            "cap_nt": null,
+            "cap_label": "限量 10,000 筆，每身分證限 1 次"
+          },
+          "installment": {
+            "summary": "申請分期 6 期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              }
+            ],
+            "fee_note": "免手續費"
+          },
+          "notes": null,
+          "tags": [
+            "taiwan_pay",
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "申請分期 6 期 0 利率"
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "005",
+      "bank_name": "土地銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-20",
+      "campaigns": [
+        {
+          "campaign_id": "twpay_general",
+          "title": "台灣 Pay 掃碼繳稅（全卡別 + 金融卡）",
+          "source_url": "https://www.landbank.com.tw/Bulletin/Detail/e5561f4e-7b06-44e1-9ed6-ab74002f49a5",
+          "source_id": "tp_bank_005_tax_114_1",
+          "eligible_cards": "土銀信用卡（全卡別）／金融卡（帳戶）",
+          "eligible_card_types": [
+            "credit",
+            "debit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "土銀行動 Pay",
+            "台灣行動支付 APP（台灣 Pay）"
+          ],
+          "rebate": {
+            "summary": "綁定本行信用卡或金融卡（帳戶）以台灣 Pay 掃碼繳稅，單筆滿 100 元；信用卡送 100 元刷卡金，金融卡送台灣 Pay 紅利點數 1,000 點（等值 100 元）",
+            "rate_or_amount": "定額 100 元",
+            "cap": "每用戶最多 2 筆（信用卡正附卡分開計算 1 筆 + 金融卡 1 筆）；總筆數信用卡上限 3,500、金融卡上限 6,500，合計 10,000，額滿為止",
+            "requires_registration": false,
+            "period": null,
+            "mode": "fixed",
+            "fixed": 100,
+            "fixed_unit": "元刷卡金",
+            "min": 100,
+            "cap_label": "信用卡限量 3,500 筆／金融卡 6,500 筆"
+          },
+          "installment": null,
+          "notes": null,
+          "tags": [
+            "taiwan_pay",
+            "credit_card"
+          ],
+          "installment_detail": null
+        },
+        {
+          "campaign_id": "installment_115",
+          "title": "115 年土銀信用卡繳綜所稅分期優惠",
+          "source_url": "https://www.landbank.com.tw/Bulletin/Detail/026831cc-1c35-4362-85ab-b164002ca302?code=C100",
+          "source_id": "tp_bank_005_installment_114",
+          "eligible_cards": "土銀信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": null,
+          "installment": {
+            "summary": "3／6／9 期 0 利率；12 期 5% 分期利率",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 9,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 5
+              }
+            ],
+            "fee_note": null
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "3／6／9 期 0 利率；12 期 5% 分期利率"
+        },
+        {
+          "campaign_id": "jcb_premium",
+          "title": "土銀 JCB 極緻卡 × 台灣 Pay 綜所稅 3 重送",
+          "source_url": "https://www.landbank.com.tw/Bulletin/Detail/5b3c9939-205c-44fe-a898-b162001ce095",
+          "source_id": null,
+          "eligible_cards": "土銀 JCB 極緻卡",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank005_jcb_premium"
+          ],
+          "channel": [
+            "台灣 Pay"
+          ],
+          "rebate": {
+            "summary": "單筆滿 100 元送 100 元刷卡金，並加碼 0.5% 回饋（加碼上限 3,000 元）",
+            "rate_or_amount": "定額 100 元 + 加碼 0.5%",
+            "cap": "加碼上限 3,000 元（另含基本 100 元）",
+            "requires_registration": false,
+            "period": null,
+            "mode": "rate",
+            "rate": 0.5,
+            "min": 100,
+            "base_fixed": 100,
+            "cap_nt": 3000,
+            "cap_label": "加碼上限 3,000 元（含基本 100 元）"
+          },
+          "installment": {
+            "summary": "單筆滿 5,000 元，可辦 3／6／9 期 0 利率（限原額度內）",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 9,
+                "rate": 0
+              }
+            ],
+            "min_amount": 5000,
+            "fee_note": "限原額度內辦理"
+          },
+          "tags": [
+            "taiwan_pay",
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "3／6／9 期 0 利率（滿 5,000 元）",
+          "notes": "同活動的「全卡別 100 元刷卡金」與本卡加碼的並行條件以官網最終公告為準"
+        },
+        {
+          "campaign_id": "jcb_crystal",
+          "title": "土銀 JCB 晶緻卡 × 台灣 Pay 綜所稅 3 重送",
+          "source_url": "https://www.landbank.com.tw/Bulletin/Detail/5b3c9939-205c-44fe-a898-b162001ce095",
+          "source_id": null,
+          "eligible_cards": "土銀 JCB 晶緻卡",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank005_jcb_crystal"
+          ],
+          "channel": [
+            "台灣 Pay"
+          ],
+          "rebate": {
+            "summary": "單筆滿 100 元送 100 元刷卡金，並加碼 0.3% 回饋（加碼上限 2,000 元）",
+            "rate_or_amount": "定額 100 元 + 加碼 0.3%",
+            "cap": "加碼上限 2,000 元（另含基本 100 元）",
+            "requires_registration": false,
+            "period": null,
+            "mode": "rate",
+            "rate": 0.3,
+            "min": 100,
+            "base_fixed": 100,
+            "cap_nt": 2000,
+            "cap_label": "加碼上限 2,000 元（含基本 100 元）"
+          },
+          "installment": {
+            "summary": "單筆滿 5,000 元，可辦 3／6／9 期 0 利率（限原額度內）",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 9,
+                "rate": 0
+              }
+            ],
+            "min_amount": 5000,
+            "fee_note": "限原額度內辦理"
+          },
+          "tags": [
+            "taiwan_pay",
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "3／6／9 期 0 利率（滿 5,000 元）",
+          "notes": "同活動的「全卡別 100 元刷卡金」與本卡加碼的並行條件以官網最終公告為準"
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "006",
+      "bank_name": "合作金庫",
+      "verification": "verified",
+      "verified_at": "2026-05-20",
+      "campaigns": [
+        {
+          "campaign_id": "rebate_or_installment",
+          "title": "合庫信用卡繳綜所稅現金回饋 或 分期優惠",
+          "source_url": "https://www.tcb-bank.com.tw/personal-banking/credit-card/discount/event/income_tax_13",
+          "source_url_alt": "https://portal.tcb-bank.com.tw:8443/campaign/event11504/",
+          "source_id": "tp_bank_006_tax_114_1",
+          "eligible_cards": "合庫信用卡（現金回饋限正卡人 ID 登錄）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "registration_status": "full",
+          "rebate": {
+            "summary": "於合庫 APP 完成登錄後，享最高 0.36% 現金回饋（階梯式）；免收繳納手續費",
+            "rate_or_amount": "最高 0.36%",
+            "tiers": [
+              {
+                "condition": "單筆未達 500 萬元",
+                "rate": "0.2%"
+              },
+              {
+                "condition": "單筆 500 萬元（含）至 1,000 萬元",
+                "rate": "0.28%"
+              },
+              {
+                "condition": "單筆 1,000 萬元（含）以上",
+                "rate": "0.36%（每戶回饋上限 10 萬元）"
+              }
+            ],
+            "cap": "登錄名額限量 7,000 名（正卡人 ID）；1,000 萬以上每戶回饋上限 10 萬元",
+            "requires_registration": true,
+            "period": "登錄名額已於 2026/05/05 17:21 額滿",
+            "mode": "rate-tiered",
+            "amount_tiers": [
+              {
+                "min": 10000000,
+                "rate": 0.36,
+                "cap_nt": 100000,
+                "label": "單筆滿 1,000 萬（上限 10 萬元）"
+              },
+              {
+                "min": 5000000,
+                "rate": 0.28,
+                "cap_nt": null,
+                "label": "單筆滿 500 萬"
+              },
+              {
+                "min": 0,
+                "rate": 0.2,
+                "cap_nt": null,
+                "label": "單筆未達 500 萬"
+              }
+            ]
+          },
+          "installment": {
+            "summary": "單筆 3,000 元以上可申請分期，免手續費；3／6 期 0 利率，9 期 2.68%，12 期 3.88%",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 9,
+                "rate": 2.68
+              },
+              {
+                "periods": 12,
+                "rate": 3.88
+              }
+            ],
+            "min_amount": 3000,
+            "fee_note": "免手續費；分期需於原信用卡可用餘額內申請"
+          },
+          "notes": "【現金回饋】與【分期優惠】限擇一；若同時符合，以分期優先。",
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "單筆 3,000 元以上可申請分期，免手續費；3／6 期 0 利率，9 期 2.68%，12 期 3.88%"
+        },
+        {
+          "campaign_id": "twpay_bonus",
+          "title": "台灣 Pay（含合庫 ePay）掃碼繳稅加碼 100 元超商電子禮券",
+          "source_url": "https://www.tcb-bank.com.tw/personal-banking/credit-card/discount/event/income_tax_13",
+          "source_url_alt": "https://portal.tcb-bank.com.tw:8443/campaign/event11504/",
+          "source_id": "tp_bank_006_tax_114_1",
+          "eligible_cards": "合庫信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay",
+            "合庫 ePay"
+          ],
+          "registration_status": null,
+          "rebate": {
+            "summary": "以台灣 Pay（含合庫 ePay）掃碼以合庫信用卡繳稅，金額達 3,000 元以上，可獲 100 元超商電子禮券，再享好禮抽獎",
+            "rate_or_amount": "定額 100 元超商電子禮券",
+            "tiers": null,
+            "cap": "限量 1 萬名",
+            "requires_registration": false,
+            "period": null,
+            "mode": "fixed",
+            "fixed": 100,
+            "fixed_unit": "元超商電子禮券",
+            "min": 3000,
+            "cap_label": "限量 1 萬名"
+          },
+          "installment": null,
+          "notes": null,
+          "tags": [
+            "taiwan_pay",
+            "credit_card"
+          ],
+          "installment_detail": null
+        },
+        {
+          "campaign_id": "mastercard_bonus",
+          "title": "Mastercard 國際組織加碼 SOGO 禮券 5,000 元",
+          "source_url": "https://www.tcb-bank.com.tw/personal-banking/credit-card/discount/event/income_tax_13",
+          "source_url_alt": "https://portal.tcb-bank.com.tw:8443/campaign/event11504/",
+          "source_id": "tp_bank_006_tax_114_1",
+          "eligible_cards": "世界卡、漢來美食世界卡",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank006_world",
+            "bank006_hilai_world"
+          ],
+          "channel": null,
+          "registration_status": null,
+          "rebate": {
+            "summary": "持世界卡或漢來美食世界卡繳納綜所稅達 1,000 萬元以上，於原有優惠外，額外再獲 SOGO 禮券 5,000 元",
+            "rate_or_amount": "定額 SOGO 禮券 5,000 元",
+            "tiers": null,
+            "cap": null,
+            "requires_registration": false,
+            "period": "禮券由分行於 2026/12/31 前完成贈送",
+            "mode": "fixed",
+            "fixed": 5000,
+            "fixed_unit": "元 SOGO 禮券",
+            "min": 10000000,
+            "cap_label": "額外加碼，無筆數上限"
+          },
+          "installment": null,
+          "notes": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": null
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "007",
+      "bank_name": "第一銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "rebate_finance",
+          "title": "一次付清現金回饋（理財客戶）",
+          "source_url": "https://card.firstbank.com.tw/sites/card/zh_TW/1565707087044",
+          "source_id": "tp_firstbank_twpay_tax_promo",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "installment": {
+            "summary": "單筆滿 5,000 元登錄後享分期優惠：3／6／12 期 0 利率；18／24 期 3.88% 優惠利率",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              },
+              {
+                "periods": 18,
+                "rate": 3.88
+              },
+              {
+                "periods": 24,
+                "rate": 3.88
+              }
+            ],
+            "min_amount": 5000,
+            "fee_note": null
+          },
+          "eligible_cards": "一銀信用卡（理財客戶）",
+          "rebate": {
+            "summary": "理財客戶單筆滿 5 萬元享 0.36% 刷卡金回饋（每戶上限 10 萬元）；需登錄",
+            "rate_or_amount": "0.36%（每戶上限 10 萬元）",
+            "cap": "每戶 10 萬元",
+            "requires_registration": true,
+            "period": "登錄期限 2026/5/1~2026/6/3",
+            "mode": "rate",
+            "rate": 0.36,
+            "min": 50000,
+            "cap_nt": 100000,
+            "cap_label": "每戶 10 萬元"
+          },
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "3／6／12 期 0 利率；18／24 期 3.88%（滿 5,000 元）",
+          "notes": "好禮 1（分期）與好禮 2（現金回饋）限擇一；登錄入口不同"
+        },
+        {
+          "campaign_id": "rebate_general",
+          "title": "一次付清現金回饋（全卡友）",
+          "source_url": "https://card.firstbank.com.tw/sites/card/zh_TW/1565707087044",
+          "source_id": "tp_firstbank_twpay_tax_promo",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "installment": {
+            "summary": "單筆滿 5,000 元登錄後享分期優惠：3／6／12 期 0 利率；18／24 期 3.88% 優惠利率",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              },
+              {
+                "periods": 18,
+                "rate": 3.88
+              },
+              {
+                "periods": 24,
+                "rate": 3.88
+              }
+            ],
+            "min_amount": 5000,
+            "fee_note": null
+          },
+          "eligible_cards": "一銀信用卡（全卡友）",
+          "rebate": {
+            "summary": "全卡友單筆滿 5 萬元享 0.2% 刷卡金回饋（每戶上限 5,000 元）；需登錄",
+            "rate_or_amount": "0.2%（每戶上限 5,000 元）",
+            "cap": "每戶 5,000 元",
+            "requires_registration": true,
+            "period": "登錄期限 2026/5/1~2026/6/3",
+            "mode": "rate",
+            "rate": 0.2,
+            "min": 50000,
+            "cap_nt": 5000,
+            "cap_label": "每戶 5,000 元"
+          },
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "3／6／12 期 0 利率；18／24 期 3.88%（滿 5,000 元）",
+          "notes": "好禮 1（分期）與好禮 2（現金回饋）限擇一；登錄入口不同"
+        },
+        {
+          "campaign_id": "rebate_high_amount",
+          "title": "滿額加碼：單筆滿 500 萬元加碼 1 萬元",
+          "source_url": "https://card.firstbank.com.tw/sites/card/zh_TW/1565707087044",
+          "source_id": "tp_firstbank_twpay_tax_promo",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "installment": null,
+          "eligible_cards": "一銀信用卡（全卡別）",
+          "rebate": {
+            "summary": "一次付清單筆滿 500 萬元，加碼 1 萬元刷卡金（於好禮 2 原回饋之外）；需登錄",
+            "rate_or_amount": "定額 10,000 元",
+            "cap": null,
+            "requires_registration": true,
+            "period": "登錄期限 2026/5/1~2026/6/3",
+            "mode": "fixed",
+            "fixed": 10000,
+            "fixed_unit": "元刷卡金",
+            "min": 5000000,
+            "cap_label": "與好禮 2 同時併用"
+          },
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": null,
+          "notes": "加碼於好禮 2 之外，需選擇好禮 2 並完成登錄"
+        },
+        {
+          "campaign_id": "mastercard_bonus",
+          "title": "指定萬事達信用卡一次付清繳稅加碼 5,000 元",
+          "source_url": "https://card.firstbank.com.tw/sites/card/zh_TW/1565707087044",
+          "source_id": "tp_firstbank_twpay_tax_promo",
+          "eligible_cards": "GLORY+ 世界卡、義享天地聯名卡、鈦金商旅卡、雙幣卡、桃園卡、iLEO 信用卡",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank007_glory_plus_world",
+            "bank007_eskyland",
+            "bank007_titanium_business",
+            "bank007_dual_currency",
+            "bank007_taoyuan",
+            "bank007_ileo"
+          ],
+          "channel": null,
+          "registration_status": null,
+          "rebate": {
+            "summary": "指定萬事達信用卡一次付清繳稅，單筆 1,000 萬元以上，每戶加碼 5,000 元",
+            "rate_or_amount": "定額 5,000 元",
+            "tiers": null,
+            "cap": "每戶 5,000 元",
+            "requires_registration": false,
+            "period": null,
+            "mode": "fixed",
+            "fixed": 5000,
+            "fixed_unit": "元刷卡金",
+            "min": 10000000,
+            "cap_label": "每戶 5,000 元"
+          },
+          "installment": null,
+          "notes": "於好禮 2（現金回饋）原有回饋外額外加碼；需選擇好禮 2 並完成登錄。",
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": null
+        },
+        {
+          "campaign_id": "twpay_bonus",
+          "title": "台灣 Pay 掃碼繳稅加碼 100 元刷卡金",
+          "source_url": "https://card.firstbank.com.tw/sites/card/zh_TW/1565707087044",
+          "source_id": "tp_firstbank_twpay_tax_promo",
+          "eligible_cards": "第一銀行信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay"
+          ],
+          "registration_status": null,
+          "rebate": {
+            "summary": "以台灣 Pay 掃碼繳納綜所稅，單筆滿 100 元，每戶享 100 元刷卡金回饋",
+            "rate_or_amount": "定額 100 元",
+            "tiers": null,
+            "cap": "限量 2 萬戶",
+            "requires_registration": false,
+            "period": null,
+            "mode": "fixed",
+            "fixed": 100,
+            "fixed_unit": "元刷卡金",
+            "min": 100,
+            "cap_label": "限量 2 萬戶"
+          },
+          "installment": null,
+          "notes": null,
+          "tags": [
+            "taiwan_pay",
+            "credit_card"
+          ],
+          "installment_detail": null
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "008",
+      "bank_name": "華南銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "vip_rui",
+          "title": "領航會員睿享家｜刷卡金回饋",
+          "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
+          "source_id": "tp_hncb_card_event_taxcard",
+          "eligible_cards": "華南信用卡（領航會員：睿享家）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "睿享家：一次付清登錄享 0.5% 刷卡金回饋（每戶上限 100,000 元）；115/1~6 月需新增一般消費達 5 萬元",
+            "rate_or_amount": "0.5%（每戶上限 100,000 元）",
+            "cap": "每戶上限 100,000 元",
+            "requires_registration": true,
+            "period": "等級以 2026/5/31 所屬等級為準；115/1~6 月新增一般消費達 5 萬元",
+            "mode": "rate",
+            "rate": 0.5,
+            "min": null,
+            "cap_nt": 100000,
+            "cap_label": "每戶上限 100,000 元"
+          },
+          "installment": {
+            "summary": "禮遇1：稅款登錄享 6 期或 12 期分期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              }
+            ],
+            "min_amount": null,
+            "fee_note": "免收手續費"
+          },
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "6／12 期 0 利率",
+          "notes": "禮遇1（分期）與禮遇2（刷卡金）限擇一；若同時登錄，優先刷卡金→12期→6期"
+        },
+        {
+          "campaign_id": "vip_du",
+          "title": "領航會員獨享家｜刷卡金回饋",
+          "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
+          "source_id": "tp_hncb_card_event_taxcard",
+          "eligible_cards": "華南信用卡（領航會員：獨享家）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "獨享家：一次付清登錄享 0.4% 刷卡金回饋（每戶上限 50,000 元）；115/1~6 月需新增一般消費達 5 萬元",
+            "rate_or_amount": "0.4%（每戶上限 50,000 元）",
+            "cap": "每戶上限 50,000 元",
+            "requires_registration": true,
+            "period": "等級以 2026/5/31 所屬等級為準；115/1~6 月新增一般消費達 5 萬元",
+            "mode": "rate",
+            "rate": 0.4,
+            "min": null,
+            "cap_nt": 50000,
+            "cap_label": "每戶上限 50,000 元"
+          },
+          "installment": {
+            "summary": "禮遇1：稅款登錄享 6 期或 12 期分期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              }
+            ],
+            "min_amount": null,
+            "fee_note": "免收手續費"
+          },
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "6／12 期 0 利率",
+          "notes": "禮遇1（分期）與禮遇2（刷卡金）限擇一；若同時登錄，優先刷卡金→12期→6期"
+        },
+        {
+          "campaign_id": "vip_li",
+          "title": "領航會員理享家｜刷卡金回饋",
+          "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
+          "source_id": "tp_hncb_card_event_taxcard",
+          "eligible_cards": "華南信用卡（領航會員：理享家）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "理享家：一次付清登錄享 0.3% 刷卡金回饋（每戶上限 30,000 元）；115/1~6 月需新增一般消費達 5 萬元",
+            "rate_or_amount": "0.3%（每戶上限 30,000 元）",
+            "cap": "每戶上限 30,000 元",
+            "requires_registration": true,
+            "period": "等級以 2026/5/31 所屬等級為準；115/1~6 月新增一般消費達 5 萬元",
+            "mode": "rate",
+            "rate": 0.3,
+            "min": null,
+            "cap_nt": 30000,
+            "cap_label": "每戶上限 30,000 元"
+          },
+          "installment": {
+            "summary": "禮遇1：稅款登錄享 6 期或 12 期分期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              }
+            ],
+            "min_amount": null,
+            "fee_note": "免收手續費"
+          },
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "6／12 期 0 利率",
+          "notes": "禮遇1（分期）與禮遇2（刷卡金）限擇一；若同時登錄，優先刷卡金→12期→6期"
+        },
+        {
+          "campaign_id": "vip_meng",
+          "title": "領航會員夢享家｜刷卡金回饋",
+          "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
+          "source_id": "tp_hncb_card_event_taxcard",
+          "eligible_cards": "華南信用卡（領航會員：夢享家）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "夢享家：一次付清登錄享 0.2% 刷卡金回饋（每戶上限 2,000 元）；115/1~6 月需新增一般消費達 5 萬元",
+            "rate_or_amount": "0.2%（每戶上限 2,000 元）",
+            "cap": "每戶上限 2,000 元",
+            "requires_registration": true,
+            "period": "等級以 2026/5/31 所屬等級為準；115/1~6 月新增一般消費達 5 萬元",
+            "mode": "rate",
+            "rate": 0.2,
+            "min": null,
+            "cap_nt": 2000,
+            "cap_label": "每戶上限 2,000 元"
+          },
+          "installment": {
+            "summary": "禮遇1：稅款登錄享 6 期或 12 期分期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              }
+            ],
+            "min_amount": null,
+            "fee_note": "免收手續費"
+          },
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "6／12 期 0 利率",
+          "notes": "禮遇1（分期）與禮遇2（刷卡金）限擇一；若同時登錄，優先刷卡金→12期→6期"
+        },
+        {
+          "campaign_id": "twpay_installment",
+          "title": "華銀支付（台灣 Pay）繳稅稅額 20 萬以下 3/6 期 0 利率",
+          "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
+          "source_id": "tp_hncb_card_event_taxcard",
+          "eligible_cards": "華南信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay",
+            "華銀支付"
+          ],
+          "registration_status": "open",
+          "rebate": null,
+          "installment": {
+            "summary": "以華銀支付（台灣 Pay）綁定華南信用卡繳稅，稅額 20 萬元以下，登錄享 3 期或 6 期 0 利率",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              }
+            ],
+            "min_amount": null,
+            "fee_note": "免收手續費；同時登錄多選項以 6 期分期優先。其他期數可申辦「指定交易分期」專案"
+          },
+          "notes": "稅額上限 20 萬元；需登錄；與領航會員禮遇為不同活動、各自登錄。",
+          "tags": [
+            "taiwan_pay",
+            "installment"
+          ],
+          "installment_detail": "以華銀支付（台灣 Pay）綁定華南信用卡繳稅，稅額 20 萬元以下，登錄享 3 期或 6 期 0 利率"
+        },
+        {
+          "campaign_id": "twpay_bonus",
+          "title": "華銀支付（台灣 Pay）繳稅送統一超商抵用券 50 元",
+          "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
+          "source_id": "tp_hncb_card_event_taxcard",
+          "eligible_cards": "華南信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay",
+            "華銀支付"
+          ],
+          "registration_status": null,
+          "rebate": {
+            "summary": "以華銀支付（台灣 Pay）綁華南信用卡繳綜所稅，送統一超商抵用券 50 元",
+            "rate_or_amount": "定額 50 元統一超商抵用券",
+            "tiers": null,
+            "cap": "限量 1 萬筆，額滿為止",
+            "requires_registration": false,
+            "period": null,
+            "mode": "fixed",
+            "fixed": 50,
+            "fixed_unit": "元統一超商抵用券",
+            "min": null,
+            "cap_label": "限量 1 萬筆"
+          },
+          "installment": null,
+          "notes": null,
+          "tags": [
+            "taiwan_pay",
+            "credit_card"
+          ],
+          "installment_detail": null
+        }
+      ],
+      "notes": "繳綜所稅全程免收手續費。"
+    },
+    {
+      "bank_code": "012",
+      "bank_name": "台北富邦",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "jkard_8w",
+          "title": "富邦 J 卡｜單筆滿 8 萬",
+          "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
+          "source_id": "tp_fubon_cc_2026_ito",
+          "eligible_cards": "J 卡（一般卡友）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "J卡 8 萬以上：一次付清至 Fubon+ 登錄享 0.25% 刷卡金回饋（歸戶上限 2,500 元）；免手續費",
+            "rate_or_amount": "0.25%（歸戶上限 2,500 元）",
+            "cap": "歸戶上限 2,500 元",
+            "requires_registration": true,
+            "period": "登錄期間 2026/5/1～6/1",
+            "mode": "rate",
+            "rate": 0.25,
+            "min": 80000,
+            "cap_nt": 2500,
+            "cap_label": "歸戶上限 2,500 元"
+          },
+          "installment": {
+            "summary": "需至 Fubon+ 或數位客服設定；富邦存戶（單筆滿 30 萬）、穩富／恆富智富理財會員（不限金額）享 3 期 0 利率；富邦全卡不限金額可辦 12 期以上（含），享前 3 期免息，其後依個別消費分期利率；免手續費",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              }
+            ],
+            "min_amount": null,
+            "fee_note": "3期0利率限指定客群；全卡12期以上前3期免息，其後依個人消費分期利率"
+          },
+          "tags": [
+            "credit_card",
+            "installment"
+          ],
+          "installment_detail": "指定客群 3 期 0 利率；12 期以上前 3 期免息",
+          "notes": "刷卡金回饋與分期擇一"
+        },
+        {
+          "campaign_id": "jkard_100w",
+          "title": "富邦 J 卡｜單筆滿 100 萬",
+          "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
+          "source_id": "tp_fubon_cc_2026_ito",
+          "eligible_cards": "J 卡（一般卡友）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "J卡 100 萬以上：一次付清至 Fubon+ 登錄享 0.36% 刷卡金回饋（歸戶上限 8,000 元）；免手續費",
+            "rate_or_amount": "0.36%（歸戶上限 8,000 元）",
+            "cap": "歸戶上限 8,000 元",
+            "requires_registration": true,
+            "period": "登錄期間 2026/5/1～6/1",
+            "mode": "rate",
+            "rate": 0.36,
+            "min": 1000000,
+            "cap_nt": 8000,
+            "cap_label": "歸戶上限 8,000 元"
+          },
+          "installment": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": "指定客群 3 期 0 利率；12 期以上前 3 期免息",
+          "notes": "刷卡金回饋與分期擇一"
+        },
+        {
+          "campaign_id": "fb_depositor",
+          "title": "富邦存戶｜單筆滿 30 萬",
+          "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
+          "source_id": "tp_fubon_cc_2026_ito",
+          "eligible_cards": "富邦信用卡（富邦存戶）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "富邦存戶：一次付清至 Fubon+ 登錄享 0.36% 刷卡金回饋（歸戶上限 36,000 元）；免手續費",
+            "rate_or_amount": "0.36%（歸戶上限 36,000 元）",
+            "cap": "歸戶上限 36,000 元",
+            "requires_registration": true,
+            "period": "登錄期間 2026/5/1～6/1",
+            "mode": "rate",
+            "rate": 0.36,
+            "min": 300000,
+            "cap_nt": 36000,
+            "cap_label": "歸戶上限 36,000 元"
+          },
+          "installment": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": "指定客群 3 期 0 利率；12 期以上前 3 期免息",
+          "notes": "刷卡金回饋與分期擇一"
+        },
+        {
+          "campaign_id": "wealth_steady",
+          "title": "穩富理財會員",
+          "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
+          "source_id": "tp_fubon_cc_2026_ito",
+          "eligible_cards": "富邦信用卡（穩富理財會員）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "穩富理財會員：一次付清至 Fubon+ 登錄享 0.5% 刷卡金回饋（歸戶上限 60,000 元）；免手續費",
+            "rate_or_amount": "0.5%（歸戶上限 60,000 元）",
+            "cap": "歸戶上限 60,000 元",
+            "requires_registration": true,
+            "period": "登錄期間 2026/5/1～6/1",
+            "mode": "rate",
+            "rate": 0.5,
+            "min": null,
+            "cap_nt": 60000,
+            "cap_label": "歸戶上限 60,000 元"
+          },
+          "installment": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": "指定客群 3 期 0 利率；12 期以上前 3 期免息",
+          "notes": "刷卡金回饋與分期擇一"
+        },
+        {
+          "campaign_id": "wealth_premier",
+          "title": "恆富／智富理財會員",
+          "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
+          "source_id": "tp_fubon_cc_2026_ito",
+          "eligible_cards": "富邦信用卡（恆富、智富理財會員）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "恆富／智富理財會員：一次付清至 Fubon+ 登錄享 0.66% 刷卡金回饋（歸戶上限 120,000 元）；免手續費",
+            "rate_or_amount": "0.66%（歸戶上限 120,000 元）",
+            "cap": "歸戶上限 120,000 元",
+            "requires_registration": true,
+            "period": "登錄期間 2026/5/1～6/1",
+            "mode": "rate",
+            "rate": 0.66,
+            "min": null,
+            "cap_nt": 120000,
+            "cap_label": "歸戶上限 120,000 元"
+          },
+          "installment": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": "指定客群 3 期 0 利率；12 期以上前 3 期免息",
+          "notes": "刷卡金回饋與分期擇一"
+        }
+      ],
+      "notes": "免收繳納手續費。"
+    },
+    {
+      "bank_code": "013",
+      "bank_name": "國泰世華",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "installment",
+          "title": "國泰世華信用卡繳綜所稅分期優惠",
+          "source_url": "https://www.cathay-cube.com.tw/cathaybk/personal/event/overview/credit-card/payment/2026/2026tax_",
+          "source_id": "tp_cathay_cc_2026tax",
+          "eligible_cards": "國泰世華信用卡（商務卡及簽帳金融卡不適用）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "registration_status": null,
+          "rebate": null,
+          "installment": {
+            "summary": "世界卡（亞洲萬里通除外）單筆滿3,000元：3/6/12期0利率，另提供18期付費分期（年利率6%）；全卡友（商務卡及簽帳金融卡除外）單筆滿3,000元：3/6期0利率，另提供12/18期付費分期（年利率6%）",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              },
+              {
+                "periods": 18,
+                "rate": 6
+              }
+            ],
+            "min_amount": 3000,
+            "fee_note": "手續費0元；12期0利率限世界卡（亞洲萬里通除外），全卡友12期為付費分期（年利率6%）；18期付費分期年利率6%；rates為年利率"
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "世界卡（亞洲萬里通除外）單筆滿3,000元：3/6/12期0利率，另提供18期付費分期（年利率6%）；全卡友（商務卡及簽帳金融卡除外）單筆滿3,000元：3/6期0利率，另提供12/18期付費分期（年利率6%）"
+        },
+        {
+          "campaign_id": "rebate_world",
+          "title": "世界卡｜滿 100 萬 0.3% 小樹點",
+          "source_url": "https://www.cathay-cube.com.tw/cathaybk/personal/event/overview/credit-card/payment/2026/2026tax_",
+          "source_id": "tp_cathay_cc_2026tax",
+          "eligible_cards": "國泰世華世界卡（不含聯名卡）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank013_world"
+          ],
+          "channel": null,
+          "rebate": {
+            "summary": "世界卡（不含聯名卡）單筆滿 100 萬享 0.3% 小樹點（每正卡戶上限 50,000 點）",
+            "rate_or_amount": "0.3% 小樹點",
+            "cap": "每正卡戶上限 50,000 小樹點",
+            "requires_registration": false,
+            "period": null,
+            "mode": "rate",
+            "rate": 0.3,
+            "min": 1000000,
+            "cap_nt": 50000,
+            "fixed_unit": "小樹點",
+            "cap_label": "每正卡戶上限 50,000 小樹點"
+          },
+          "installment": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": null,
+          "notes": "回饋為小樹點（非現金）；分期與回饋可同時適用"
+        },
+        {
+          "campaign_id": "rebate_cube",
+          "title": "CUBE Level 2／3｜滿 100 萬 0.2% 小樹點",
+          "source_url": "https://www.cathay-cube.com.tw/cathaybk/personal/event/overview/credit-card/payment/2026/2026tax_",
+          "source_id": "tp_cathay_cc_2026tax",
+          "eligible_cards": "CUBE 信用卡（Level 2、3）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank013_cube"
+          ],
+          "channel": null,
+          "rebate": {
+            "summary": "CUBE Level 2、3 單筆滿 100 萬享 0.2% 小樹點（每正卡戶上限 20,000 點）",
+            "rate_or_amount": "0.2% 小樹點",
+            "cap": "每正卡戶上限 20,000 小樹點",
+            "requires_registration": false,
+            "period": null,
+            "mode": "rate",
+            "rate": 0.2,
+            "min": 1000000,
+            "cap_nt": 20000,
+            "fixed_unit": "小樹點",
+            "cap_label": "每正卡戶上限 20,000 小樹點"
+          },
+          "installment": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": null,
+          "notes": "回饋為小樹點（非現金）；分期與回饋可同時適用"
+        },
+        {
+          "campaign_id": "rebate_bonus_1600w",
+          "title": "世界卡或 CUBE｜單筆滿 1,600 萬加碼 50,000 小樹點",
+          "source_url": "https://www.cathay-cube.com.tw/cathaybk/personal/event/overview/credit-card/payment/2026/2026tax_",
+          "source_id": "tp_cathay_cc_2026tax",
+          "eligible_cards": "國泰世華世界卡（不含聯名卡）、CUBE Level 2／3",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank013_world",
+            "bank013_cube"
+          ],
+          "channel": null,
+          "rebate": {
+            "summary": "世界卡或 CUBE Level 2／3 單筆滿 1,600 萬，加碼 50,000 小樹點",
+            "rate_or_amount": "加碼 50,000 小樹點",
+            "cap": "另計加碼，每正卡戶 50,000 點",
+            "requires_registration": false,
+            "period": null,
+            "mode": "fixed",
+            "fixed": 50000,
+            "fixed_unit": "小樹點",
+            "min": 16000000,
+            "cap_label": "另計加碼 50,000 點"
+          },
+          "installment": null,
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": null,
+          "notes": "為原 0.3%／0.2% 回饋外的額外加碼"
+        }
+      ],
+      "notes": "手續費 0 元。"
+    },
+    {
+      "bank_code": "017",
+      "bank_name": "兆豐銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "installment",
+          "title": "兆豐信用卡繳綜所稅分期優惠（優惠2）",
+          "source_url": "https://www.megabank.com.tw/personal/credit-card/event/overview/2026tax",
+          "source_id": "tp_megabank_cc_payment_fees",
+          "eligible_cards": "兆豐信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "registration_status": "open",
+          "rebate": null,
+          "installment": {
+            "summary": "台灣Pay路徑（兆豐/台灣行動支付APP綁兆豐信用卡）：9期0利率；其他分期路徑：3期0利率 或 12期1.08%年利率；單筆滿3,000元，須於5/31前登錄並完成繳納",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 9,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 1.08
+              }
+            ],
+            "min_amount": 3000,
+            "fee_note": "9期0利率限台灣Pay路徑；3期0利率限其他分期路徑；12期1.08%為年利率；重複登錄以最後一次為準"
+          },
+          "notes": "登錄開放 115/5/7 14:00~5/31；需於5/31前完成登錄及繳納。",
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "台灣Pay路徑（兆豐/台灣行動支付APP綁兆豐信用卡）：9期0利率；其他分期路徑：3期0利率 或 12期1.08%年利率；單筆滿3,000元，須於5/31前登錄並完成繳納"
+        },
+        {
+          "campaign_id": "vip_gift",
+          "title": "信用卡大戶方案（優惠4）—單筆≥1,000萬贈8,000元即享券",
+          "source_url": "https://www.megabank.com.tw/personal/credit-card/event/overview/2026tax",
+          "source_id": "tp_megabank_cc_payment_fees",
+          "eligible_cards": "兆豐 Mastercard、兆豐 VISA 信用卡",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [
+            "bank017_mastercard",
+            "bank017_visa"
+          ],
+          "channel": null,
+          "registration_status": "open",
+          "rebate": {
+            "summary": "一次付清，單筆繳納≥1,000萬元，須登錄，贈好禮即享券8,000元（可於16大品牌選用）",
+            "rate_or_amount": "定額 8,000 元即享券",
+            "tiers": null,
+            "cap": "限完成繳納前30名",
+            "requires_registration": true,
+            "period": "登錄開放 115/5/7 14:00~5/31",
+            "mode": "fixed",
+            "fixed": 8000,
+            "fixed_unit": "元即享券",
+            "min": 10000000,
+            "cap_label": "限完成繳納前 30 名"
+          },
+          "installment": null,
+          "notes": "不得與優惠3（台灣Pay專屬回饋）併用。即享券可於王品、7-ELEVEN、全家、家樂福、屈臣氏、遠東SOGO、foodpanda等16大品牌使用，無效期。",
+          "tags": [
+            "credit_card"
+          ],
+          "installment_detail": null
+        },
+        {
+          "campaign_id": "twpay_rebate_credit",
+          "title": "台灣 Pay 專屬回饋（信用卡）",
+          "source_url": "https://www.megabank.com.tw/personal/credit-card/event/overview/2026tax",
+          "source_id": "tp_megabank_cc_payment_fees",
+          "eligible_cards": "兆豐信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay",
+            "兆豐行動支付 APP"
+          ],
+          "rebate": {
+            "summary": "以兆豐信用卡 × 台灣 Pay 繳稅，依金額對應級距擇優（不累加）",
+            "rate_or_amount": "視金額級距 100~2,500 元",
+            "cap": "限量 10,000 名；每人限 1 次",
+            "requires_registration": true,
+            "period": "登錄 115/5/7~5/31",
+            "mode": "rate-tiered",
+            "amount_tiers": [
+              {
+                "min": 1000000,
+                "rate": 0,
+                "cap_nt": 2500,
+                "label": "滿 100 萬 → 2,500 元"
+              },
+              {
+                "min": 500000,
+                "rate": 0,
+                "cap_nt": 1000,
+                "label": "滿 50 萬 → 1,000 元"
+              },
+              {
+                "min": 300000,
+                "rate": 0,
+                "cap_nt": 600,
+                "label": "滿 30 萬 → 600 元"
+              },
+              {
+                "min": 100000,
+                "rate": 0,
+                "cap_nt": 200,
+                "label": "滿 10 萬 → 200 元"
+              },
+              {
+                "min": 50000,
+                "rate": 0,
+                "cap_nt": 150,
+                "label": "滿 5 萬 → 150 元"
+              },
+              {
+                "min": 1000,
+                "rate": 0,
+                "cap_nt": 100,
+                "label": "滿 1,000 → 100 元"
+              }
+            ],
+            "cap_label": "依金額級距 100~2,500 元（不累加）"
+          },
+          "installment": null,
+          "tags": [
+            "taiwan_pay",
+            "credit_card"
+          ],
+          "installment_detail": null,
+          "notes": "金額對應最高級距擇優，回饋不累加；不得與優惠4 大戶方案併用"
+        },
+        {
+          "campaign_id": "twpay_rebate_debit",
+          "title": "台灣 Pay 專屬回饋（金融卡）",
+          "source_url": "https://www.megabank.com.tw/personal/credit-card/event/overview/2026tax",
+          "source_id": "tp_megabank_cc_payment_fees",
+          "eligible_cards": "兆豐金融卡",
+          "eligible_card_types": [
+            "debit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay",
+            "兆豐行動支付 APP"
+          ],
+          "rebate": {
+            "summary": "以兆豐金融卡 × 台灣 Pay 繳稅，不限金額送 600 點台灣 Pay 紅利（等值 60 元）",
+            "rate_or_amount": "600 點台灣 Pay 紅利（等值 60 元）",
+            "cap": "限量 10,000 筆；每人限 1 次",
+            "requires_registration": true,
+            "period": "登錄 115/5/7~5/31",
+            "mode": "fixed",
+            "fixed": 60,
+            "fixed_unit": "元（600 點台灣 Pay 紅利）",
+            "min": null,
+            "cap_label": "限量 10,000 筆"
+          },
+          "installment": null,
+          "tags": [
+            "taiwan_pay"
+          ],
+          "installment_detail": null,
+          "notes": null
+        }
+      ],
+      "notes": "優惠1：使用兆豐信用卡或金融卡繳綜所稅全程免手續費。"
+    },
+    {
+      "bank_code": "048",
+      "bank_name": "王道銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "tax_dining_combo",
+          "title": "繳綜所稅解鎖指定百貨餐飲最高 8% 現金回饋",
+          "source_url": "https://www.o-bank.com/retail/event/event-announce/debit_20260630_2",
+          "source_id": "tp_bank_048_tax_114_1",
+          "eligible_cards": "王道銀行實體簽帳金融卡（不含行動支付：Apple Pay、LINE Pay 等）",
+          "eligible_card_types": [
+            "debit"
+          ],
+          "eligible_card_ids": [
+            "bank048_debit"
+          ],
+          "channel": null,
+          "registration_status": "open",
+          "rebate": {
+            "summary": "【非直接繳稅回饋】繳納綜所稅不限金額並完成登錄，解鎖指定實體百貨餐飲額外加碼 3% 現金回饋；搭配基礎活動（需另登錄，原卡回饋 + 加碼 3.5%）合計最高享 8%（原卡約 1%~1.5% + 加碼 3.5% + 繳稅加碼 3%）",
+            "rate_or_amount": "繳稅加碼 +3%（指定百貨餐飲消費，非繳稅金額）",
+            "tiers": null,
+            "cap": "繳稅加碼部分每人上限 500 元；整體活動加碼每人上限 1,500 元；登錄限額 3,000 名",
+            "requires_registration": true,
+            "period": "登錄自 2026/05/15 12:00 開放",
+            "mode": "fee_only",
+            "min": null,
+            "cap_label": "繳稅加碼部分每人上限 500 元（適用後續消費，非繳稅金額本身）"
+          },
+          "installment": null,
+          "notes": "繳稅只是解鎖條件，回饋適用於後續指定實體百貨餐飲消費（不包含百貨線上商城、餐券、外送、線上訂位預付），不適用於繳稅金額本身。",
+          "tags": [],
+          "installment_detail": null
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "052",
+      "bank_name": "渣打銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "priority_installment",
+          "title": "渣打優先私人理財／優先理財貴賓繳稅分期 3/6/12 期 0 利率",
+          "source_url": "https://www.sc.com/tw/promotions/credit-cards-income-tax/",
+          "source_id": "tp_bank_052_tax_114_pending",
+          "eligible_cards": "渣打信用卡（活動限優先私人理財／優先理財貴賓等級客戶）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "registration_status": null,
+          "rebate": null,
+          "installment": {
+            "summary": "優先私人理財及優先理財貴賓客戶享繳稅 3/6/12 期 0 利率",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 0
+              }
+            ],
+            "min_amount": null,
+            "fee_note": "免手續費"
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "優先私人理財及優先理財貴賓客戶享繳稅 3/6/12 期 0 利率"
+        }
+      ],
+      "notes": "禮遇一：全卡免手續費。禮遇二分期限優先等級客戶，一般卡友不適用。"
+    },
+    {
+      "bank_code": "081",
+      "bank_name": "滙豐銀行",
+      "verification": "verified",
+      "verified_at": "2026-05-22",
+      "campaigns": [
+        {
+          "campaign_id": "installment",
+          "title": "滙豐信用卡繳綜所稅分期優惠",
+          "source_url": "https://www.hsbc.com.tw/credit-cards/offers/tax-payment/",
+          "source_id": "tp_bank_081_tax_114_1",
+          "eligible_cards": "滙豐銀行信用卡（全卡別）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "registration_status": null,
+          "rebate": null,
+          "installment": {
+            "summary": "卓越理財尊尚貴賓（Premier/Prestige）：3/6 期 0% 或 12 期 2.88% 年利率；全卡友：3/6/12 期均為 2.88% 年利率；單筆滿 1,000 元，免手續費",
+            "terms": [
+              {
+                "periods": 3,
+                "rate": 0
+              },
+              {
+                "periods": 6,
+                "rate": 0
+              },
+              {
+                "periods": 12,
+                "rate": 2.88
+              }
+            ],
+            "min_amount": 1000,
+            "fee_note": "免手續費；3/6期0利率限卓越理財尊尚貴賓，全卡友3/6期為2.88%年利率；12期均為2.88%年利率"
+          },
+          "notes": "",
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "卓越理財尊尚貴賓（Premier/Prestige）：3/6 期 0% 或 12 期 2.88% 年利率；全卡友：3/6/12 期均為 2.88% 年利率；單筆滿 1,000 元，免手續費"
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "103",
+      "bank_name": "新光銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "main",
+          "title": "新光信用卡繳綜所稅",
+          "source_url": "https://www.skbank.com.tw/creditcard/event/2026tax",
+          "source_id": "tp_bank_103_tax_114_1",
+          "eligible_cards": null,
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "新光信用卡繳綜所稅回饋（細項待核對）",
+            "rate_or_amount": "3.7%",
+            "cap": null,
+            "requires_registration": true,
+            "period": null
+          },
+          "installment": null,
+          "notes": "",
+          "tags": [],
+          "installment_detail": null
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "803",
+      "bank_name": "聯邦銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [],
+      "notes": "舊資料指向非綜所稅活動專頁，需以官網確認。Ref: https://www.ubot.com.tw/credit/event/tax2026"
+    },
+    {
+      "bank_code": "805",
+      "bank_name": "遠東國際商銀",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [],
+      "notes": "舊資料指向非綜所稅活動專頁，需以官網確認。Ref: https://www.feib.com.tw/credit/event/tax114"
+    },
+    {
+      "bank_code": "806",
+      "bank_name": "元大銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "main",
+          "title": "元大銀行信用卡綜所稅分期優惠",
+          "source_url": "https://www.yuantabank.com.tw/bankUrl/mIbiMf",
+          "source_id": "tp_yuanta_cc_tax_114",
+          "eligible_cards": null,
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": null,
+          "installment": {
+            "summary": "元大銀行信用卡綜所稅分期優惠（期數與利率待核對）",
+            "terms": null,
+            "fee_note": null
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "元大銀行信用卡綜所稅分期優惠（期數與利率待核對）"
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "807",
+      "bank_name": "永豐銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "main",
+          "title": "綜所稅刷永豐信用卡",
+          "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
+          "source_id": "tp_sinopac_cc_discount_2026_ito",
+          "eligible_cards": null,
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "綜所稅刷永豐信用卡回饋",
+            "rate_or_amount": "0.38%",
+            "cap": null,
+            "requires_registration": true,
+            "period": "2026/5/1-2026/6/1"
+          },
+          "installment": {
+            "summary": "6 期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              }
+            ],
+            "fee_note": null
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "6 期 0 利率"
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "808",
+      "bank_name": "玉山銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "main",
+          "title": "2026 刷玉山信用卡繳綜所稅",
+          "source_url": "https://event.esunbank.com.tw/credit/tax/index.html",
+          "source_id": "tp_esun_event_2026_tax",
+          "eligible_cards": null,
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "2026 刷玉山信用卡繳綜所稅（細項待核對）",
+            "rate_or_amount": "0.3%",
+            "cap": null,
+            "requires_registration": null,
+            "period": null
+          },
+          "installment": {
+            "summary": "6 期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              }
+            ],
+            "fee_note": null
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "6 期 0 利率"
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "809",
+      "bank_name": "凱基銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "main",
+          "title": "凱基信用卡繳綜所稅",
+          "source_url": "https://www.kgibank.com.tw/zh-tw/personal/credit-card/promotion/2026-tax-payment",
+          "source_id": "tp_bank_809_tax_114_1",
+          "eligible_cards": null,
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "凱基信用卡繳綜所稅回饋（細項待核對）",
+            "rate_or_amount": "0.3%",
+            "cap": null,
+            "requires_registration": true,
+            "period": null
+          },
+          "installment": null,
+          "notes": null,
+          "tags": [],
+          "installment_detail": null
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "810",
+      "bank_name": "星展銀行（台灣）",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [],
+      "notes": "舊資料取證時遇 502 Bad Gateway，需重新核對。Ref: https://www.dbs.com.tw/tw/personal/cards/credit-cards/promotions/tax-payment-2026"
+    },
+    {
+      "bank_code": "812",
+      "bank_name": "台新銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "main",
+          "title": "2026 報稅信用卡推薦",
+          "source_url": "https://mkp.taishinbank.com.tw/s/2026/tax/",
+          "source_id": "tp_taishin_mkp_2026_tax",
+          "eligible_cards": null,
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "2026 報稅信用卡推薦（細項待核對）",
+            "rate_or_amount": "0.5%",
+            "cap": null,
+            "requires_registration": null,
+            "period": null
+          },
+          "installment": {
+            "summary": "12 期 0 利率",
+            "terms": [
+              {
+                "periods": 12,
+                "rate": 0
+              }
+            ],
+            "fee_note": null
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "12 期 0 利率"
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "822",
+      "bank_name": "中國信託",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "multi_card_main",
+          "title": "中信卡繳稅多元回饋無上限",
+          "source_url": "https://mkt.ctbcbank.com/recent/202606/N2026041500015_01-07/index.html",
+          "source_id": "tp_ctbc_mkt_tax_2026",
+          "eligible_cards": "商旅鈦金卡、LINE Pay 卡、和泰卡、uniopen 卡、華航卡（卡別差異化回饋）",
+          "eligible_card_types": [
+            "credit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "視卡別 0.1%~2.5% 回饋無上限：商旅鈦金卡 0.1%；LINE Pay 卡 0.1% LINE POINTS；和泰卡最高 0.4% 和泰 Points；uniopen 卡最高 0.4% OPENPOINT；華航卡最高 0.5% 哩程",
+            "rate_or_amount": "視卡別 0.1%~2.5%",
+            "cap": "無上限",
+            "requires_registration": true,
+            "period": null
+          },
+          "installment": {
+            "summary": "6 期 0 利率",
+            "terms": [
+              {
+                "periods": 6,
+                "rate": 0
+              }
+            ],
+            "fee_note": null
+          },
+          "notes": null,
+          "tags": [
+            "installment"
+          ],
+          "installment_detail": "6 期 0 利率"
+        },
+        {
+          "campaign_id": "fee_info",
+          "title": "中信信用卡繳稅手續費說明",
+          "source_url": "https://www.ctbcbank.com/content/twrbo/zh_tw/cc_index/cc_additional/cc_payment_index/cc_payment_tax.html",
+          "source_id": "tp_ctbc_cc_payment_tax",
+          "eligible_cards": null,
+          "eligible_card_types": [],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": null,
+          "installment": null,
+          "notes": "手續費說明頁，非活動；核對主活動時順便確認",
+          "tags": [],
+          "installment_detail": null
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "823",
+      "bank_name": "將來銀行",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [
+        {
+          "campaign_id": "main",
+          "title": "簽帳金融卡繳稅免手續費",
+          "source_url": "https://www.nextbank.com.tw/announcement/45c1e31fa40000000285cadc56793797/event0274",
+          "source_id": "tp_bank_823_tax_114_1",
+          "eligible_cards": "將來銀行簽帳金融卡",
+          "eligible_card_types": [
+            "debit"
+          ],
+          "eligible_card_ids": [],
+          "channel": null,
+          "rebate": {
+            "summary": "簽帳金融卡繳稅免手續費（非回饋）",
+            "rate_or_amount": null,
+            "cap": null,
+            "requires_registration": false,
+            "period": "2026/01/01~2026/12/31"
+          },
+          "installment": null,
+          "notes": "將來銀行無信用卡，僅簽帳金融卡免手續費",
+          "tags": [],
+          "installment_detail": null
+        }
+      ],
+      "notes": null
+    },
+    {
+      "bank_code": "824",
+      "bank_name": "LINE Bank",
+      "verification": "unverified",
+      "verified_at": null,
+      "campaigns": [],
+      "notes": "舊資料指向非綜所稅活動專頁，需以官網確認。Ref: https://www.linebank.com.tw/event/tax-payment-2026"
+    }
+  ]
+}
