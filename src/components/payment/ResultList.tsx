@@ -94,12 +94,22 @@ export function ResultList({
               </span>
               可拿到約{' '}
               <span className="text-blue-700 font-bold tabular-nums">
-                {fmtNT(top.r.value)}
+                {(() => {
+                  const isNTUnit = !top.r.unit || top.r.unit === '元'
+                  if (isNTUnit) return fmtNT(top.r.value)
+                  return `${Math.round(top.r.value ?? 0).toLocaleString('zh-TW')} ${top.r.unit}`
+                })()}
               </span>
               {top.r.rate != null && top.r.rate > 0 ? (
                 <span className="text-gray-500">
                   （回饋率 {fmtPct(top.r.rate)}
-                  {top.r.capped ? `，已達上限 ${fmtNT(top.r.cap)}` : ''}）
+                  {top.r.capped
+                    ? `，已達上限 ${
+                        !top.r.unit || top.r.unit === '元'
+                          ? fmtNT(top.r.cap)
+                          : `${Math.round(top.r.cap ?? 0).toLocaleString('zh-TW')} ${top.r.unit}`
+                      }`
+                    : ''}）
                 </span>
               ) : null}
               。
