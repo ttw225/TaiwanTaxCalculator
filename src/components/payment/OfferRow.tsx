@@ -58,9 +58,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
         }`}
       >
         {fmtNT(r.value)}
-        {r.unit && r.unit !== '元' && (
-          <span className="ml-1 text-xs font-normal text-gray-500">{r.unit}</span>
-        )}
+        {r.unit && r.unit !== '元' && <span className="ml-1">{r.unit}</span>}
       </p>
     )
   } else if (isRebate && r.value != null) {
@@ -71,9 +69,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
         }`}
       >
         {fmtNT(r.value)}
-        {r.unit && r.unit !== '元' && (
-          <span className="ml-1 text-xs font-normal text-gray-500">{r.unit}</span>
-        )}
+        {r.unit && r.unit !== '元' && <span className="ml-1">{r.unit}</span>}
       </p>
     )
   } else {
@@ -90,14 +86,14 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
 
   return (
     <Card className={`p-5 transition-colors ${cardExtraCls}`}>
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
         <div
           className={`shrink-0 w-10 h-10 rounded-full border flex items-center justify-center text-base font-semibold tabular-nums ${rankCls}`}
         >
           {rank}
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
           {/* Title: bank｜campaign_title */}
           <p className="text-base font-semibold text-gray-900 leading-snug">
             {offer.bank}｜{offer.campaign_title}
@@ -119,32 +115,34 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
             )}
           </div>
 
-          {/* Metrics grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mt-4 pt-4 border-t border-gray-100">
-            <div>
-              <p className="text-base text-gray-400 mb-1">
+          {/* Metrics list */}
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col divide-y divide-gray-100">
+            <div className="flex items-baseline gap-3 py-2">
+              <p className="text-base text-gray-500 shrink-0 w-20">
                 {isInstallmentOnly || isFeeOnly ? '形式' : isFixed ? '回饋' : '估算回饋'}
               </p>
-              {headline}
-              {r.capped && (
-                <p className="text-base text-amber-700 mt-1">
-                  已達上限 {fmtNT(r.cap)}
-                </p>
-              )}
-              {r.tier_label && (
-                <p className="text-base text-gray-500 mt-1">適用：{r.tier_label}</p>
-              )}
+              <div className="min-w-0">
+                {headline}
+                {r.capped && (
+                  <p className="text-base text-amber-700 mt-1">
+                    已達上限 {fmtNT(r.cap)}
+                  </p>
+                )}
+                {r.tier_label && (
+                  <p className="text-base text-gray-500 mt-1">適用：{r.tier_label}</p>
+                )}
+              </div>
             </div>
-            <div>
-              <p className="text-base text-gray-400 mb-1">回饋率</p>
+            <div className="flex items-baseline gap-3 py-2">
+              <p className="text-base text-gray-500 shrink-0 w-20">回饋率</p>
               <p className="text-base text-gray-800 font-medium tabular-nums">{rateLabel}</p>
             </div>
-            <div>
-              <p className="text-base text-gray-400 mb-1">回饋上限</p>
+            <div className="flex items-baseline gap-3 py-2">
+              <p className="text-base text-gray-500 shrink-0 w-20">回饋上限</p>
               <p className="text-base text-gray-800 font-medium">{capLabel}</p>
             </div>
-            <div>
-              <p className="text-base text-gray-400 mb-1">分期</p>
+            <div className="flex items-baseline gap-3 py-2">
+              <p className="text-base text-gray-500 shrink-0 w-20">分期</p>
               <p className="text-base text-gray-800 font-medium">
                 {offer.installment_summary ?? '—'}
               </p>
@@ -153,8 +151,8 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
 
           {/* Note */}
           {offer.note && (
-            <p className="mt-3 text-base text-gray-500 leading-relaxed flex items-start gap-2">
-              <span className="text-gray-300 shrink-0 w-6 h-6 flex items-center justify-center">
+            <p className="mt-3 text-base text-gray-500 leading-relaxed flex items-center gap-2">
+              <span className="text-gray-500 shrink-0 flex items-center justify-center">
                 <Info size={20} />
               </span>
               {offer.note}

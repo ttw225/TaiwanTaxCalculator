@@ -17,7 +17,7 @@ const BANK_ALIASES_BY_NORMALIZED_NAME = new Map<string, string[]>([
 ])
 
 function normalizeSearchText(value: string): string {
-  return value.toLowerCase().replaceAll('臺', '台')
+  return value.normalize('NFKC').toLowerCase().replaceAll('臺', '台').replace(/\s+/g, '')
 }
 
 function getBankAliases(bankName: string): string[] {
