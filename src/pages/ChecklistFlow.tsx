@@ -330,6 +330,20 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
     navigate('/', { preventScrollReset: true, flushSync: true })
   }
 
+  function navigateToPaymentRewards() {
+    setScrollToItemId(null)
+    navigate('/payment-rewards', { preventScrollReset: true, flushSync: true })
+    window.scrollTo(0, 0)
+  }
+
+  function handleNavClick(id: string) {
+    if (id === 'payment-rewards') {
+      navigateToPaymentRewards()
+      return
+    }
+    navigateToChecklistFlow()
+  }
+
   function resetChecklistState() {
     setSelected([])
     setHasGeneratedChecklist(false)
@@ -499,7 +513,7 @@ export function ChecklistFlow({ screen }: { screen: ChecklistFlowScreen }) {
       <SiteHeader
         currentFeatureId="tax-checklist"
         onHome={navigateToIntro}
-        onNavClick={() => navigateToChecklistFlow()}
+        onNavClick={handleNavClick}
       />
       <main className="flex-1">
         {content}

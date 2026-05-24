@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ChecklistPage from '../src/pages/ChecklistPage'
 import ChecklistStartPage from '../src/pages/ChecklistStartPage'
 import HomePage from '../src/pages/HomePage'
+import PaymentRewardsPage from '../src/pages/PaymentRewardsPage'
 import { CHECKLIST_INPUT_STORAGE_KEY } from '../src/lib/checklistInputStorage'
 import { CHECKLIST_VIEW_STATE_STORAGE_KEY } from '../src/lib/checklistViewStateStorage'
 import { SITUATION_SELECTION_STORAGE_KEY } from '../src/lib/situationSelectionStorage'
@@ -199,6 +200,7 @@ function TestRoutes() {
     createElement(Route, { path: '/', element: createElement(HomePage) }),
     createElement(Route, { path: '/checklist/start', element: createElement(ChecklistStartPage) }),
     createElement(Route, { path: '/checklist', element: createElement(ChecklistPage) }),
+    createElement(Route, { path: '/payment-rewards', element: createElement(PaymentRewardsPage) }),
   )
 }
 
@@ -430,6 +432,14 @@ describe('situation single-source flow', () => {
     clickButtonByText('節稅試算')
 
     expect(container.textContent).toContain('選擇符合 114 年度的報稅項目')
+  })
+
+  it('navigates to payment rewards page from header nav', () => {
+    renderApp({ autoStart: false, route: '/' })
+    clickButtonByText('繳稅回饋')
+
+    expect(currentPath).toBe('/payment-rewards')
+    expect(container.textContent).toContain('輸入今年的應繳納稅額')
   })
 
   it('goes to results from intro start button after checklist has been generated', () => {

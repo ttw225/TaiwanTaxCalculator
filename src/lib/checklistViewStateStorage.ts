@@ -2,7 +2,7 @@ import { readLocal, removeLocal, writeLocal } from './storage'
 
 const BASE_STORAGE_KEY = 'tax.checklist.view.v1'
 
-export type ChecklistViewState = 'intro' | 'selecting' | 'results'
+export type ChecklistViewState = 'intro' | 'selecting' | 'results' | 'payment-rewards'
 
 interface SavedChecklistViewState {
   page: ChecklistViewState
@@ -16,6 +16,7 @@ export function createChecklistViewStateStorageKey(basePath: string | undefined 
 export const CHECKLIST_VIEW_STATE_STORAGE_KEY = createChecklistViewStateStorageKey()
 
 function normalizeChecklistViewState(input: unknown): ChecklistViewState {
+  if (input === 'payment-rewards') return 'payment-rewards'
   if (input === 'results') return 'results'
   if (input === 'intro') return 'intro'
   return 'selecting'

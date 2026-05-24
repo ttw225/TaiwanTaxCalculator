@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 import { SiteHeader } from '../components/SiteHeader'
 import { SiteFooter } from '../components/SiteFooter'
 import { BackToTopButton } from '../components/BackToTopButton'
@@ -15,6 +15,7 @@ import {
  */
 export default function SiteLayout() {
   const navigate = useNavigate()
+  const location = useLocation()
 
   function navigateToChecklistEntry() {
     const snapshot = loadSavedChecklistSnapshot()
@@ -26,12 +27,25 @@ export default function SiteLayout() {
     })
   }
 
+  function handleNavClick(id: string) {
+    if (id === 'payment-rewards') {
+      navigate('/payment-rewards', { preventScrollReset: true, flushSync: true })
+      window.scrollTo(0, 0)
+      return
+    }
+    navigateToChecklistEntry()
+  }
+
+  const currentFeatureId = location.pathname.startsWith('/payment-rewards')
+    ? 'payment-rewards'
+    : 'tax-checklist'
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <SiteHeader
-        currentFeatureId="tax-checklist"
+        currentFeatureId={currentFeatureId}
         onHome={() => navigate('/', { preventScrollReset: true, flushSync: true })}
-        onNavClick={navigateToChecklistEntry}
+        onNavClick={handleNavClick}
       />
       <main className="flex-1">
         <Outlet />

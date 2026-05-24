@@ -109,6 +109,16 @@ export default function HomePage() {
     navigate(destination, { preventScrollReset: true, flushSync: true })
   }
 
+  function handleNavClick(id: string) {
+    if (id === 'payment-rewards') {
+      setPendingChecklistDestination(null)
+      navigate('/payment-rewards', { preventScrollReset: true, flushSync: true })
+      window.scrollTo(0, 0)
+      return
+    }
+    navigateToChecklistEntry()
+  }
+
   const content = pendingChecklistDestination === '/checklist/start'
       ? (
           <div className="max-w-5xl mx-auto px-4 py-8">
@@ -128,7 +138,7 @@ export default function HomePage() {
           navigate('/', { preventScrollReset: true, flushSync: true })
           window.scrollTo(0, 0)
         }}
-        onNavClick={navigateToChecklistEntry}
+        onNavClick={handleNavClick}
       />
       <main className="flex-1">
         {content}
