@@ -151,8 +151,8 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
 
           {/* Note */}
           {offer.note && (
-            <p className="mt-3 text-base text-gray-500 leading-relaxed flex items-center gap-2">
-              <span className="text-gray-500 shrink-0 flex items-center justify-center">
+            <p className="mt-3 text-base text-gray-500 leading-relaxed flex items-start gap-2">
+              <span className="text-gray-500 shrink-0 inline-flex items-center justify-center h-[1.625em]">
                 <Info size={20} />
               </span>
               {offer.note}
