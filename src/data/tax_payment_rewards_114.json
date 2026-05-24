@@ -374,7 +374,7 @@
             "min": 5000000,
             "cap_label": "加碼 10,000 元"
           },
-          "notes": "需選擇好禮 2 並完成登錄；滿額加碼可與好禮 2 刷卡金回饋併用；正附卡分別計算回饋上限並歸戶正卡帳單；預計 2026/8/31 前入帳。",
+          "notes": "需選擇刷卡金回饋並完成登錄；滿額加碼可與刷卡金回饋刷卡金回饋併用；正附卡分別計算回饋上限並歸戶正卡帳單；預計 2026/8/31 前入帳。",
           "tags": [
             "credit_card"
           ]
@@ -408,7 +408,7 @@
             "cap_label": "每戶 5,000 元"
           },
           "installment": null,
-          "notes": "需選擇好禮 2 並完成登錄；於好禮 2 現金回饋外額外加碼；正附卡分別計算回饋上限並歸戶正卡帳單；預計 2026/8/31 前入帳。",
+          "notes": "需選擇刷卡金回饋並完成登錄；於刷卡金回饋現金回饋外額外加碼；正附卡分別計算回饋上限並歸戶正卡帳單；預計 2026/8/31 前入帳。",
           "tags": [
             "credit_card"
           ]
@@ -437,7 +437,7 @@
             "cap_label": "限量 2 萬戶"
           },
           "installment": null,
-          "notes": "台灣 Pay 加碼限量 2 萬戶；與好禮 2 或指定卡加碼條件分開判斷。",
+          "notes": "台灣 Pay 加碼限量 2 萬戶；與刷卡金回饋或指定卡加碼條件分開判斷。",
           "tags": [
             "taiwan_pay",
             "credit_card"
@@ -830,10 +830,10 @@
           "registration_status": null,
           "rebate": null,
           "installment": {
-            "summary": "世界卡滿 3,000 元享 3／6／12 期 0 利率；全卡友享 3／6 期 0 利率",
+            "summary": "全卡友享 3／6 期 0 利率；世界卡滿 3,000 元享 3／6／12 期 0 利率",
             "min_amount": 3000
           },
-          "notes": "手續費 0 元；12 期 0 利率限世界卡（亞洲萬里通除外），全卡友12 期為付費分期（年利率 6%）；18 期付費年利率 6%；rates 為年利率",
+          "notes": "手續費 0 元；12 期 0 利率限世界卡（亞洲萬里通除外），全卡友12 期為付費分期（年利率 6%）；18 期付費年利率 6%",
           "tags": [
             "installment"
           ]
@@ -978,7 +978,7 @@
             "cap_label": "限完成繳納前 30 名"
           },
           "installment": null,
-          "notes": "不得與優惠3（台灣 Pay專屬回饋）併用。即享券可於王品、7-ELEVEN、全家、家樂福、屈臣氏、遠東SOGO、foodpanda等16大品牌使用，無效期。",
+          "notes": "不得與台灣 Pay專屬回饋併用。即享券可於王品、7-ELEVEN、全家、家樂福、屈臣氏、遠東SOGO、foodpanda等16大品牌使用，無效期。",
           "tags": [
             "credit_card"
           ]
@@ -1049,7 +1049,7 @@
             "cap_label": "依金額級距 100~2,500 元（不累加）"
           },
           "installment": null,
-          "notes": "不得與優惠4 大戶方案併用",
+          "notes": "不得與信用卡大戶方案併用",
           "tags": [
             "taiwan_pay",
             "credit_card"
@@ -1074,13 +1074,13 @@
             "requires_registration": true,
             "period": "登錄 2026/5/7~2026/5/31",
             "mode": "fixed",
-            "fixed": 60,
-            "fixed_unit": "元（600 點台灣 Pay 紅利）",
+            "fixed": 600,
+            "fixed_unit": "點台灣 Pay 紅利",
             "min": null,
             "cap_label": "限量 10,000 筆"
           },
           "installment": null,
-          "notes": null,
+          "notes": "回饋為台灣 Pay 紅利點數（非現金）",
           "tags": [
             "taiwan_pay",
             "credit_card"
@@ -1717,7 +1717,7 @@
           "title": "新辦永富世界卡｜滿額加碼",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
-          "eligible_cards": "永富世界卡；尊榮理財會員於 2026/4/22~2026/5/20 新申辦永富世界卡正卡",
+          "eligible_cards": "永富世界卡",
           "eligible_card_types": [
             "credit"
           ],
@@ -1737,7 +1737,7 @@
             "cap_label": "限量 40 名"
           },
           "installment": null,
-          "notes": "與永富世界卡主活動及他專區擇優。",
+          "notes": "與永富世界卡主活動及他專區擇優；尊榮理財會員於 2026/4/22~2026/5/20 新申辦永富世界卡正卡。",
           "tags": [
             "credit_card"
           ]
@@ -2754,7 +2754,7 @@
           ],
           "rebate": null,
           "installment": {
-            "summary": "固定額度內享 3／6 期 0 利率",
+            "summary": "3／6 期 0 利率",
             "min_amount": null
           },
           "notes": "設定分期則不適用所有繳稅回饋（含指定卡別回饋）；繳稅免收手續費；限固定信用額度內；雙幣卡外幣消費不適用",

@@ -80,6 +80,7 @@ export interface ResolveResult {
   capped?: boolean              // 是否觸發上限
   cap?: number | null
   tier_label?: string           // tiered 時：適用的級距描述
+  threshold_label?: string | null // 單筆門檻說明（fixed/rate 且 min > 0 時）
   reason?: string               // 不符門檻時：原因
   unit?: string                 // 顯示單位
 }

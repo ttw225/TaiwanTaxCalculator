@@ -147,12 +147,18 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
     }
   }
 
+  const thresholdLabel =
+    (o.mode === 'fixed' || o.mode === 'rate') && o.min != null && o.min > 0
+      ? `單筆滿 ${fmtNT(o.min)}`
+      : null
+
   if (o.mode === 'fixed') {
     return {
       applicable: true,
       kind: 'fixed',
       value: o.fixed ?? null,
       unit: o.fixed_unit ?? '元',
+      threshold_label: thresholdLabel,
     }
   }
 
@@ -174,6 +180,7 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
       capped,
       cap: o.cap_nt,
       unit: o.fixed_unit ?? '元',
+      threshold_label: thresholdLabel,
     }
   }
 

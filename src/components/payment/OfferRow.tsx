@@ -139,9 +139,11 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
                     {!isNTUnit && ` ${r.unit}`}
                   </p>
                 )}
-                {r.tier_label && (
+                {r.tier_label ? (
                   <p className="text-base text-gray-500 mt-1">適用：{r.tier_label}</p>
-                )}
+                ) : r.threshold_label ? (
+                  <p className="text-base text-gray-500 mt-1">適用：{r.threshold_label}</p>
+                ) : null}
               </div>
             </div>
             <div className="flex items-baseline gap-3 py-2">
