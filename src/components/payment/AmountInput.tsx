@@ -71,7 +71,7 @@ export function AmountInput({ amount, onChange }: AmountInputProps) {
             onClick={() => onChange(v)}
             className={`text-base tabular-nums rounded-full border px-3 py-1 transition-colors ${
               amount === v
-                ? 'bg-gray-900 text-white border-gray-900'
+                ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >

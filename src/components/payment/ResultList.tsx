@@ -1,65 +1,73 @@
 import { useMemo, useRef } from 'react'
 import { Search, Star, X } from 'lucide-react'
 import { OfferRow } from './OfferRow'
-import { fmtNT, fmtPct, resolveOffer } from '../../lib/paymentOffers'
-import type { Offer } from '../../types/paymentOffers'
+import {
+  filterOffersByCards,
+  fmtNT,
+  fmtPct,
+  resolveOffer,
+} from '../../lib/paymentOffers'
+import type { Offer, ResolveResult } from '../../types/paymentOffers'
 import type { TypeFilterValue } from './TypeFilter'
 
 interface ResultListProps {
   offers: Offer[]
   amount: number
   typeFilter: TypeFilterValue
-  bankFilter: Set<string>
+  selectedCardIds: Set<string>
   query: string
   onQueryChange: (next: string) => void
+}
+
+interface RankedRow {
+  o: Offer
+  r: ResolveResult
+}
+
+function sortRanked(rows: RankedRow[]): RankedRow[] {
+  return [...rows].sort((a, b) => {
+    if (a.r.applicable !== b.r.applicable) return a.r.applicable ? -1 : 1
+    const va = a.r.value ?? -1
+    const vb = b.r.value ?? -1
+    if (va !== vb) return vb - va
+    const ba = a.o.bank
+    const bb = b.o.bank
+    if (ba !== bb) return ba.localeCompare(bb, 'zh-TW')
+    return a.o.card_name.localeCompare(b.o.card_name, 'zh-TW')
+  })
 }
 
 export function ResultList({
   offers,
   amount,
   typeFilter,
-  bankFilter,
+  selectedCardIds,
   query,
   onQueryChange,
 }: ResultListProps) {
   const queryRef = useRef<HTMLInputElement>(null)
 
-  // pre-filter (bank + type chips)
   const filtered = useMemo(() => {
-    return offers.filter((o) => {
-      if (!bankFilter.has(o.bank_code)) return false
-      if (!o.tags.some((t) => typeFilter[t])) return false
-      return true
-    })
-  }, [offers, bankFilter, typeFilter])
+    const byCard = filterOffersByCards(offers, selectedCardIds)
+    return byCard.filter((o) => o.tags.some((t) => typeFilter[t]))
+  }, [offers, selectedCardIds, typeFilter])
 
-  // keyword search
   const searched = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return filtered
     return filtered.filter((o) => {
       const hay =
-        `${o.bank} ${o.card_name} ${o.card_scope ?? ''} ${o.campaign_title} ${o.note ?? ''}`.toLowerCase()
+        `${o.bank} ${o.card_name} ${o.card_scope ?? ''} ${o.campaign_title}`.toLowerCase()
       return hay.includes(q)
     })
   }, [filtered, query])
 
-  // resolve + rank
-  const ranked = useMemo(() => {
-    const enriched = searched.map((o) => ({ o, r: resolveOffer(o, amount) }))
-    return enriched.sort((a, b) => {
-      if (a.r.applicable !== b.r.applicable) return a.r.applicable ? -1 : 1
-      const va = a.r.value ?? -1
-      const vb = b.r.value ?? -1
-      if (va !== vb) return vb - va
-      const ba = a.o.bank
-      const bb = b.o.bank
-      if (ba !== bb) return ba.localeCompare(bb, 'zh-TW')
-      return a.o.card_name.localeCompare(b.o.card_name, 'zh-TW')
-    })
-  }, [searched, amount])
+  const ranked = useMemo(
+    () => sortRanked(searched.map((o) => ({ o, r: resolveOffer(o, amount) }))),
+    [searched, amount],
+  )
 
-  // top reward — uses pre-filter (not search) for stability
+  // top reward — uses pre-keyword pool for stability
   const top = useMemo(() => {
     const pool = filtered
       .map((o) => ({ o, r: resolveOffer(o, amount) }))
@@ -109,7 +117,7 @@ export function ResultList({
           ref={queryRef}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="在結果中搜尋（例：CUBE、世界卡、領航、台灣 Pay）"
+          placeholder="搜尋銀行名稱、卡別名稱、繳稅活動"
           className="w-full pl-9 pr-9 py-2.5 text-base border border-gray-200 rounded-xl bg-white focus:border-gray-400 focus:outline-none placeholder:text-gray-400"
         />
         {query && (
@@ -137,9 +145,12 @@ export function ResultList({
         </div>
       ) : (
         <>
-          <p className="text-base text-gray-400 mb-3 tabular-nums">
-            {ranked.length} 個方案 · 依估算回饋金額由高至低排序
-            {query && <span className="ml-1">· 關鍵字「{query}」</span>}
+          <p className="text-base text-gray-400 mb-3">
+            共{' '}
+            <span className="font-semibold text-gray-700 tabular-nums">
+              {ranked.length}
+            </span>{' '}
+            個方案，依回饋金額排序
           </p>
           <div className="space-y-3">
             {ranked.map((row, i) => {
@@ -147,11 +158,7 @@ export function ResultList({
                 ranked.slice(0, i).filter((x) => x.r.applicable).length + 1
               const rank = row.r.applicable ? applicableRank : '—'
               const isTop =
-                i === 0 &&
-                row.r.applicable &&
-                row.r.value != null &&
-                row.r.value > 0 &&
-                !query
+                i === 0 && row.r.applicable && row.r.value !== 0 && !query
               return (
                 <OfferRow
                   key={row.o.id}

@@ -4,16 +4,16 @@ import { PageHeading } from './ui/PageHeading'
 import { AmountInput } from './payment/AmountInput'
 import { TypeFilter } from './payment/TypeFilter'
 import type { TypeFilterValue } from './payment/TypeFilter'
-import { BankFilter } from './payment/BankFilter'
+import { CardPicker } from './payment/CardPicker'
 import { ResultList } from './payment/ResultList'
-import { getBankList, loadOffers } from '../lib/paymentOffers'
+import { loadOffers } from '../lib/paymentOffers'
 
-const LS_KEY = 'tax.payment.rewards.v1'
+const LS_KEY = 'tax.payment.rewards.v2'
 
 interface SavedState {
   amount?: number
   typeFilter?: TypeFilterValue
-  bankFilter?: string[]
+  selectedCardIds?: string[]
 }
 
 function loadSaved(): SavedState | null {
@@ -29,6 +29,7 @@ function loadSaved(): SavedState | null {
 const DEFAULT_TYPE_FILTER: TypeFilterValue = {
   taiwan_pay: true,
   credit_card: true,
+  debit_card: true,
   installment: true,
 }
 
@@ -86,23 +87,17 @@ function Disclaimer() {
 
 export function PaymentRewardsPage() {
   const offers = useMemo(() => loadOffers(), [])
-  const allBanks = useMemo(() => getBankList(), [])
 
   const saved = useMemo(() => loadSaved(), [])
 
   const [amount, setAmount] = useState<number>(saved?.amount ?? 10000)
-  const [typeFilter, setTypeFilter] = useState<TypeFilterValue>(
-    saved?.typeFilter ?? DEFAULT_TYPE_FILTER,
+  const [typeFilter, setTypeFilter] = useState<TypeFilterValue>(() => ({
+    ...DEFAULT_TYPE_FILTER,
+    ...(saved?.typeFilter ?? {}),
+  }))
+  const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(
+    () => new Set(saved?.selectedCardIds ?? []),
   )
-  const [bankFilter, setBankFilter] = useState<Set<string>>(() => {
-    if (saved?.bankFilter && saved.bankFilter.length > 0) {
-      // Intersect with current allBanks to drop stale codes.
-      const valid = new Set(allBanks.map((b) => b.code))
-      const inter = saved.bankFilter.filter((c) => valid.has(c))
-      if (inter.length > 0) return new Set(inter)
-    }
-    return new Set(allBanks.map((b) => b.code))
-  })
   const [query, setQuery] = useState('')
 
   useEffect(() => {
@@ -110,13 +105,13 @@ export function PaymentRewardsPage() {
       const payload: SavedState = {
         amount,
         typeFilter,
-        bankFilter: Array.from(bankFilter),
+        selectedCardIds: Array.from(selectedCardIds),
       }
       localStorage.setItem(LS_KEY, JSON.stringify(payload))
     } catch {
       // localStorage unavailable
     }
-  }, [amount, typeFilter, bankFilter])
+  }, [amount, typeFilter, selectedCardIds])
 
   const anyType = Object.values(typeFilter).some(Boolean)
 
@@ -135,9 +130,9 @@ export function PaymentRewardsPage() {
       {amount > 0 ? (
         <>
           <section className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 items-start">
               <TypeFilter value={typeFilter} onChange={setTypeFilter} />
-              <BankFilter value={bankFilter} onChange={setBankFilter} allBanks={allBanks} />
+              <CardPicker value={selectedCardIds} onChange={setSelectedCardIds} />
             </div>
           </section>
 
@@ -146,7 +141,7 @@ export function PaymentRewardsPage() {
               offers={offers}
               amount={amount}
               typeFilter={typeFilter}
-              bankFilter={bankFilter}
+              selectedCardIds={selectedCardIds}
               query={query}
               onQueryChange={setQuery}
             />

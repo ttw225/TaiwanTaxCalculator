@@ -10,21 +10,20 @@ interface OfferRowProps {
   isTop: boolean
 }
 
-const TYPE_PILL_CLASS: Record<OfferTag, string> = {
-  taiwan_pay: 'bg-blue-50 text-blue-700 border-blue-200',
-  credit_card: 'bg-gray-100 text-gray-700 border-gray-200',
-  installment: 'bg-amber-50 text-amber-800 border-amber-200',
-}
+const TYPE_PILL_CLASS = 'bg-blue-50 text-blue-700 border-blue-200'
 const TYPE_PILL_LABEL: Record<OfferTag, string> = {
   taiwan_pay: '台灣Pay',
   credit_card: '信用卡回饋',
+  debit_card: '金融卡回饋',
   installment: '分期 0 利率',
 }
+// Display order for type pills: 信用卡 → 金融卡 → 分期 → 台灣Pay
+const TYPE_PILL_ORDER: OfferTag[] = ['credit_card', 'debit_card', 'installment', 'taiwan_pay']
 
 function TypePill({ tag }: { tag: OfferTag }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-base ${TYPE_PILL_CLASS[tag]}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-base ${TYPE_PILL_CLASS}`}
     >
       {TYPE_PILL_LABEL[tag]}
     </span>
@@ -37,6 +36,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   const isFeeOnly = r.kind === 'fee_only'
   const isFixed = r.kind === 'fixed'
   const isRebate = r.kind === 'rate' || r.kind === 'rate-tiered'
+  const highlightHeadline = isTop && r.value != null && r.value > 0
 
   const rankCls = !r.applicable
     ? 'border-gray-200 bg-white text-gray-300'
@@ -58,7 +58,11 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
     headline = <p className="text-lg font-bold text-gray-900 leading-none">手續費／解鎖</p>
   } else if (isFixed) {
     headline = (
-      <p className="text-lg font-bold text-gray-900 tabular-nums leading-none">
+      <p
+        className={`text-lg font-bold tabular-nums leading-none ${
+          highlightHeadline ? 'text-blue-700' : 'text-gray-900'
+        }`}
+      >
         {fmtNT(r.value)}
         {r.unit && r.unit !== '元' && (
           <span className="ml-1 text-xs font-normal text-gray-500">{r.unit}</span>
@@ -68,7 +72,9 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   } else if (isRebate && r.value != null) {
     headline = (
       <p
-        className={`text-lg font-bold tabular-nums leading-none ${isTop ? 'text-blue-700' : 'text-gray-900'}`}
+        className={`text-lg font-bold tabular-nums leading-none ${
+          highlightHeadline ? 'text-blue-700' : 'text-gray-900'
+        }`}
       >
         {fmtNT(r.value)}
         {r.unit && r.unit !== '元' && (
@@ -98,26 +104,22 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Card name */}
-          <div className="flex items-start justify-between gap-3 mb-1">
-            <div className="min-w-0">
-              <p className="text-base font-semibold text-gray-900 leading-snug">
-                {offer.card_name}
-              </p>
-              <p className="text-base text-gray-400 mt-0.5">{offer.bank}</p>
-            </div>
-          </div>
-
-          {/* Campaign title */}
-          <p className="text-base text-gray-500 leading-relaxed mt-1">{offer.campaign_title}</p>
+          {/* Title: bank｜campaign_title */}
+          <p className="text-base font-semibold text-gray-900 leading-snug">
+            {offer.bank}｜{offer.campaign_title}
+          </p>
+          {/* Scope sub-label */}
+          <p className="text-base text-gray-500 mt-0.5">
+            {offer.is_card_specific ? '限特定卡' : '全卡別適用'}
+          </p>
 
           {/* Tags */}
           <div className="flex flex-wrap items-center gap-1.5 mt-2">
-            {offer.tags.map((t) => (
+            {TYPE_PILL_ORDER.filter((t) => offer.tags.includes(t)).map((t) => (
               <TypePill key={t} tag={t} />
             ))}
             {offer.requires_registration && (
-              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 text-base">
+              <span className="inline-flex items-center rounded-full bg-amber-50 border border-amber-200 text-amber-800 px-2 py-0.5 text-base">
                 需登錄
               </span>
             )}
@@ -162,9 +164,9 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
 
           {/* Note */}
           {offer.note && (
-            <p className="mt-3 text-base text-gray-500 leading-relaxed flex items-start gap-1.5">
-              <span className="text-gray-300 mt-0.5 shrink-0">
-                <Info size={12} />
+            <p className="mt-3 text-base text-gray-500 leading-relaxed flex items-start gap-2">
+              <span className="text-gray-300 shrink-0 w-6 h-6 flex items-center justify-center">
+                <Info size={20} />
               </span>
               {offer.note}
             </p>
@@ -183,12 +185,9 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
                 <ExternalLink size={13} />
               </a>
             )}
-            <div className="text-base text-gray-400 flex items-center gap-2 min-w-0">
-              {offer.source_id && (
-                <code className="truncate font-mono">{offer.source_id}</code>
-              )}
-              {offer.period && <span className="shrink-0">· {offer.period}</span>}
-            </div>
+            {offer.period && (
+              <div className="text-base text-gray-400 min-w-0">{offer.period}</div>
+            )}
           </div>
         </div>
       </div>

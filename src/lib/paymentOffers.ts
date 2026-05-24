@@ -2,6 +2,7 @@
 // 也提供 resolveOffer(offer, amount) 給排序與 OfferRow 渲染用。
 
 import rawData from '../data/tax_payment_rewards_114.json'
+import { getCard } from './cardCatalog'
 import type {
   AmountTier,
   BankListItem,
@@ -49,7 +50,6 @@ interface RawCampaign {
 interface RawBank {
   bank_code: string
   bank_name: string
-  verification: 'verified' | 'unverified' | 'dropped'
   campaigns: RawCampaign[]
 }
 interface RawData {
@@ -65,9 +65,16 @@ function deriveTags(c: RawCampaign): OfferTag[] {
   if (/台灣\s*Pay|台灣行動支付/.test(ch) || /台灣\s*Pay/.test(c.title)) {
     tags.add('taiwan_pay')
   }
+  const isDebit =
+    (c.eligible_card_types ?? []).includes('debit') ||
+    (c.eligible_card_ids ?? []).some((id) => getCard(id)?.type === 'debit')
   const mode = c.rebate?.mode
   if (mode && mode !== 'installment_only' && mode !== 'fee_only') {
-    tags.add('credit_card')
+    if (isDebit) tags.add('debit_card')
+    else tags.add('credit_card')
+  } else if (isDebit) {
+    // 即使 mode 缺漏，金融卡身分仍應反映
+    tags.add('debit_card')
   }
   if (c.installment) tags.add('installment')
   return Array.from(tags)
@@ -77,7 +84,6 @@ function deriveTags(c: RawCampaign): OfferTag[] {
 export function loadOffers(): Offer[] {
   const offers: Offer[] = []
   for (const bank of data.banks) {
-    if (bank.verification === 'dropped') continue
     for (const c of bank.campaigns) {
       // 有 rebate 且有 mode → 算一筆 rebate offer
       if (c.rebate && c.rebate.mode) {
@@ -94,6 +100,7 @@ export function loadOffers(): Offer[] {
 function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
   const r = c.rebate ?? {}
   const tags = c.tags && c.tags.length > 0 ? c.tags : deriveTags(c)
+  const eligibleCardIds = c.eligible_card_ids ?? []
   return {
     id: `${bank.bank_code}_${c.campaign_id}`,
     bank_code: bank.bank_code,
@@ -112,6 +119,8 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     cap_nt: r.cap_nt ?? null,
     cap_label: r.cap_label ?? r.cap ?? null,
     amount_tiers: r.amount_tiers,
+    eligible_card_ids: eligibleCardIds,
+    is_card_specific: eligibleCardIds.length > 0,
     tags,
     requires_registration: r.requires_registration ?? false,
     period: r.period ?? null,
@@ -194,12 +203,33 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
   return { applicable: true, value: null, kind: o.mode }
 }
 
+// ── 卡 picker 篩選契約 ──────────────────────────────────────────────────────
+// selectedCardIds 為空 → 全部 campaign 都候選。
+// 否則：全卡別 campaign 要其 bank_code 在「使用者選的卡所屬銀行」中；
+//       限定卡 campaign 要與使用者選的 card_id 有交集。
+export function filterOffersByCards(
+  offers: Offer[],
+  selectedCardIds: Set<string>,
+): Offer[] {
+  if (selectedCardIds.size === 0) return offers
+  const selectedBanks = new Set<string>()
+  for (const id of selectedCardIds) {
+    const c = getCard(id)
+    if (c) selectedBanks.add(c.bank_code)
+  }
+  return offers.filter((o) => {
+    if (o.is_card_specific) {
+      return o.eligible_card_ids.some((id) => selectedCardIds.has(id))
+    }
+    return selectedBanks.has(o.bank_code)
+  })
+}
+
 // ── 銀行清單（給 BankFilter 用） ─────────────────────────────────────────────
 export function getBankList(): BankListItem[] {
   const seen = new Set<string>()
   const out: BankListItem[] = []
   for (const b of data.banks) {
-    if (b.verification === 'dropped') continue
     if (b.campaigns.length === 0) continue
     if (seen.has(b.bank_code)) continue
     seen.add(b.bank_code)
@@ -227,11 +257,9 @@ export function clampAmount(n: number): number {
 // ── 資料版本 metadata（給 Disclaimer 顯示） ─────────────────────────────────
 interface DataMeta {
   tax_year: string
-  generated_at: string
   schema_version: string
 }
 export const DATA_META: DataMeta = {
   tax_year: (rawData as unknown as { tax_year: string }).tax_year,
-  generated_at: (rawData as unknown as { generated_at: string }).generated_at,
   schema_version: (rawData as unknown as { schema_version: string }).schema_version,
 }

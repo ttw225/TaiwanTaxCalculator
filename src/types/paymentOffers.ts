@@ -8,7 +8,25 @@ export type RebateMode =
   | 'installment_only'  // 僅分期，不算金額
   | 'fee_only'          // 僅手續費說明
 
-export type OfferTag = 'taiwan_pay' | 'credit_card' | 'installment'
+export type OfferTag = 'taiwan_pay' | 'credit_card' | 'debit_card' | 'installment'
+
+export interface CatalogCard {
+  card_id: string
+  bank_code: string
+  bank_name: string
+  display_name_zh: string
+  type: 'credit' | 'debit'
+  card_network: string | null
+  is_generic: boolean
+  image_url: string | null
+  notes: string | null
+}
+
+export interface CatalogBankGroup {
+  bank_code: string
+  bank_name: string
+  cards: CatalogCard[]
+}
 
 export interface AmountTier {
   min: number
@@ -37,6 +55,9 @@ export interface Offer {
   cap_nt?: number | null        // 數字回饋上限
   cap_label?: string | null     // 人類可讀上限字串
   amount_tiers?: AmountTier[]   // mode = 'rate-tiered' 必填
+
+  eligible_card_ids: string[]   // 空陣列 = 全卡別；非空 = 限定 card_id
+  is_card_specific: boolean     // 衍生：eligible_card_ids.length > 0
 
   tags: OfferTag[]
   requires_registration?: boolean
