@@ -30,6 +30,7 @@ function buildEntries(): Entry[] {
     .map((i) => ({ path: `/deductions/${i.id}`, changefreq: 'yearly', priority: 0.7 }))
   return [
     { path: '/', changefreq: 'monthly', priority: 1.0 },
+    { path: '/payment-rewards', changefreq: 'yearly', priority: 0.5 },
     { path: '/about', changefreq: 'yearly', priority: 0.5 },
     { path: '/methodology', changefreq: 'yearly', priority: 0.5 },
     ...deductionEntries,

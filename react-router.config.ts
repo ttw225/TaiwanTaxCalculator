@@ -22,6 +22,6 @@ export default {
     const deductionPaths = CHECKLIST_ITEMS.filter((i) =>
       SEO_INDEXABLE_CATEGORIES.has(i.category),
     ).map((i) => `/deductions/${i.id}`)
-    return ['/', '/checklist/start', '/checklist', '/about', '/methodology', '/404', ...deductionPaths]
+    return ['/', '/checklist/start', '/checklist', '/payment-rewards', '/about', '/methodology', '/404', ...deductionPaths]
   },
 } satisfies Config
