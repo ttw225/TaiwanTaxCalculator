@@ -50,7 +50,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'tax-checklist', label: '節稅試算', status: 'active' },
-  { id: 'payment-rewards', label: '繳稅回饋', status: 'coming-soon' },
+  { id: 'payment-rewards', label: '繳稅回饋', status: 'active' },
 ]
 
 // Brand blue Tailwind class tokens for header/footer.

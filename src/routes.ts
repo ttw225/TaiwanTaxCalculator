@@ -8,6 +8,7 @@ export default [
   route('checklist/start', 'pages/ChecklistStartPage.tsx'),
   route('checklist', 'pages/ChecklistPage.tsx'),
   layout('pages/SiteLayout.tsx', [
+    route('payment-rewards', 'pages/PaymentRewardsPage.tsx'),
     route('about', 'pages/AboutPage.tsx'),
     route('methodology', 'pages/MethodologyPage.tsx'),
     route('deductions/:slug', 'pages/DeductionDetailPage.tsx'),
