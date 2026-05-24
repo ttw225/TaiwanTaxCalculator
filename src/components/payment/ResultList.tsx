@@ -26,7 +26,6 @@ interface RankedRow {
 
 function sortRanked(rows: RankedRow[]): RankedRow[] {
   return [...rows].sort((a, b) => {
-    if (a.r.applicable !== b.r.applicable) return a.r.applicable ? -1 : 1
     const va = a.r.value ?? -1
     const vb = b.r.value ?? -1
     if (va !== vb) return vb - va
@@ -62,10 +61,10 @@ export function ResultList({
     })
   }, [filtered, query])
 
-  const ranked = useMemo(
-    () => sortRanked(searched.map((o) => ({ o, r: resolveOffer(o, amount) }))),
-    [searched, amount],
-  )
+  const ranked = useMemo(() => {
+    const resolved = searched.map((o) => ({ o, r: resolveOffer(o, amount) }))
+    return sortRanked(resolved.filter((row) => row.r.applicable))
+  }, [searched, amount])
 
   // top reward — uses pre-keyword pool for stability
   const top = useMemo(() => {
@@ -154,11 +153,8 @@ export function ResultList({
           </p>
           <div className="space-y-3">
             {ranked.map((row, i) => {
-              const applicableRank =
-                ranked.slice(0, i).filter((x) => x.r.applicable).length + 1
-              const rank = row.r.applicable ? applicableRank : '—'
-              const isTop =
-                i === 0 && row.r.applicable && row.r.value !== 0 && !query
+              const rank = i + 1
+              const isTop = i === 0 && row.r.value !== 0 && !query
               return (
                 <OfferRow
                   key={row.o.id}

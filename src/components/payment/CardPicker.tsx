@@ -9,7 +9,25 @@ interface CardPickerProps {
   onChange: (next: Set<string>) => void
 }
 
-const MAX_MENU_ITEMS = 20
+const MAX_MENU_ITEMS = 30
+const BANK_ALIASES_BY_NORMALIZED_NAME = new Map<string, string[]>([
+  ['台灣銀行', ['台灣銀行', '台銀']],
+  ['土地銀行', ['土銀']],
+  ['合作金庫', ['合庫']],
+])
+
+function normalizeSearchText(value: string): string {
+  return value.toLowerCase().replaceAll('臺', '台')
+}
+
+function getBankAliases(bankName: string): string[] {
+  return BANK_ALIASES_BY_NORMALIZED_NAME.get(normalizeSearchText(bankName)) ?? []
+}
+
+function formatCardDisplayName(displayName: string): string {
+  if (!displayName.includes('DAWHO') || displayName.includes('大戶')) return displayName
+  return displayName.replace('DAWHO', 'DAWHO 大戶')
+}
 
 export function CardPicker({ value, onChange }: CardPickerProps) {
   const [query, setQuery] = useState('')
@@ -22,20 +40,23 @@ export function CardPicker({ value, onChange }: CardPickerProps) {
   const allCards = useMemo(() => getAllCards(), [])
 
   const items = useMemo<CatalogCard[]>(() => {
-    const q = query.trim().toLowerCase()
+    const q = normalizeSearchText(query.trim())
     if (!q) return []
     const out: CatalogCard[] = []
     for (const c of allCards) {
       if (value.has(c.card_id)) continue
-      const hay = `${c.display_name_zh} ${c.bank_name}`.toLowerCase()
+      const displayName = formatCardDisplayName(c.display_name_zh)
+      const bankAliases = getBankAliases(c.bank_name)
+      const hay = normalizeSearchText(
+        `${c.display_name_zh} ${displayName} ${c.bank_name} ${bankAliases.join(' ')}`,
+      )
       if (hay.includes(q)) out.push(c)
       if (out.length >= MAX_MENU_ITEMS + 1) break
     }
     return out
   }, [query, allCards, value])
 
-  const hasMore = items.length > MAX_MENU_ITEMS
-  const visibleItems = hasMore ? items.slice(0, MAX_MENU_ITEMS) : items
+  const visibleItems = items.slice(0, MAX_MENU_ITEMS)
   // Clamp highlight in case items shrink (e.g. typing narrows list past current idx).
   const safeHighlightedIndex = Math.min(
     Math.max(highlightedIndex, 0),
@@ -78,6 +99,9 @@ export function CardPicker({ value, onChange }: CardPickerProps) {
   }
 
   function onInputKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    const nativeEvent = e.nativeEvent as globalThis.KeyboardEvent
+    if (nativeEvent.isComposing || nativeEvent.keyCode === 229) return
+
     if (e.key === 'Backspace' && query === '' && selectedList.length > 0) {
       e.preventDefault()
       removeChip(selectedList[selectedList.length - 1].card_id)
@@ -154,23 +178,26 @@ export function CardPicker({ value, onChange }: CardPickerProps) {
         onMouseDown={onContainerMouseDown}
         className="flex flex-wrap items-center gap-1.5 min-h-[2.75rem] max-h-40 overflow-y-auto w-full px-2 py-1.5 border border-gray-200 rounded-xl bg-white focus-within:border-gray-400 cursor-text"
       >
-        {selectedList.map((c) => (
-          <span
-            key={c.card_id}
-            className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 pl-2.5 pr-1 py-0.5 text-base max-w-full"
-          >
-            <span className="truncate max-w-[16rem]">{c.display_name_zh}</span>
-            <button
-              type="button"
-              onClick={() => removeChip(c.card_id)}
-              aria-label={`移除 ${c.display_name_zh}`}
-              data-padding="custom"
-              className="inline-flex items-center justify-center w-5 h-5 text-blue-500 hover:text-blue-800 transition-colors"
+        {selectedList.map((c) => {
+          const displayName = formatCardDisplayName(c.display_name_zh)
+          return (
+            <span
+              key={c.card_id}
+              className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 pl-2.5 pr-1 py-0.5 text-base max-w-full"
             >
-              <X size={16} />
-            </button>
-          </span>
-        ))}
+              <span className="truncate max-w-[16rem]">{displayName}</span>
+              <button
+                type="button"
+                onClick={() => removeChip(c.card_id)}
+                aria-label={`移除 ${displayName}`}
+                data-padding="custom"
+                className="inline-flex items-center justify-center w-5 h-5 text-blue-500 hover:text-blue-800 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </span>
+          )
+        })}
         <input
           ref={inputRef}
           value={query}
@@ -205,6 +232,7 @@ export function CardPicker({ value, onChange }: CardPickerProps) {
           )}
           {visibleItems.map((c, idx) => {
             const highlighted = idx === safeHighlightedIndex
+            const displayName = formatCardDisplayName(c.display_name_zh)
             return (
               <button
                 key={c.card_id}
@@ -218,21 +246,16 @@ export function CardPicker({ value, onChange }: CardPickerProps) {
                   addCard(c.card_id)
                 }}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 text-left ${
-                  highlighted ? 'bg-blue-50 ring-2 ring-inset ring-blue-300' : 'hover:bg-gray-50'
+                  highlighted ? 'bg-blue-50 focus:outline-none' : 'hover:bg-gray-50'
                 }`}
               >
                 <span className="flex-1 min-w-0">
-                  <span className="block truncate text-gray-900">{c.display_name_zh}</span>
+                  <span className="block truncate text-gray-900">{displayName}</span>
                   <span className="block text-base text-gray-400">{c.bank_name}</span>
                 </span>
               </button>
             )
           })}
-          {hasMore && (
-            <p className="text-base text-gray-400 px-3 py-2 border-t border-gray-100">
-              再輸入縮小範圍（還有 {items.length - MAX_MENU_ITEMS} 筆未顯示）
-            </p>
-          )}
         </div>
       )}
     </div>

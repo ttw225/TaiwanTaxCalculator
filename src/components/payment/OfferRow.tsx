@@ -38,17 +38,11 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   const isRebate = r.kind === 'rate' || r.kind === 'rate-tiered'
   const highlightHeadline = isTop && r.value != null && r.value > 0
 
-  const rankCls = !r.applicable
-    ? 'border-gray-200 bg-white text-gray-300'
-    : isTop
-      ? 'border-blue-300 bg-blue-50 text-blue-700'
-      : 'border-gray-200 bg-gray-50 text-gray-600'
+  const rankCls = isTop
+    ? 'border-blue-300 bg-blue-50 text-blue-700'
+    : 'border-gray-200 bg-gray-50 text-gray-600'
 
-  const cardExtraCls = !r.applicable
-    ? 'opacity-70'
-    : isTop
-      ? 'ring-1 ring-blue-200 border-blue-200'
-      : ''
+  const cardExtraCls = isTop ? 'ring-1 ring-blue-200 border-blue-200' : ''
 
   // Headline number
   let headline: React.ReactNode
@@ -92,7 +86,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
     return fmtPct(r.rate ?? offer.rate ?? null)
   })()
 
-  const capLabel = offer.cap_label ?? (offer.cap_nt != null ? fmtNT(offer.cap_nt) : '未公告／不適用')
+  const capLabel = offer.cap_label ?? (offer.cap_nt != null ? fmtNT(offer.cap_nt) : '—')
 
   return (
     <Card className={`p-5 transition-colors ${cardExtraCls}`}>
@@ -121,11 +115,6 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
             {offer.requires_registration && (
               <span className="inline-flex items-center rounded-full bg-amber-50 border border-amber-200 text-amber-800 px-2 py-0.5 text-base">
                 需登錄
-              </span>
-            )}
-            {!r.applicable && r.reason && (
-              <span className="inline-flex items-center rounded-full bg-gray-100 border border-gray-200 text-gray-600 px-2 py-0.5 text-base">
-                不符門檻：{r.reason}
               </span>
             )}
           </div>
