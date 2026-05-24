@@ -250,7 +250,7 @@ export function fmtPct(n: number | null | undefined): string {
 
 export function clampAmount(n: number): number {
   if (!isFinite(n) || n < 0) return 0
-  return Math.min(n, 999_999_999)
+  return n
 }
 
 // ── 資料版本 metadata（給 Disclaimer 顯示） ─────────────────────────────────

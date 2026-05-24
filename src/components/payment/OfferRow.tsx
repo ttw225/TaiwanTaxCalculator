@@ -45,6 +45,9 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   const cardExtraCls = isTop ? 'ring-1 ring-blue-200 border-blue-200' : ''
 
   // Headline number
+  const isNTUnit = !r.unit || r.unit === '元'
+  const formatValue = (v: number) =>
+    isNTUnit ? fmtNT(v) : Math.round(v).toLocaleString('zh-TW')
   let headline: React.ReactNode
   if (isInstallmentOnly) {
     headline = <p className="text-lg font-bold text-gray-900 leading-none">分期</p>
@@ -57,8 +60,8 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
           highlightHeadline ? 'text-blue-700' : 'text-gray-900'
         }`}
       >
-        {fmtNT(r.value)}
-        {r.unit && r.unit !== '元' && <span className="ml-1">{r.unit}</span>}
+        {formatValue(r.value!)}
+        {!isNTUnit && <span className="ml-1">{r.unit}</span>}
       </p>
     )
   } else if (isRebate && r.value != null) {
@@ -68,8 +71,8 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
           highlightHeadline ? 'text-blue-700' : 'text-gray-900'
         }`}
       >
-        {fmtNT(r.value)}
-        {r.unit && r.unit !== '元' && <span className="ml-1">{r.unit}</span>}
+        {formatValue(r.value)}
+        {!isNTUnit && <span className="ml-1">{r.unit}</span>}
       </p>
     )
   } else {
