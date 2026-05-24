@@ -10,14 +10,14 @@
 
 舊架構（`../_legacy/`）把 paytax 名單、卡別清冊、活動表、Tier 規則拆成 8 個 JSON 加 8-phase 校對流程，維護成本高。v2 改以**銀行為主軸**、單一 JSON 承載活動；收集期曾用 `verification` 區分覆核進度，**v2.5 起已移除**，複核與變更紀錄改由 git commit 歷史追蹤。
 
-## Schema（v2.5）
+## Schema（v2.6）
 
 每家銀行可有**多個 campaigns**（不同活動、不同卡別、不同 URL）。每個 campaign 自帶 source URL、適用卡別，內含可選的 `rebate` 與 `installment` 子物件。
 
 ```jsonc
 {
   "tax_year": "114",
-  "schema_version": "v2.5",
+  "schema_version": "v2.6",
   "banks": [
     {
       "bank_code": "005",                       // 三位數金融機構代號
@@ -36,8 +36,7 @@
           ],
           "channel": ["台灣 Pay"],              // 繳費管道列表（互斥入口，同一官方管道只列一項）；無限制則 null
           "registration_status": "open",        // "open" | "full" | null；僅 requires_registration=true 時填；缺省視同 null
-          "tags": ["taiwan_pay", "credit_card"], // 前端 TypeFilter 標籤；可空陣列
-          "installment_detail": "6 期 0 利率",   // 分期摘要（前端 OfferRow 顯示用，fallback 取 installment.summary）
+          "tags": ["taiwan_pay", "credit_card"], // 前端 TypeFilter 標籤；人工維護，可空陣列
           "rebate": {                           // 無回饋則整個物件設 null
             // ── 既有人類可讀欄位 ──
             "summary": "...",
@@ -50,7 +49,7 @@
             "requires_registration": false,
             "period": null,
 
-            // ── v2.5 可計算欄位（前端排序與試算用） ──
+            // ── v2.6 可計算欄位（前端排序與試算用） ──
             "mode": "rate",                     // "rate" | "rate-tiered" | "fixed" | "installment_only" | "fee_only"
             "rate": 0.5,                        // 數字 %（mode="rate" 必填）
             "fixed": 200,                       // 數字 NT$（mode="fixed" 必填）
@@ -69,7 +68,7 @@
             "summary": "...",
             "terms": [{ "periods": 6, "rate": 0 }],  // rate 單位 %；解析失敗則設 null
             "min_amount": 3000,               // 選填：分期最低金額（元）；缺省視同無限制
-            "fee_note": "免手續費"
+            "fee_note": "免收手續費"
           },
           "notes": null
         }
@@ -85,6 +84,10 @@
 
 **欄位缺省規則**：`tiers`、`registration_status` 是選填欄位，缺省或未出現時前端視同 `null`。只在有意義時加入，不需要補到每一筆。
 
+**v2.6 欄位移除**：`installment_detail` 已移除；前端需要顯示分期摘要時，直接使用 `installment.summary`。若 `installment` 為 `null`，則不顯示分期摘要。
+
+**列表文案規則**：`title` 是前端列表掃描用短標籤，預期由卡別／客群／管道加優惠類型組成；銀行名稱、綜所稅、繳稅等頁面上下文通常不重複寫入。`rebate.summary` 與 `installment.summary` 是一行摘要，優先放主要門檻、回饋／期數與上限；登錄、管道限制、互斥、入帳與資格細節放 `period`、`channel`、`requires_registration` 或 `notes`。摘要目標 35–55 字，階梯式優惠可較長但不應遺失門檻。
+
 **campaigns 空陣列的情境**：銀行有官網但目前無 114 年度活動／舊資料指向錯誤頁／業務已退出。請在 bank-level `notes` 寫原因並附 ref URL。
 
 **`eligible_card_ids` 語意**：
@@ -99,7 +102,7 @@
 → 符合則顯示該 campaign
 ```
 
-## 前端試算契約（v2.5）
+## 前端試算契約（v2.6）
 
 前端依 `rebate.mode` 對使用者輸入金額 `amount` 解算「估算回饋金額」，五種模式：
 
@@ -115,6 +118,8 @@
 **上限**：`cap_nt` 觸發時顯示「已達上限 NT$ {cap_nt}」。
 **多卡別／多客群同公告**：若同公告的不同卡或客群採用**不同 rate**，需在 JSON 拆成多個 campaign（各自 `eligible_card_ids` 或在 `eligible_cards` 描述客群），**不要**塞進 `amount_tiers`。`amount_tiers` 僅用於「同一張卡、依繳稅金額切級距」。
 
+**已知限制**：目前 `rate-tiered` 只能準確表示百分比級距；固定金額／點數／哩程級距（例如滿額送固定刷卡金、電子禮券或加碼哩程）暫以 `rate: 0` 搭配 `cap_nt` 與 `label` 記錄，前端不得依此模式直接估算回饋金額，後續需另定 `fixed-tiered` 或等效 schema。
+
 ### 計算欄位填寫範例
 
 - 「定額 100 元」→ `mode:"fixed"`, `fixed:100`, `fixed_unit:"元刷卡金"`, `min:100`
@@ -125,11 +130,7 @@
 
 ## card_catalog_114.json Schema
 
-記錄 `eligible_card_ids` 指定的卡別 metadata，**以及發卡銀行的持卡清冊**（驅動繳稅頁的卡 picker 多選 UI）。前端目前兩個用途：
-- `OfferRow` 對「限定卡」campaign 用 `display_name_zh` 顯示卡名（多卡別以「、」串接）。
-- `CardPicker` 以此 catalog 為 source；使用者選了卡之後依 `bank_code` 對全卡別 campaign、依 `card_id` 對限定卡 campaign 做交集。
-- 因此 catalog 的 schema 或 `card_id` 變動須與 `src/lib/cardCatalog.ts` 同步檢視。
-- 新增銀行時，至少要有一張 generic 條目（`is_generic: true`），否則 picker 會搜不到該行。
+記錄 `eligible_card_ids` 明確指定的卡別 metadata。**未出現在任何 `eligible_card_ids` 的卡別不需加入**；前端若 `eligible_card_ids: []` 則顯示「全卡別適用」，不需要逐張卡查目錄。
 
 ```jsonc
 {

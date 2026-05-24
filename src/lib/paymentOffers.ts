@@ -44,7 +44,6 @@ interface RawCampaign {
   rebate?: RawRebate | null
   installment?: RawInstallment | null
   tags?: OfferTag[]
-  installment_detail?: string | null
   notes?: string | null
 }
 interface RawBank {
@@ -124,7 +123,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     tags,
     requires_registration: r.requires_registration ?? false,
     period: r.period ?? null,
-    installment_detail: c.installment_detail ?? c.installment?.summary ?? null,
+    installment_summary: c.installment?.summary ?? null,
     note: c.notes ?? null,
     channel: c.channel ?? null,
   }

@@ -157,7 +157,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
             <div>
               <p className="text-base text-gray-400 mb-1">分期</p>
               <p className="text-base text-gray-800 font-medium">
-                {offer.installment_detail ?? '—'}
+                {offer.installment_summary ?? '—'}
               </p>
             </div>
           </div>

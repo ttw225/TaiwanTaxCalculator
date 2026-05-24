@@ -62,7 +62,7 @@ export interface Offer {
   tags: OfferTag[]
   requires_registration?: boolean
   period?: string | null
-  installment_detail?: string | null
+  installment_summary?: string | null
   note?: string | null
   channel?: string[] | null
 }
