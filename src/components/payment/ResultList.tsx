@@ -78,7 +78,7 @@ export function ResultList({
   return (
     <>
       {amount > 0 && top && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-5 mb-4 flex items-start gap-4">
+        <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-5 mb-4 flex flex-col items-start sm:flex-row sm:items-start gap-2 sm:gap-4">
           <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
             <Star size={18} fill="currentColor" />
           </div>

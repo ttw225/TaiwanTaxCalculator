@@ -86,7 +86,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
 
   return (
     <Card className={`p-5 transition-colors ${cardExtraCls}`}>
-      <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">
+      <div className="flex flex-col items-start sm:flex-row sm:items-start gap-2 sm:gap-4">
         <div
           className={`shrink-0 w-10 h-10 rounded-full border flex items-center justify-center text-base font-semibold tabular-nums ${rankCls}`}
         >
