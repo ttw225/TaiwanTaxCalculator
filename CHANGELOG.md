@@ -1,3 +1,10 @@
+## 0.3.0 (2026-05-24)
+
+### Feat
+
+- **route**: add payment (#81)
+- **payment-rewards**: add card-based filtering and persist payment rewards page state (#79)
+
 ## 0.2.0 (2026-05-20)
 
 ### Feat
