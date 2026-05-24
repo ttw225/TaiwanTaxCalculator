@@ -14,9 +14,6 @@ import type {
 
 // ── JSON 形狀（最小型別，只標 loader 用到的欄位） ────────────────────────────
 interface RawRebate {
-  summary?: string
-  rate_or_amount?: string | null
-  cap?: string | null
   requires_registration?: boolean
   period?: string | null
   mode?: RebateMode
@@ -31,6 +28,7 @@ interface RawRebate {
 }
 interface RawInstallment {
   summary?: string
+  min_amount?: number | null
 }
 interface RawCampaign {
   campaign_id: string
@@ -116,7 +114,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     min: r.min ?? null,
     base_fixed: r.base_fixed ?? null,
     cap_nt: r.cap_nt ?? null,
-    cap_label: r.cap_label ?? r.cap ?? null,
+    cap_label: r.cap_label ?? null,
     amount_tiers: r.amount_tiers,
     eligible_card_ids: eligibleCardIds,
     is_card_specific: eligibleCardIds.length > 0,
@@ -124,6 +122,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     requires_registration: r.requires_registration ?? false,
     period: r.period ?? null,
     installment_summary: c.installment?.summary ?? null,
+    installment_min_amount: c.installment?.min_amount ?? null,
     note: c.notes ?? null,
     channel: c.channel ?? null,
   }
@@ -181,21 +180,33 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
   if (o.mode === 'rate-tiered' && o.amount_tiers && o.amount_tiers.length > 0) {
     const tiers = [...o.amount_tiers].sort((a, b) => b.min - a.min)
     const t = tiers.find((x) => amount >= x.min) ?? tiers[tiers.length - 1]
-    const raw = t.rate > 0 ? (amount * t.rate) / 100 : (t.cap_nt ?? 0)
-    let capped = false
-    let value = raw
-    if (t.cap_nt != null && raw > t.cap_nt) {
-      value = t.cap_nt
-      capped = true
+
+    if (t.kind === 'fixed') {
+      const raw = t.fixed
+      const cap = t.cap_nt ?? null
+      const capped = cap != null && raw > cap
+      return {
+        applicable: true,
+        kind: 'rate-tiered',
+        value: capped ? cap : raw,
+        capped,
+        cap,
+        tier_label: t.label,
+        unit: t.fixed_unit,
+      }
     }
+
+    const raw = (amount * t.rate) / 100
+    const capped = t.cap_nt != null && raw > t.cap_nt
     return {
       applicable: true,
       kind: 'rate-tiered',
-      value,
+      value: capped ? t.cap_nt! : raw,
       rate: t.rate,
       capped,
       cap: t.cap_nt,
       tier_label: t.label,
+      unit: o.fixed_unit ?? '元',
     }
   }
 

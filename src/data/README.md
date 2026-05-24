@@ -10,14 +10,14 @@
 
 舊架構（`../_legacy/`）把 paytax 名單、卡別清冊、活動表、Tier 規則拆成 8 個 JSON 加 8-phase 校對流程，維護成本高。v2 改以**銀行為主軸**、單一 JSON 承載活動；收集期曾用 `verification` 區分覆核進度，**v2.5 起已移除**，複核與變更紀錄改由 git commit 歷史追蹤。
 
-## Schema（v2.6）
+## Schema（v2.7）
 
 每家銀行可有**多個 campaigns**（不同活動、不同卡別、不同 URL）。每個 campaign 自帶 source URL、適用卡別，內含可選的 `rebate` 與 `installment` 子物件。
 
 ```jsonc
 {
   "tax_year": "114",
-  "schema_version": "v2.6",
+  "schema_version": "v2.7",
   "banks": [
     {
       "bank_code": "005",                       // 三位數金融機構代號
@@ -38,18 +38,10 @@
           "registration_status": "open",        // "open" | "full" | null；僅 requires_registration=true 時填；缺省視同 null
           "tags": ["taiwan_pay", "credit_card"], // 前端 TypeFilter 標籤；人工維護，可空陣列
           "rebate": {                           // 無回饋則整個物件設 null
-            // ── 既有人類可讀欄位 ──
-            "summary": "...",
-            "rate_or_amount": "定額 100 元",   // 標題字串，可為百分比或定額
-            "tiers": [                          // 自由文字階梯描述；單一利率或定額時省略
-              { "condition": "單筆未達 500 萬", "rate": "0.2%" },
-              { "condition": "單筆 500 萬以上", "rate": "0.36%（上限 10 萬）" }
-            ],
-            "cap": "...",
             "requires_registration": false,
             "period": null,
 
-            // ── v2.6 可計算欄位（前端排序與試算用） ──
+            // ── 可計算欄位（前端排序與試算用） ──
             "mode": "rate",                     // "rate" | "rate-tiered" | "fixed" | "installment_only" | "fee_only"
             "rate": 0.5,                        // 數字 %（mode="rate" 必填）
             "fixed": 200,                       // 數字 NT$（mode="fixed" 必填）
@@ -59,22 +51,22 @@
             "cap_nt": 3000,                     // 數字回饋上限（單位同 fixed_unit）；無上限 → null
             "cap_label": "加碼上限 3,000 元",   // 簡短人類可讀上限字串
             "amount_tiers": [                   // mode="rate-tiered" 必填；first matching min wins
-              { "min": 10000000, "rate": 0.36, "cap_nt": 100000, "label": "單筆滿 1,000 萬" },
-              { "min": 5000000,  "rate": 0.28, "cap_nt": null,   "label": "單筆滿 500 萬" },
-              { "min": 0,        "rate": 0.20, "cap_nt": null,   "label": "單筆未達 500 萬" }
+              // rate-type 級距：按金額 * rate% 計算，可帶 cap_nt
+              { "kind": "rate",  "min": 10000000, "rate": 0.36, "cap_nt": 100000, "label": "單筆滿 1,000 萬" },
+              { "kind": "rate",  "min": 5000000,  "rate": 0.28, "cap_nt": null,   "label": "單筆滿 500 萬" },
+              { "kind": "rate",  "min": 0,        "rate": 0.20, "cap_nt": null,   "label": "單筆未達 500 萬" },
+              // fixed-type 級距：到達 min 即送 fixed 數量（單位由 fixed_unit 指定）
+              { "kind": "fixed", "min": 1000000,  "fixed": 2500, "fixed_unit": "元", "label": "滿 100 萬 → 2,500 元" }
             ]
           },
           "installment": {                      // 無分期則整個物件設 null
             "summary": "...",
-            "terms": [{ "periods": 6, "rate": 0 }],  // rate 單位 %；解析失敗則設 null
-            "min_amount": 3000,               // 選填：分期最低金額（元）；缺省視同無限制
-            "fee_note": "免收手續費"
+            "min_amount": 3000                  // 選填：分期最低金額（元）；缺省視同無限制
           },
           "notes": null
         }
         // ...同一銀行的其他活動
-      ],
-      "notes": null                             // 銀行層級備註（例：機構合併、業務退出）
+      ]
     }
   ]
 }
@@ -84,11 +76,11 @@
 
 **欄位缺省規則**：`tiers`、`registration_status` 是選填欄位，缺省或未出現時前端視同 `null`。只在有意義時加入，不需要補到每一筆。
 
-**v2.6 欄位移除**：`installment_detail` 已移除；前端需要顯示分期摘要時，直接使用 `installment.summary`。若 `installment` 為 `null`，則不顯示分期摘要。
+**v2.7 欄位移除**：相較 v2.6 刪去 `rebate.{summary,rate_or_amount,tiers,cap}`、`installment.{terms,fee_note}`、`bank.notes`；`amount_tiers` 改為 `kind: "rate" | "fixed"` 的 discriminated union。前端僅顯示 `installment.summary`；若 `installment` 為 `null`，則不顯示分期摘要。
 
-**列表文案規則**：`title` 是前端列表掃描用短標籤，預期由卡別／客群／管道加優惠類型組成；銀行名稱、綜所稅、繳稅等頁面上下文通常不重複寫入。`rebate.summary` 與 `installment.summary` 是一行摘要，優先放主要門檻、回饋／期數與上限；登錄、管道限制、互斥、入帳與資格細節放 `period`、`channel`、`requires_registration` 或 `notes`。摘要目標 35–55 字，階梯式優惠可較長但不應遺失門檻。
+**列表文案規則**：`title` 是前端列表掃描用短標籤，預期由卡別／客群／管道加優惠類型組成；銀行名稱、綜所稅、繳稅等頁面上下文通常不重複寫入。`installment.summary` 是一行摘要，優先放主要門檻、期數與上限；登錄、管道限制、互斥、入帳與資格細節放 `period`、`channel`、`requires_registration` 或 `campaign.notes`。摘要目標 35–55 字，階梯式優惠可較長但不應遺失門檻。
 
-**campaigns 空陣列的情境**：銀行有官網但目前無 114 年度活動／舊資料指向錯誤頁／業務已退出。請在 bank-level `notes` 寫原因並附 ref URL。
+**campaigns 空陣列的情境**：銀行有官網但目前無 114 年度活動／舊資料指向錯誤頁／業務已退出。請在 `campaigns[0].notes` 寫原因並附 ref URL（v2.7 起已不保留 bank-level `notes`）。
 
 **`eligible_card_ids` 語意**：
 - 空陣列 `[]`：活動適用對象為 `eligible_card_types` 所列類型的**全卡別**（不區分特定卡面）
@@ -102,14 +94,14 @@
 → 符合則顯示該 campaign
 ```
 
-## 前端試算契約（v2.6）
+## 前端試算契約（v2.7）
 
 前端依 `rebate.mode` 對使用者輸入金額 `amount` 解算「估算回饋金額」，五種模式：
 
 | `mode` | 計算 | 必填欄位 |
 | --- | --- | --- |
 | `rate` | `amount * rate / 100`，有 `base_fixed` 再加上；觸發 `cap_nt` 即封頂 | `rate`；選填 `min`／`cap_nt`／`base_fixed`／`fixed_unit` |
-| `rate-tiered` | 依 `amount_tiers` 由大到小排序，取**第一個** `amount >= tier.min` 的級距套用 `rate` 與 `cap_nt` | `amount_tiers[]` |
+| `rate-tiered` | 依 `amount_tiers` 由大到小排序，取**第一個** `amount >= tier.min` 的級距：`kind:"rate"` 套用 `rate` 與 `cap_nt`；`kind:"fixed"` 直接給 `fixed`（單位 `fixed_unit`，可選 `cap_nt`） | `amount_tiers[]` |
 | `fixed` | 固定值 `fixed`（單位 `fixed_unit`） | `fixed`；建議補 `fixed_unit` |
 | `installment_only` | 不算回饋金額，僅顯示分期資訊 | — |
 | `fee_only` | 不算回饋金額（例：手續費頁、抽獎、間接回饋） | — |
@@ -118,13 +110,12 @@
 **上限**：`cap_nt` 觸發時顯示「已達上限 NT$ {cap_nt}」。
 **多卡別／多客群同公告**：若同公告的不同卡或客群採用**不同 rate**，需在 JSON 拆成多個 campaign（各自 `eligible_card_ids` 或在 `eligible_cards` 描述客群），**不要**塞進 `amount_tiers`。`amount_tiers` 僅用於「同一張卡、依繳稅金額切級距」。
 
-**已知限制**：目前 `rate-tiered` 只能準確表示百分比級距；固定金額／點數／哩程級距（例如滿額送固定刷卡金、電子禮券或加碼哩程）暫以 `rate: 0` 搭配 `cap_nt` 與 `label` 記錄，前端不得依此模式直接估算回饋金額，後續需另定 `fixed-tiered` 或等效 schema。
-
 ### 計算欄位填寫範例
 
 - 「定額 100 元」→ `mode:"fixed"`, `fixed:100`, `fixed_unit:"元刷卡金"`, `min:100`
 - 「0.36%（每戶上限 10 萬）」→ `mode:"rate"`, `rate:0.36`, `cap_nt:100000`
-- 「單筆 500 萬以上 0.36%；以下 0.2%」→ `mode:"rate-tiered"`, `amount_tiers:[{min:5000000,rate:0.36,...},{min:0,rate:0.2,...}]`
+- 「單筆 500 萬以上 0.36%；以下 0.2%」→ `mode:"rate-tiered"`, `amount_tiers:[{kind:"rate",min:5000000,rate:0.36,...},{kind:"rate",min:0,rate:0.2,...}]`
+- 「滿 100 萬送 2,500 元；滿 50 萬送 1,000 元」→ `mode:"rate-tiered"`, `amount_tiers:[{kind:"fixed",min:1000000,fixed:2500,fixed_unit:"元",...},{kind:"fixed",min:500000,fixed:1000,fixed_unit:"元",...}]`
 - 「不算回饋只算分期」→ `rebate: null`（不需 mode）
 - 「手續費頁／抽獎／需另案兌換的非繳稅金額回饋」→ `mode:"fee_only"`
 

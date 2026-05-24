@@ -28,12 +28,16 @@ export interface CatalogBankGroup {
   cards: CatalogCard[]
 }
 
-export interface AmountTier {
-  min: number
-  rate: number
-  cap_nt: number | null
-  label: string
-}
+export type AmountTier =
+  | { kind: 'rate'; min: number; rate: number; cap_nt: number | null; label: string }
+  | {
+      kind: 'fixed'
+      min: number
+      fixed: number
+      fixed_unit: string
+      cap_nt?: number | null
+      label: string
+    }
 
 export interface Offer {
   id: string                    // 唯一 key：`${bank_code}_${campaign_id}`
@@ -63,6 +67,7 @@ export interface Offer {
   requires_registration?: boolean
   period?: string | null
   installment_summary?: string | null
+  installment_min_amount?: number | null
   note?: string | null
   channel?: string[] | null
 }
