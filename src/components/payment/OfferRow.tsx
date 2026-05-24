@@ -103,7 +103,14 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
           </p>
           {/* Scope sub-label */}
           <p className="text-base text-gray-500 mt-0.5">
-            {offer.is_card_specific ? '限特定卡' : '全卡別適用'}
+            {offer.is_card_specific ? (
+              <>
+                限特定卡
+                <span className="block sm:inline sm:ml-2 text-gray-400">{offer.card_name}</span>
+              </>
+            ) : (
+              '全卡別適用'
+            )}
           </p>
 
           {/* Tags */}
@@ -128,7 +135,8 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
                 {headline}
                 {r.capped && (
                   <p className="text-base text-amber-700 mt-1">
-                    已達上限 {fmtNT(r.cap)}
+                    已達上限 {r.cap != null ? formatValue(r.cap) : '—'}
+                    {!isNTUnit && ` ${r.unit}`}
                   </p>
                 )}
                 {r.tier_label && (
