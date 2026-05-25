@@ -5,10 +5,13 @@ export type RebateMode =
   | 'rate'              // 單一回饋率
   | 'rate-tiered'       // 階梯回饋率（依金額）
   | 'fixed'             // 定額（NT$ 或紅利點數等價）
+  | 'unit_per_amount'   // 每 N 元累積 M 單位（floor）
   | 'installment_only'  // 僅分期，不算金額
   | 'fee_only'          // 僅手續費說明
 
 export type OfferTag = 'taiwan_pay' | 'credit_card' | 'debit_card' | 'installment'
+
+export type EligibilityRestriction = 'new_customer' | 'special_member'
 
 export interface CatalogCard {
   card_id: string
@@ -51,7 +54,8 @@ export interface Offer {
 
   mode: RebateMode
   rate?: number                 // mode = 'rate' 必填
-  fixed?: number                // mode = 'fixed' 必填
+  fixed?: number                // mode = 'fixed' / 'unit_per_amount' 必填
+  per_amount?: number           // mode = 'unit_per_amount' 必填：每 N 元
   fixed_unit?: string           // 顯示單位字串（例：「元刷卡金」）
   min?: number | null           // 單筆門檻
   base_min?: number | null      // base_fixed 對應門檻
@@ -62,6 +66,8 @@ export interface Offer {
 
   eligible_card_ids: string[]   // 空陣列 = 全卡別；非空 = 限定 card_id
   is_card_specific: boolean     // 衍生：eligible_card_ids.length > 0
+
+  eligibility_restrictions: EligibilityRestriction[] // 身分限制；空陣列 = 無
 
   tags: OfferTag[]
   requires_registration?: boolean

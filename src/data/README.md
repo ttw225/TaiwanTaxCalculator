@@ -10,14 +10,14 @@
 
 舊架構（`../_legacy/`）把 paytax 名單、卡別清冊、活動表、Tier 規則拆成 8 個 JSON 加 8-phase 校對流程，維護成本高。v2 改以**銀行為主軸**、單一 JSON 承載活動；收集期曾用 `verification` 區分覆核進度，**v2.5 起已移除**，複核與變更紀錄改由 git commit 歷史追蹤。
 
-## Schema（v2.7）
+## Schema（v2.8）
 
 每家銀行可有**多個 campaigns**（不同活動、不同卡別、不同 URL）。每個 campaign 自帶 source URL、適用卡別，內含可選的 `rebate` 與 `installment` 子物件。
 
 ```jsonc
 {
   "tax_year": "114",
-  "schema_version": "v2.7",
+  "schema_version": "v2.8",
   "banks": [
     {
       "bank_code": "005",                       // 三位數金融機構代號
@@ -33,6 +33,9 @@
           "eligible_card_types": ["credit", "debit"], // 適用卡別類型；["credit"] | ["debit"] | ["credit","debit"] | []
           "eligible_card_ids": [                // 明確指定的 card_id 陣列（對應 card_catalog_114.json）；全卡別填 []
             "bank005_jcb_premium"
+          ],
+          "eligibility_restrictions": [         // 身分限制；缺省／空陣列 = 無限制
+            "special_member"                    // "new_customer" | "special_member"
           ],
           "channel": ["台灣 Pay"],              // 繳費管道列表（互斥入口，同一官方管道只列一項）；無限制則 null
           "registration_status": "open",        // "open" | "full" | null；僅 requires_registration=true 時填；缺省視同 null
@@ -77,6 +80,11 @@
 **欄位缺省規則**：`tiers`、`registration_status` 是選填欄位，缺省或未出現時前端視同 `null`。只在有意義時加入，不需要補到每一筆。
 
 **v2.7 欄位移除**：相較 v2.6 刪去 `rebate.{summary,rate_or_amount,tiers,cap}`、`installment.{terms,fee_note}`、`bank.notes`；`amount_tiers` 改為 `kind: "rate" | "fixed"` 的 discriminated union。前端僅顯示 `installment.summary`；若 `installment` 為 `null`，則不顯示分期摘要。
+
+**v2.8 新增**：campaign 加 optional `eligibility_restrictions: ("new_customer" | "special_member")[]`，描述身分門檻，前端「排除活動」 toggle 用。缺省或空陣列＝無限制。
+
+- `new_customer`：限該行 onboarding 新戶（首次申辦數位帳戶／信用卡新戶）。**不**含「分期新戶」這類純行為門檻（任何卡友只要過去未辦分期都符合）。
+- `special_member`：限該行特殊客群——私銀／私人銀行、財管／理財會員（含華南領航、富邦穩富恆富智富、永豐尊榮、台新私銀／財管、中信財管鼎鑽、聯邦財管桂冠、星展新晉豐盛／私人客戶 等）、VIP 星等、亞資客戶。**不**含「非私銀／財管會員」這類反向定義的普通客群，也**不**含「富邦存戶」這類存款戶限定但非會員階級的活動。
 
 **列表文案規則**：`title` 是前端列表掃描用短標籤，預期由卡別／客群／管道加優惠類型組成；銀行名稱、綜所稅、繳稅等頁面上下文通常不重複寫入。`installment.summary` 是一行摘要，優先放主要門檻、期數與上限；登錄、管道限制、互斥、入帳與資格細節放 `period`、`channel`、`requires_registration` 或 `campaign.notes`。摘要目標 35–55 字，階梯式優惠可較長但不應遺失門檻。
 

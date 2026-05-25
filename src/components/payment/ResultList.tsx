@@ -10,11 +10,13 @@ import {
 import { getUnitMeta, ratioHintText } from '../../lib/rewardUnits'
 import type { Offer, ResolveResult } from '../../types/paymentOffers'
 import type { TypeFilterValue } from './TypeFilter'
+import type { ExcludeFilterValue } from './ExcludeFilter'
 
 interface ResultListProps {
   offers: Offer[]
   amount: number
   typeFilter: TypeFilterValue
+  excludeFilter: ExcludeFilterValue
   selectedCardIds: Set<string>
   query: string
   onQueryChange: (next: string) => void
@@ -41,6 +43,7 @@ export function ResultList({
   offers,
   amount,
   typeFilter,
+  excludeFilter,
   selectedCardIds,
   query,
   onQueryChange,
@@ -49,8 +52,20 @@ export function ResultList({
 
   const filtered = useMemo(() => {
     const byCard = filterOffersByCards(offers, selectedCardIds)
-    return byCard.filter((o) => o.tags.some((t) => typeFilter[t]))
-  }, [offers, selectedCardIds, typeFilter])
+    return byCard.filter((o) => {
+      if (!o.tags.some((t) => typeFilter[t])) return false
+      if (excludeFilter.newCustomer && o.eligibility_restrictions.includes('new_customer'))
+        return false
+      if (
+        excludeFilter.specialMember &&
+        o.eligibility_restrictions.includes('special_member')
+      )
+        return false
+      return true
+    })
+  }, [offers, selectedCardIds, typeFilter, excludeFilter])
+
+  const anyExclude = excludeFilter.newCustomer || excludeFilter.specialMember
 
   const searched = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -170,7 +185,9 @@ export function ResultList({
           <p className="text-sm font-medium text-gray-700">
             {query
               ? '查無符合方案，試試其他關鍵字'
-              : '目前沒有符合條件的方案，試著放寬類型或卡別篩選'}
+              : anyExclude
+                ? '目前沒有符合條件的方案，試著放寬類型、卡別或排除條件'
+                : '目前沒有符合條件的方案，試著放寬類型或卡別篩選'}
           </p>
         </div>
       ) : (

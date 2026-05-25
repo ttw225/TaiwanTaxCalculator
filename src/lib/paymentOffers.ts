@@ -7,6 +7,7 @@ import { toNtd } from './rewardUnits'
 import type {
   AmountTier,
   BankListItem,
+  EligibilityRestriction,
   Offer,
   OfferTag,
   RebateMode,
@@ -20,6 +21,7 @@ interface RawRebate {
   mode?: RebateMode
   rate?: number
   fixed?: number
+  per_amount?: number
   fixed_unit?: string
   min?: number | null
   base_fixed?: number | null
@@ -39,6 +41,7 @@ interface RawCampaign {
   eligible_cards?: string | null
   eligible_card_types?: string[]
   eligible_card_ids?: string[]
+  eligibility_restrictions?: EligibilityRestriction[]
   channel?: string[] | null
   rebate?: RawRebate | null
   installment?: RawInstallment | null
@@ -111,6 +114,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     mode,
     rate: r.rate,
     fixed: r.fixed,
+    per_amount: r.per_amount,
     fixed_unit: r.fixed_unit,
     min: r.min ?? null,
     base_fixed: r.base_fixed ?? null,
@@ -119,6 +123,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     amount_tiers: r.amount_tiers,
     eligible_card_ids: eligibleCardIds,
     is_card_specific: eligibleCardIds.length > 0,
+    eligibility_restrictions: c.eligibility_restrictions ?? [],
     tags,
     requires_registration: r.requires_registration ?? false,
     period: r.period ?? null,
@@ -150,9 +155,31 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
   }
 
   const thresholdLabel =
-    (o.mode === 'fixed' || o.mode === 'rate') && o.min != null && o.min > 0
+    (o.mode === 'fixed' || o.mode === 'rate' || o.mode === 'unit_per_amount') &&
+    o.min != null &&
+    o.min > 0
       ? `單筆滿 ${fmtNT(o.min)}`
       : null
+
+  if (o.mode === 'unit_per_amount') {
+    const per = o.per_amount ?? 0
+    const step = o.fixed ?? 0
+    const raw = per > 0 ? Math.floor(amount / per) * step : 0
+    const cap = o.cap_nt ?? null
+    const capped = cap != null && raw > cap
+    const value = capped ? cap! : raw
+    const unit = o.fixed_unit ?? '元'
+    return {
+      applicable: true,
+      kind: 'unit_per_amount',
+      value,
+      value_ntd: toNtd(value, unit),
+      unit,
+      capped,
+      cap,
+      threshold_label: thresholdLabel,
+    }
+  }
 
   if (o.mode === 'fixed') {
     const unit = o.fixed_unit ?? '元'

@@ -1,6 +1,6 @@
 {
   "tax_year": "114",
-  "schema_version": "v2.7",
+  "schema_version": "v2.8",
   "reward_units": {
     "元": { "ntd_per_unit": 1, "kind": "face_value" },
     "元刷卡金": { "ntd_per_unit": 1, "kind": "face_value" },
@@ -312,6 +312,7 @@
       "campaigns": [
         {
           "campaign_id": "rebate_finance",
+          "eligibility_restrictions": ["special_member"],
           "title": "理財客戶｜現金回饋",
           "source_url": "https://card.firstbank.com.tw/sites/card/zh_TW/1565707087044",
           "source_id": "tp_firstbank_twpay_tax_promo",
@@ -468,6 +469,7 @@
       "campaigns": [
         {
           "campaign_id": "vip_rui",
+          "eligibility_restrictions": ["special_member"],
           "title": "睿享家｜刷卡金回饋",
           "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
           "source_id": "tp_hncb_card_event_taxcard",
@@ -499,6 +501,7 @@
         },
         {
           "campaign_id": "vip_du",
+          "eligibility_restrictions": ["special_member"],
           "title": "獨享家｜刷卡金回饋",
           "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
           "source_id": "tp_hncb_card_event_taxcard",
@@ -530,6 +533,7 @@
         },
         {
           "campaign_id": "vip_li",
+          "eligibility_restrictions": ["special_member"],
           "title": "理享家｜刷卡金回饋",
           "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
           "source_id": "tp_hncb_card_event_taxcard",
@@ -561,6 +565,7 @@
         },
         {
           "campaign_id": "vip_meng",
+          "eligibility_restrictions": ["special_member"],
           "title": "夢享家｜刷卡金回饋",
           "source_url": "https://www.hncb.com.tw/wps/portal/HNCB/card/event/TAXCARD",
           "source_id": "tp_hncb_card_event_taxcard",
@@ -761,6 +766,7 @@
         },
         {
           "campaign_id": "wealth_steady",
+          "eligibility_restrictions": ["special_member"],
           "title": "穩富會員｜刷卡金回饋",
           "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
           "source_id": "tp_fubon_cc_2026_ito",
@@ -795,6 +801,7 @@
         },
         {
           "campaign_id": "wealth_premier",
+          "eligibility_restrictions": ["special_member"],
           "title": "恆富／智富｜刷卡金回饋",
           "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
           "source_id": "tp_fubon_cc_2026_ito",
@@ -1143,6 +1150,7 @@
       "campaigns": [
         {
           "campaign_id": "priority_installment",
+          "eligibility_restrictions": ["special_member"],
           "title": "優先理財｜0 利率分期",
           "source_url": "https://www.sc.com/tw/promotions/credit-cards-income-tax/",
           "source_id": "tp_bank_052_tax_114_pending",
@@ -1307,6 +1315,7 @@
         },
         {
           "campaign_id": "newnewbank_tax_rebate",
+          "eligibility_restrictions": ["new_customer"],
           "title": "NewNewBank 新戶｜0.3% 回饋",
           "source_url": "https://activity.ubot.com.tw/aws_act/2025/2025incometax/index.htm",
           "source_id": null,
@@ -1359,6 +1368,7 @@
         },
         {
           "campaign_id": "wealth_mgmt_tax_rebate",
+          "eligibility_restrictions": ["special_member"],
           "title": "財富管理｜0.2% 刷卡金",
           "source_url": "https://activity.ubot.com.tw/aws_act/2025/2025incometax/index.htm",
           "source_id": null,
@@ -1394,6 +1404,7 @@
       "campaigns": [
         {
           "campaign_id": "vip_top_tier",
+          "eligibility_restrictions": ["special_member"],
           "title": "VIP 7-8 星｜0.35% 回饋",
           "source_url": "https://ecard.feib.com.tw/Activity/2026Tax/index.do",
           "source_id": null,
@@ -1423,6 +1434,7 @@
         },
         {
           "campaign_id": "vip_mid_tier",
+          "eligibility_restrictions": ["special_member"],
           "title": "VIP 5-6 星｜0.35% 回饋",
           "source_url": "https://ecard.feib.com.tw/Activity/2026Tax/index.do",
           "source_id": null,
@@ -1594,6 +1606,7 @@
       "campaigns": [
         {
           "campaign_id": "private_bank_asia",
+          "eligibility_restrictions": ["special_member"],
           "title": "私銀／亞資｜0.68% 回饋",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_url_alt": "https://bank.sinopac.com/sinopacBT/about/news-center/news/content/2026042401.html",
@@ -1761,6 +1774,7 @@
         },
         {
           "campaign_id": "vip_yongchuan",
+          "eligibility_restrictions": ["special_member"],
           "title": "尊榮永傳會員｜0.38% 回饋",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
@@ -1795,6 +1809,7 @@
         },
         {
           "campaign_id": "vip_yongfu",
+          "eligibility_restrictions": ["special_member"],
           "title": "尊榮永富會員｜0.25% 回饋",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
@@ -1829,6 +1844,7 @@
         },
         {
           "campaign_id": "vip_yongju",
+          "eligibility_restrictions": ["special_member"],
           "title": "尊榮永聚會員｜0.15% 回饋",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
@@ -1979,6 +1995,7 @@
       "campaigns": [
         {
           "campaign_id": "private_bank_rebate",
+          "eligibility_restrictions": ["special_member"],
           "title": "私銀／極致主戶｜e point",
           "source_url": "https://event.esunbank.com.tw/credit/tax/index.html",
           "source_id": null,
@@ -2013,6 +2030,7 @@
         },
         {
           "campaign_id": "wealth_member_rebate_installment",
+          "eligibility_restrictions": ["special_member"],
           "title": "理財會員｜e point 回饋",
           "source_url": "https://event.esunbank.com.tw/credit/tax/index.html",
           "source_id": null,
@@ -2314,6 +2332,7 @@
       "campaigns": [
         {
           "campaign_id": "wealth_newcomer",
+          "eligibility_restrictions": ["special_member"],
           "title": "新晉豐盛理財｜刷卡金",
           "source_url": "https://www.dbs.com.tw/personal-zh/cards/offers/2026tax/index.html",
           "source_id": null,
@@ -2343,6 +2362,7 @@
         },
         {
           "campaign_id": "private_client",
+          "eligibility_restrictions": ["special_member"],
           "title": "私人客戶｜刷卡金",
           "source_url": "https://www.dbs.com.tw/personal-zh/cards/offers/2026tax/index.html",
           "source_id": null,
@@ -2401,6 +2421,7 @@
       "campaigns": [
         {
           "campaign_id": "wealth_rebate_installment",
+          "eligibility_restrictions": ["special_member"],
           "title": "私銀／財管｜刷卡金回饋",
           "source_url": "https://mkp.taishinbank.com.tw/s/2026/tax/index.html",
           "source_url_alt": "https://www.taishinbank.com.tw/TSB/personal/common/news/TSBankNews-007976/",
@@ -2635,8 +2656,9 @@
           "rebate": {
             "requires_registration": false,
             "period": null,
-            "mode": "rate",
-            "rate": 0.333,
+            "mode": "unit_per_amount",
+            "per_amount": 300,
+            "fixed": 1,
             "fixed_unit": "哩",
             "min": null,
             "cap_nt": null,
@@ -2667,8 +2689,9 @@
           "rebate": {
             "requires_registration": false,
             "period": null,
-            "mode": "rate",
-            "rate": 0.333,
+            "mode": "unit_per_amount",
+            "per_amount": 300,
+            "fixed": 1,
             "fixed_unit": "哩",
             "min": null,
             "cap_nt": null,
@@ -2838,6 +2861,7 @@
         },
         {
           "campaign_id": "dingzuan_general",
+          "eligibility_restrictions": ["special_member"],
           "title": "鼎鑽卡｜一般回饋",
           "source_url": "https://mkt.ctbcbank.com/recent/202606/N2026041500015_01-07/index.html",
           "source_id": null,
@@ -2869,6 +2893,7 @@
         },
         {
           "campaign_id": "dingfuhome",
+          "eligibility_restrictions": ["special_member"],
           "title": "鼎富家以上｜加碼回饋",
           "source_url": "https://mkt.ctbcbank.com/recent/202606/N2026041500015_01-07/index.html",
           "source_id": null,
@@ -2900,6 +2925,7 @@
         },
         {
           "campaign_id": "dingfuhome_high",
+          "eligibility_restrictions": ["special_member"],
           "title": "鼎富家｜滿 5,000 萬",
           "source_url": "https://mkt.ctbcbank.com/recent/202606/N2026041500015_01-07/index.html",
           "source_id": null,
@@ -2989,6 +3015,7 @@
         },
         {
           "campaign_id": "jkopay_new_customer_bonus",
+          "eligibility_restrictions": ["new_customer"],
           "title": "街口支付新戶｜加碼 1%",
           "source_url": "https://www.nextbank.com.tw/announcement/45c1e31fa40000000285cadc56793797/event1125",
           "source_id": null,
