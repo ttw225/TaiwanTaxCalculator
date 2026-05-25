@@ -4,6 +4,8 @@ import { PageHeading } from './ui/PageHeading'
 import { AmountInput } from './payment/AmountInput'
 import { TypeFilter } from './payment/TypeFilter'
 import type { TypeFilterValue } from './payment/TypeFilter'
+import { ExcludeFilter } from './payment/ExcludeFilter'
+import type { ExcludeFilterValue } from './payment/ExcludeFilter'
 import { CardPicker } from './payment/CardPicker'
 import { ResultList } from './payment/ResultList'
 import { loadOffers } from '../lib/paymentOffers'
@@ -13,6 +15,7 @@ const LS_KEY = 'tax.payment.rewards.v2'
 interface SavedState {
   amount?: number
   typeFilter?: TypeFilterValue
+  excludeFilter?: ExcludeFilterValue
   selectedCardIds?: string[]
 }
 
@@ -31,6 +34,11 @@ const DEFAULT_TYPE_FILTER: TypeFilterValue = {
   credit_card: true,
   debit_card: true,
   installment: true,
+}
+
+const DEFAULT_EXCLUDE_FILTER: ExcludeFilterValue = {
+  newCustomer: false,
+  specialMember: false,
 }
 
 function AmountEmptyState() {
@@ -95,6 +103,10 @@ export function PaymentRewardsPage() {
     ...DEFAULT_TYPE_FILTER,
     ...(saved?.typeFilter ?? {}),
   }))
+  const [excludeFilter, setExcludeFilter] = useState<ExcludeFilterValue>(() => ({
+    ...DEFAULT_EXCLUDE_FILTER,
+    ...(saved?.excludeFilter ?? {}),
+  }))
   const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(
     () => new Set(saved?.selectedCardIds ?? []),
   )
@@ -105,13 +117,14 @@ export function PaymentRewardsPage() {
       const payload: SavedState = {
         amount,
         typeFilter,
+        excludeFilter,
         selectedCardIds: Array.from(selectedCardIds),
       }
       localStorage.setItem(LS_KEY, JSON.stringify(payload))
     } catch {
       // localStorage unavailable
     }
-  }, [amount, typeFilter, selectedCardIds])
+  }, [amount, typeFilter, excludeFilter, selectedCardIds])
 
   const anyType = Object.values(typeFilter).some(Boolean)
 
@@ -131,7 +144,10 @@ export function PaymentRewardsPage() {
         <>
           <section className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 items-start">
-              <TypeFilter value={typeFilter} onChange={setTypeFilter} />
+              <div className="flex flex-col gap-3">
+                <TypeFilter value={typeFilter} onChange={setTypeFilter} />
+                <ExcludeFilter value={excludeFilter} onChange={setExcludeFilter} />
+              </div>
               <CardPicker value={selectedCardIds} onChange={setSelectedCardIds} />
             </div>
           </section>
@@ -141,6 +157,7 @@ export function PaymentRewardsPage() {
               offers={offers}
               amount={amount}
               typeFilter={typeFilter}
+              excludeFilter={excludeFilter}
               selectedCardIds={selectedCardIds}
               query={query}
               onQueryChange={setQuery}

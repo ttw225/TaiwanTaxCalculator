@@ -107,11 +107,143 @@ describe('resolveOffer rate-tiered 門檻過濾', () => {
   })
 })
 
+describe('resolveOffer unit_per_amount', () => {
+  const anaOffer = offers.find((o) => o.id === '822_ana_miles_rebate')
+
+  it('ANA campaign 已遷移到 unit_per_amount', () => {
+    expect(anaOffer).toBeTruthy()
+    expect(anaOffer!.mode).toBe('unit_per_amount')
+    expect(anaOffer!.per_amount).toBe(300)
+    expect(anaOffer!.fixed).toBe(1)
+    expect(anaOffer!.fixed_unit).toBe('哩')
+  })
+
+  it('amount = 100,000,000 → 333,333 哩（floor，非 0.333% 近似）', () => {
+    const r = resolveOffer(anaOffer!, 100_000_000)
+    expect(r.value).toBe(333_333)
+    expect(r.unit).toBe('哩')
+    expect(r.value_ntd).toBe(333_333 * 0.5)
+  })
+
+  it('amount = 299 → 0 哩；amount = 600 → 2 哩', () => {
+    expect(resolveOffer(anaOffer!, 299).value).toBe(0)
+    expect(resolveOffer(anaOffer!, 600).value).toBe(2)
+  })
+
+  it('合成 cap_nt 觸發 capped', () => {
+    const capped = { ...anaOffer!, cap_nt: 5 }
+    const r = resolveOffer(capped, 100_000)
+    expect(r.value).toBe(5)
+    expect(r.capped).toBe(true)
+    expect(r.cap).toBe(5)
+  })
+
+  it('資料完整性：所有 unit_per_amount campaign 都有 per_amount/fixed/fixed_unit', () => {
+    const all = offers.filter((o) => o.mode === 'unit_per_amount')
+    expect(all.length).toBeGreaterThan(0)
+    for (const o of all) {
+      expect(o.per_amount && o.per_amount > 0).toBeTruthy()
+      expect(o.fixed && o.fixed > 0).toBeTruthy()
+      expect(o.fixed_unit).toBeTruthy()
+    }
+  })
+})
+
 describe('deriveTags via loadOffers', () => {
   it('每個 offer tags 是 4 種已知值的子集', () => {
     const allowed = new Set(['taiwan_pay', 'credit_card', 'debit_card', 'installment'])
     for (const o of offers) {
       for (const t of o.tags) expect(allowed.has(t)).toBe(true)
     }
+  })
+})
+
+describe('eligibility_restrictions 標籤與排除篩選', () => {
+  function byCampaign(id: string) {
+    return offers.find((o) => o.id.endsWith(`_${id}`))
+  }
+
+  it('loader 預設無標註者為空陣列', () => {
+    const general = byCampaign('rebate_general')
+    expect(general).toBeTruthy()
+    expect(general!.eligibility_restrictions).toEqual([])
+  })
+
+  it('new_customer 標籤覆蓋預期 campaign', () => {
+    const ids = ['newnewbank_tax_rebate', 'jkopay_new_customer_bonus']
+    for (const id of ids) {
+      const o = byCampaign(id)
+      expect(o, `missing campaign ${id}`).toBeTruthy()
+      expect(o!.eligibility_restrictions).toContain('new_customer')
+    }
+  })
+
+  it('special_member 標籤涵蓋華南領航、富邦理財、台新財管等', () => {
+    const ids = [
+      'vip_rui',
+      'vip_meng',
+      'wealth_steady',
+      'wealth_rebate_installment',
+      'private_client',
+      'vip_top_tier',
+    ]
+    for (const id of ids) {
+      const o = byCampaign(id)
+      expect(o, `missing campaign ${id}`).toBeTruthy()
+      expect(o!.eligibility_restrictions).toContain('special_member')
+    }
+  })
+
+  it('「分期新戶」與「非私銀／財管會員」依規約不標', () => {
+    const installmentNewUser = byCampaign('online_installment_new_user')
+    expect(installmentNewUser).toBeTruthy()
+    expect(installmentNewUser!.eligibility_restrictions).toEqual([])
+
+    const taishinGeneral = byCampaign('general_rebate')
+    expect(taishinGeneral).toBeTruthy()
+    expect(taishinGeneral!.eligibility_restrictions).toEqual([])
+  })
+
+  function applyExclude(
+    src: typeof offers,
+    excludeNew: boolean,
+    excludeSpecial: boolean,
+  ) {
+    return src.filter((o) => {
+      if (excludeNew && o.eligibility_restrictions.includes('new_customer')) return false
+      if (excludeSpecial && o.eligibility_restrictions.includes('special_member'))
+        return false
+      return true
+    })
+  }
+
+  it('truth table: 兩 exclude 皆 false → 全集', () => {
+    expect(applyExclude(offers, false, false).length).toBe(offers.length)
+  })
+
+  it('truth table: 僅排除新戶 → 僅 new_customer offer 消失', () => {
+    const removed = offers.filter((o) =>
+      o.eligibility_restrictions.includes('new_customer'),
+    )
+    expect(removed.length).toBeGreaterThan(0)
+    const out = applyExclude(offers, true, false)
+    expect(out.length).toBe(offers.length - removed.length)
+    for (const r of removed) expect(out.find((o) => o.id === r.id)).toBeUndefined()
+  })
+
+  it('truth table: 僅排除特殊會員 → 僅 special_member offer 消失', () => {
+    const removed = offers.filter((o) =>
+      o.eligibility_restrictions.includes('special_member'),
+    )
+    expect(removed.length).toBeGreaterThan(0)
+    const out = applyExclude(offers, false, true)
+    expect(out.length).toBe(offers.length - removed.length)
+  })
+
+  it('truth table: 兩者皆排除 → 並集消失，殘餘皆無限制', () => {
+    const restricted = offers.filter((o) => o.eligibility_restrictions.length > 0)
+    const out = applyExclude(offers, true, true)
+    expect(out.length).toBe(offers.length - restricted.length)
+    for (const o of out) expect(o.eligibility_restrictions).toEqual([])
   })
 })

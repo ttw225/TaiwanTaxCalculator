@@ -3,9 +3,11 @@
 
 import rawData from '../data/tax_payment_rewards_114.json'
 import { getCard } from './cardCatalog'
+import { toNtd } from './rewardUnits'
 import type {
   AmountTier,
   BankListItem,
+  EligibilityRestriction,
   Offer,
   OfferTag,
   RebateMode,
@@ -19,6 +21,7 @@ interface RawRebate {
   mode?: RebateMode
   rate?: number
   fixed?: number
+  per_amount?: number
   fixed_unit?: string
   min?: number | null
   base_fixed?: number | null
@@ -38,6 +41,7 @@ interface RawCampaign {
   eligible_cards?: string | null
   eligible_card_types?: string[]
   eligible_card_ids?: string[]
+  eligibility_restrictions?: EligibilityRestriction[]
   channel?: string[] | null
   rebate?: RawRebate | null
   installment?: RawInstallment | null
@@ -110,6 +114,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     mode,
     rate: r.rate,
     fixed: r.fixed,
+    per_amount: r.per_amount,
     fixed_unit: r.fixed_unit,
     min: r.min ?? null,
     base_fixed: r.base_fixed ?? null,
@@ -118,6 +123,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     amount_tiers: r.amount_tiers,
     eligible_card_ids: eligibleCardIds,
     is_card_specific: eligibleCardIds.length > 0,
+    eligibility_restrictions: c.eligibility_restrictions ?? [],
     tags,
     requires_registration: r.requires_registration ?? false,
     period: r.period ?? null,
@@ -131,10 +137,10 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
 // ── resolveOffer（移植自原型 Personalized Comparison.html L54-92） ───────────
 export function resolveOffer(o: Offer, amount: number): ResolveResult {
   if (o.mode === 'installment_only') {
-    return { applicable: true, value: null, kind: 'installment_only' }
+    return { applicable: true, value: null, value_ntd: null, kind: 'installment_only' }
   }
   if (o.mode === 'fee_only') {
-    return { applicable: true, value: null, kind: 'fee_only' }
+    return { applicable: true, value: null, value_ntd: null, kind: 'fee_only' }
   }
 
   const min = o.min ?? null
@@ -142,22 +148,48 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
     return {
       applicable: false,
       value: 0,
+      value_ntd: 0,
       kind: o.mode,
       reason: `需單筆滿 ${fmtNT(min)}`,
     }
   }
 
   const thresholdLabel =
-    (o.mode === 'fixed' || o.mode === 'rate') && o.min != null && o.min > 0
+    (o.mode === 'fixed' || o.mode === 'rate' || o.mode === 'unit_per_amount') &&
+    o.min != null &&
+    o.min > 0
       ? `單筆滿 ${fmtNT(o.min)}`
       : null
 
+  if (o.mode === 'unit_per_amount') {
+    const per = o.per_amount ?? 0
+    const step = o.fixed ?? 0
+    const raw = per > 0 ? Math.floor(amount / per) * step : 0
+    const cap = o.cap_nt ?? null
+    const capped = cap != null && raw > cap
+    const value = capped ? cap! : raw
+    const unit = o.fixed_unit ?? '元'
+    return {
+      applicable: true,
+      kind: 'unit_per_amount',
+      value,
+      value_ntd: toNtd(value, unit),
+      unit,
+      capped,
+      cap,
+      threshold_label: thresholdLabel,
+    }
+  }
+
   if (o.mode === 'fixed') {
+    const unit = o.fixed_unit ?? '元'
+    const value = o.fixed ?? null
     return {
       applicable: true,
       kind: 'fixed',
-      value: o.fixed ?? null,
-      unit: o.fixed_unit ?? '元',
+      value,
+      value_ntd: toNtd(value, unit),
+      unit,
       threshold_label: thresholdLabel,
     }
   }
@@ -172,14 +204,16 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
       value = o.cap_nt + (o.base_fixed ?? 0)
       capped = true
     }
+    const unit = o.fixed_unit ?? '元'
     return {
       applicable: true,
       kind: 'rate',
       value,
+      value_ntd: toNtd(value, unit),
       rate,
       capped,
       cap: o.cap_nt,
-      unit: o.fixed_unit ?? '元',
+      unit,
       threshold_label: thresholdLabel,
     }
   }
@@ -192,6 +226,7 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
       return {
         applicable: false,
         value: 0,
+        value_ntd: 0,
         kind: o.mode,
         reason: `需單筆滿 ${fmtNT(lowestMin)}`,
       }
@@ -202,10 +237,12 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
       const raw = t.fixed
       const cap = t.cap_nt ?? null
       const capped = cap != null && raw > cap
+      const value = capped ? cap : raw
       return {
         applicable: true,
         kind: 'rate-tiered',
-        value: capped ? cap : raw,
+        value,
+        value_ntd: toNtd(value, t.fixed_unit),
         capped,
         cap,
         tier_label: t.label,
@@ -215,19 +252,22 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
 
     const raw = (amount * t.rate) / 100
     const capped = t.cap_nt != null && raw > t.cap_nt
+    const value = capped ? t.cap_nt! : raw
+    const unit = o.fixed_unit ?? '元'
     return {
       applicable: true,
       kind: 'rate-tiered',
-      value: capped ? t.cap_nt! : raw,
+      value,
+      value_ntd: toNtd(value, unit),
       rate: t.rate,
       capped,
       cap: t.cap_nt,
       tier_label: t.label,
-      unit: o.fixed_unit ?? '元',
+      unit,
     }
   }
 
-  return { applicable: true, value: null, kind: o.mode }
+  return { applicable: true, value: null, value_ntd: null, kind: o.mode }
 }
 
 // ── 卡 picker 篩選契約 ──────────────────────────────────────────────────────

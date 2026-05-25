@@ -1,6 +1,7 @@
 import { ExternalLink, Info } from 'lucide-react'
 import { Card } from '../ui/Card'
 import { fmtNT, fmtPct, resolveOffer } from '../../lib/paymentOffers'
+import { getUnitMeta, ratioHintText } from '../../lib/rewardUnits'
 import type { Offer, OfferTag } from '../../types/paymentOffers'
 
 interface OfferRowProps {
@@ -35,7 +36,8 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   const isInstallmentOnly = r.kind === 'installment_only'
   const isFeeOnly = r.kind === 'fee_only'
   const isFixed = r.kind === 'fixed'
-  const isRebate = r.kind === 'rate' || r.kind === 'rate-tiered'
+  const isRebate =
+    r.kind === 'rate' || r.kind === 'rate-tiered' || r.kind === 'unit_per_amount'
   const highlightHeadline = isTop && r.value != null && r.value > 0
 
   const rankCls = isTop
@@ -46,6 +48,12 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
 
   // Headline number
   const isNTUnit = !r.unit || r.unit === '元'
+  const unitMeta = getUnitMeta(r.unit)
+  const showNtdHint =
+    unitMeta.kind === 'cash_equivalent' &&
+    r.value_ntd != null &&
+    r.value_ntd > 0 &&
+    !isNTUnit
   const formatValue = (v: number) =>
     isNTUnit ? fmtNT(v) : Math.round(v).toLocaleString('zh-TW')
   let headline: React.ReactNode
@@ -82,6 +90,13 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   const rateLabel = (() => {
     if (isInstallmentOnly || isFeeOnly) return '—'
     if (offer.mode === 'fixed') return '固定金額'
+    if (offer.mode === 'unit_per_amount') {
+      const per = offer.per_amount
+      const step = offer.fixed
+      const unit = offer.fixed_unit
+      if (per && step && unit) return `每 ${per.toLocaleString('zh-TW')} 元 ${step} ${unit}`
+      return offer.cap_label ?? '—'
+    }
     return fmtPct(r.rate ?? offer.rate ?? null)
   })()
 
@@ -133,6 +148,15 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
               </p>
               <div className="min-w-0">
                 {headline}
+                {showNtdHint && (
+                  <p className="text-base text-gray-500 mt-0.5 tabular-nums">
+                    ≈ {fmtNT(r.value_ntd!)}
+                    {(() => {
+                      const hint = ratioHintText(r.unit)
+                      return hint ? <span className="ml-1 text-gray-400">（{hint}）</span> : null
+                    })()}
+                  </p>
+                )}
                 {r.capped && (
                   <p className="text-base text-amber-700 mt-1">
                     已達上限 {r.cap != null ? formatValue(r.cap) : '—'}

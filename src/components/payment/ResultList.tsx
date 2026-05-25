@@ -7,13 +7,16 @@ import {
   fmtPct,
   resolveOffer,
 } from '../../lib/paymentOffers'
+import { getUnitMeta, ratioHintText } from '../../lib/rewardUnits'
 import type { Offer, ResolveResult } from '../../types/paymentOffers'
 import type { TypeFilterValue } from './TypeFilter'
+import type { ExcludeFilterValue } from './ExcludeFilter'
 
 interface ResultListProps {
   offers: Offer[]
   amount: number
   typeFilter: TypeFilterValue
+  excludeFilter: ExcludeFilterValue
   selectedCardIds: Set<string>
   query: string
   onQueryChange: (next: string) => void
@@ -26,8 +29,8 @@ interface RankedRow {
 
 function sortRanked(rows: RankedRow[]): RankedRow[] {
   return [...rows].sort((a, b) => {
-    const va = a.r.value ?? -1
-    const vb = b.r.value ?? -1
+    const va = a.r.value_ntd ?? -Infinity
+    const vb = b.r.value_ntd ?? -Infinity
     if (va !== vb) return vb - va
     const ba = a.o.bank
     const bb = b.o.bank
@@ -40,6 +43,7 @@ export function ResultList({
   offers,
   amount,
   typeFilter,
+  excludeFilter,
   selectedCardIds,
   query,
   onQueryChange,
@@ -48,8 +52,20 @@ export function ResultList({
 
   const filtered = useMemo(() => {
     const byCard = filterOffersByCards(offers, selectedCardIds)
-    return byCard.filter((o) => o.tags.some((t) => typeFilter[t]))
-  }, [offers, selectedCardIds, typeFilter])
+    return byCard.filter((o) => {
+      if (!o.tags.some((t) => typeFilter[t])) return false
+      if (excludeFilter.newCustomer && o.eligibility_restrictions.includes('new_customer'))
+        return false
+      if (
+        excludeFilter.specialMember &&
+        o.eligibility_restrictions.includes('special_member')
+      )
+        return false
+      return true
+    })
+  }, [offers, selectedCardIds, typeFilter, excludeFilter])
+
+  const anyExclude = excludeFilter.newCustomer || excludeFilter.specialMember
 
   const searched = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -70,8 +86,8 @@ export function ResultList({
   const top = useMemo(() => {
     const pool = filtered
       .map((o) => ({ o, r: resolveOffer(o, amount) }))
-      .filter((x) => x.r.applicable && x.r.value != null && x.r.value > 0)
-      .sort((a, b) => (b.r.value ?? 0) - (a.r.value ?? 0))
+      .filter((x) => x.r.applicable && x.r.value_ntd != null && x.r.value_ntd > 0)
+      .sort((a, b) => (b.r.value_ntd ?? 0) - (a.r.value_ntd ?? 0))
     return pool[0]
   }, [filtered, amount])
 
@@ -100,6 +116,24 @@ export function ResultList({
                   return `${Math.round(top.r.value ?? 0).toLocaleString('zh-TW')} ${top.r.unit}`
                 })()}
               </span>
+              {(() => {
+                const isNTUnit = !top.r.unit || top.r.unit === '元'
+                const meta = getUnitMeta(top.r.unit)
+                if (
+                  isNTUnit ||
+                  meta.kind !== 'cash_equivalent' ||
+                  top.r.value_ntd == null ||
+                  top.r.value_ntd <= 0
+                )
+                  return null
+                const hint = ratioHintText(top.r.unit)
+                return (
+                  <span className="text-gray-500 ml-1 tabular-nums">
+                    （約 {fmtNT(top.r.value_ntd)}
+                    {hint ? `，${hint}` : ''}）
+                  </span>
+                )
+              })()}
               {top.r.rate != null && top.r.rate > 0 ? (
                 <span className="text-gray-500">
                   （回饋率 {fmtPct(top.r.rate)}
@@ -151,7 +185,9 @@ export function ResultList({
           <p className="text-sm font-medium text-gray-700">
             {query
               ? '查無符合方案，試試其他關鍵字'
-              : '目前沒有符合條件的方案，試著放寬類型或卡別篩選'}
+              : anyExclude
+                ? '目前沒有符合條件的方案，試著放寬類型、卡別或排除條件'
+                : '目前沒有符合條件的方案，試著放寬類型或卡別篩選'}
           </p>
         </div>
       ) : (
