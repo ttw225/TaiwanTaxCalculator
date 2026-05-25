@@ -1,3 +1,9 @@
+## 0.3.2 (2026-05-25)
+
+### Fix
+
+- filter rate-tiered offers when amount is below all tier minimums
+
 ## 0.3.1 (2026-05-25)
 
 ### Fix
