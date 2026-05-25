@@ -1,3 +1,9 @@
+## 0.3.1 (2026-05-25)
+
+### Fix
+
+- **payment-rewards**: improve clarity & remove 2nd-person pronouns (#82)
+
 ## 0.3.0 (2026-05-24)
 
 ### Feat
