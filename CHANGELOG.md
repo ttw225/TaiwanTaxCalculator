@@ -1,3 +1,10 @@
+## 0.4.1 (2026-05-25)
+
+### Fix
+
+- **payment**: remove card id (#95)
+- **payment**: update taishin (#93)
+
 ## 0.4.0 (2026-05-25)
 
 ### Feat
