@@ -4,8 +4,8 @@ export interface ExcludeFilterValue {
 }
 
 const ITEMS: Array<{ key: keyof ExcludeFilterValue; label: string }> = [
-  { key: 'newCustomer', label: '排除新戶身分' },
-  { key: 'specialMember', label: '排除特殊身份／會員' },
+  { key: 'newCustomer', label: '排除新戶活動' },
+  { key: 'specialMember', label: '排除銀行財管及 VIP 優惠' },
 ]
 
 interface ExcludeFilterProps {
