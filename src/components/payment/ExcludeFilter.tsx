@@ -1,5 +1,3 @@
-import { Check } from 'lucide-react'
-
 export interface ExcludeFilterValue {
   newCustomer: boolean
   specialMember: boolean
@@ -7,7 +5,7 @@ export interface ExcludeFilterValue {
 
 const ITEMS: Array<{ key: keyof ExcludeFilterValue; label: string }> = [
   { key: 'newCustomer', label: '排除新戶身分' },
-  { key: 'specialMember', label: '排除銀行特殊會員' },
+  { key: 'specialMember', label: '排除特殊身份／會員' },
 ]
 
 interface ExcludeFilterProps {
@@ -16,38 +14,22 @@ interface ExcludeFilterProps {
 }
 
 export function ExcludeFilter({ value, onChange }: ExcludeFilterProps) {
-  function toggle(k: keyof ExcludeFilterValue) {
-    onChange({ ...value, [k]: !value[k] })
-  }
-
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-4">
       {ITEMS.map(({ key, label }) => {
-        const on = value[key]
         return (
-          <button
+          <label
             key={key}
-            type="button"
-            role="switch"
-            aria-checked={on}
-            onClick={() => toggle(key)}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2.5 text-base transition-colors ${
-              on
-                ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
-                : 'bg-white text-gray-500 border-gray-200 hover:text-gray-900'
-            }`}
+            className="inline-flex items-center gap-2 text-base text-gray-700"
           >
-            <span
-              className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${
-                on
-                  ? 'bg-white border-white text-blue-600'
-                  : 'bg-white border-gray-300 text-transparent'
-              }`}
-            >
-              <Check size={9} />
-            </span>
+            <input
+              type="checkbox"
+              checked={value[key]}
+              onChange={(event) => onChange({ ...value, [key]: event.target.checked })}
+              className="h-4 w-4"
+            />
             <span>{label}</span>
-          </button>
+          </label>
         )
       })}
     </div>

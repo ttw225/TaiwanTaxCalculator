@@ -685,7 +685,7 @@
             "cap_label": "同一身分證合計上限 2,500 元"
           },
           "installment": {
-            "summary": "指定客群享 3 期 0 利率；全卡 12 期以上享前 3 期 0 利率",
+            "summary": "全卡 12 期以上享前 3 期 0 利率",
             "min_amount": null
           },
           "notes": "刷卡金回饋與分期優惠限擇一；行動支付、第三方支付、臨櫃或便利商店不適用；正附卡皆有繳稅時，依金額擇較高一次回饋；存戶／理財會員須以正卡持卡人身分計算回饋率；3 期 0 利率限指定客群；全卡 12 期以上前 3 期 0 利率，其後依個人消費分期利率",
@@ -721,7 +721,7 @@
             "cap_label": "同一身分證合計上限 8,000 元"
           },
           "installment": {
-            "summary": "指定客群享 3 期 0 利率；全卡 12 期以上享前 3 期 0 利率",
+            "summary": "全卡 12 期以上享前 3 期 0 利率",
             "min_amount": null
           },
           "notes": "刷卡金回饋與分期優惠限擇一；行動支付、第三方支付、臨櫃或便利商店不適用；正附卡皆有繳稅時，依金額擇較高一次回饋；存戶／理財會員須以正卡持卡人身分計算回饋率；3 期 0 利率限指定客群；全卡 12 期以上前 3 期 0 利率，其後依個人消費分期利率",
@@ -732,6 +732,7 @@
         },
         {
           "campaign_id": "fb_depositor",
+          "eligibility_restrictions": ["special_member"],
           "title": "富邦存戶｜滿額刷卡金",
           "source_url": "https://cardpromote.taipeifubon.com.tw/promotion/Detail?sn=E000087",
           "source_id": "tp_fubon_cc_2026_ito",
@@ -1499,6 +1500,7 @@
         },
         {
           "campaign_id": "auto_debit_rebate",
+          "eligibility_restrictions": ["special_member"],
           "title": "自扣客戶｜0.2% 回饋",
           "source_url": "https://ecard.feib.com.tw/Activity/2026Tax/index.do",
           "source_id": null,
@@ -1678,6 +1680,7 @@
         },
         {
           "campaign_id": "yongchuan_world_newcard_bonus",
+          "eligibility_restrictions": ["new_customer"],
           "title": "新辦永傳世界卡｜滿額加碼",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
@@ -1744,6 +1747,7 @@
         },
         {
           "campaign_id": "yongfu_world_newcard_bonus",
+          "eligibility_restrictions": ["new_customer", "special_member"],
           "title": "新辦永富世界卡｜滿額加碼",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
@@ -1912,6 +1916,7 @@
         },
         {
           "campaign_id": "salary_installment",
+          "eligibility_restrictions": ["special_member"],
           "title": "薪轉戶｜3 期 0 利率",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
@@ -1961,6 +1966,7 @@
         },
         {
           "campaign_id": "online_installment_new_user",
+          "eligibility_restrictions": ["new_customer"],
           "title": "付費分期新戶｜刷卡金",
           "source_url": "https://bank.sinopac.com/sinopacBT/personal/credit-card/discount/245305381.html",
           "source_id": null,
@@ -2295,6 +2301,7 @@
         },
         {
           "campaign_id": "mcnewcard_tax_rebate",
+          "eligibility_restrictions": ["new_customer"],
           "title": "新辦萬事達卡｜加碼回饋",
           "source_url": "https://www.kgibank.com.tw/zh-tw/personal/promotion/card-campaign/mcnewcard",
           "source_id": null,

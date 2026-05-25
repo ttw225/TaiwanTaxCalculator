@@ -170,7 +170,14 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
   })
 
   it('new_customer 標籤覆蓋預期 campaign', () => {
-    const ids = ['newnewbank_tax_rebate', 'jkopay_new_customer_bonus']
+    const ids = [
+      'newnewbank_tax_rebate',
+      'jkopay_new_customer_bonus',
+      'yongchuan_world_newcard_bonus',
+      'yongfu_world_newcard_bonus',
+      'online_installment_new_user',
+      'mcnewcard_tax_rebate',
+    ]
     for (const id of ids) {
       const o = byCampaign(id)
       expect(o, `missing campaign ${id}`).toBeTruthy()
@@ -186,6 +193,10 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
       'wealth_rebate_installment',
       'private_client',
       'vip_top_tier',
+      'fb_depositor',
+      'auto_debit_rebate',
+      'salary_installment',
+      'yongfu_world_newcard_bonus',
     ]
     for (const id of ids) {
       const o = byCampaign(id)
@@ -194,10 +205,59 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
     }
   })
 
-  it('「分期新戶」與「非私銀／財管會員」依規約不標', () => {
+  it('反向客群與純卡別限制依規約不標 special_member', () => {
+    const unrestrictedIds = [
+      'general_rebate',
+      'general_installment_0',
+      'rebate_world',
+      'premium_card_rebate',
+    ]
+    for (const id of unrestrictedIds) {
+      const o = byCampaign(id)
+      expect(o, `missing campaign ${id}`).toBeTruthy()
+      expect(o!.eligibility_restrictions).not.toContain('special_member')
+    }
+  })
+
+  it('新晉財管不是一般新戶', () => {
+    const wealthNewcomer = byCampaign('wealth_newcomer')
+    expect(wealthNewcomer).toBeTruthy()
+    expect(wealthNewcomer!.eligibility_restrictions).toContain('special_member')
+    expect(wealthNewcomer!.eligibility_restrictions).not.toContain('new_customer')
+  })
+
+  it('資料完整性：新戶與銀行身份關鍵字不應漏標', () => {
+    const newCustomerPattern = /新戶|新辦|新申辦|未辦過|從未申辦|首次申辦|成功開立/
+    const specialMemberPattern =
+      /存戶|薪轉戶|自扣|自動扣繳|理財客戶|私銀|私人|財管|理財|會員|VIP|貴賓|尊榮|領航|穩富|恆富|智富|桂冠|亞資|豐盛|翡翠|金鑽|千萬|尊爵|富裕|登峰|菁英|優先理財/
+    const specialAllowlist = new Set([
+      '812_general_rebate',
+      '812_general_installment_0',
+      '812_richart_jcb_single_tx_bonus',
+    ])
+
+    for (const o of offers) {
+      const searchable = `${o.campaign_title} ${o.card_name}`
+      if (newCustomerPattern.test(searchable)) {
+        expect(
+          o.eligibility_restrictions,
+          `${o.id} contains new-customer wording`,
+        ).toContain('new_customer')
+      }
+
+      if (specialMemberPattern.test(searchable) && !specialAllowlist.has(o.id)) {
+        expect(
+          o.eligibility_restrictions,
+          `${o.id} contains special-member wording`,
+        ).toContain('special_member')
+      }
+    }
+  })
+
+  it('「分期新戶」依廣義新戶規約標記，非私銀／財管會員仍不標特殊身份', () => {
     const installmentNewUser = byCampaign('online_installment_new_user')
     expect(installmentNewUser).toBeTruthy()
-    expect(installmentNewUser!.eligibility_restrictions).toEqual([])
+    expect(installmentNewUser!.eligibility_restrictions).toContain('new_customer')
 
     const taishinGeneral = byCampaign('general_rebate')
     expect(taishinGeneral).toBeTruthy()
