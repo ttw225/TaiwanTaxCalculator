@@ -36,7 +36,8 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   const isInstallmentOnly = r.kind === 'installment_only'
   const isFeeOnly = r.kind === 'fee_only'
   const isFixed = r.kind === 'fixed'
-  const isRebate = r.kind === 'rate' || r.kind === 'rate-tiered'
+  const isRebate =
+    r.kind === 'rate' || r.kind === 'rate-tiered' || r.kind === 'unit_per_amount'
   const highlightHeadline = isTop && r.value != null && r.value > 0
 
   const rankCls = isTop
@@ -89,6 +90,13 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
   const rateLabel = (() => {
     if (isInstallmentOnly || isFeeOnly) return '—'
     if (offer.mode === 'fixed') return '固定金額'
+    if (offer.mode === 'unit_per_amount') {
+      const per = offer.per_amount
+      const step = offer.fixed
+      const unit = offer.fixed_unit
+      if (per && step && unit) return `每 ${per.toLocaleString('zh-TW')} 元 ${step} ${unit}`
+      return offer.cap_label ?? '—'
+    }
     return fmtPct(r.rate ?? offer.rate ?? null)
   })()
 

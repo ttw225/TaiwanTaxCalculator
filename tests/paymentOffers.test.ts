@@ -107,6 +107,48 @@ describe('resolveOffer rate-tiered 門檻過濾', () => {
   })
 })
 
+describe('resolveOffer unit_per_amount', () => {
+  const anaOffer = offers.find((o) => o.id === '822_ana_miles_rebate')
+
+  it('ANA campaign 已遷移到 unit_per_amount', () => {
+    expect(anaOffer).toBeTruthy()
+    expect(anaOffer!.mode).toBe('unit_per_amount')
+    expect(anaOffer!.per_amount).toBe(300)
+    expect(anaOffer!.fixed).toBe(1)
+    expect(anaOffer!.fixed_unit).toBe('哩')
+  })
+
+  it('amount = 100,000,000 → 333,333 哩（floor，非 0.333% 近似）', () => {
+    const r = resolveOffer(anaOffer!, 100_000_000)
+    expect(r.value).toBe(333_333)
+    expect(r.unit).toBe('哩')
+    expect(r.value_ntd).toBe(333_333 * 0.5)
+  })
+
+  it('amount = 299 → 0 哩；amount = 600 → 2 哩', () => {
+    expect(resolveOffer(anaOffer!, 299).value).toBe(0)
+    expect(resolveOffer(anaOffer!, 600).value).toBe(2)
+  })
+
+  it('合成 cap_nt 觸發 capped', () => {
+    const capped = { ...anaOffer!, cap_nt: 5 }
+    const r = resolveOffer(capped, 100_000)
+    expect(r.value).toBe(5)
+    expect(r.capped).toBe(true)
+    expect(r.cap).toBe(5)
+  })
+
+  it('資料完整性：所有 unit_per_amount campaign 都有 per_amount/fixed/fixed_unit', () => {
+    const all = offers.filter((o) => o.mode === 'unit_per_amount')
+    expect(all.length).toBeGreaterThan(0)
+    for (const o of all) {
+      expect(o.per_amount && o.per_amount > 0).toBeTruthy()
+      expect(o.fixed && o.fixed > 0).toBeTruthy()
+      expect(o.fixed_unit).toBeTruthy()
+    }
+  })
+})
+
 describe('deriveTags via loadOffers', () => {
   it('每個 offer tags 是 4 種已知值的子集', () => {
     const allowed = new Set(['taiwan_pay', 'credit_card', 'debit_card', 'installment'])

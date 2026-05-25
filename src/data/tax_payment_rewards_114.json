@@ -2635,8 +2635,9 @@
           "rebate": {
             "requires_registration": false,
             "period": null,
-            "mode": "rate",
-            "rate": 0.333,
+            "mode": "unit_per_amount",
+            "per_amount": 300,
+            "fixed": 1,
             "fixed_unit": "哩",
             "min": null,
             "cap_nt": null,
@@ -2667,8 +2668,9 @@
           "rebate": {
             "requires_registration": false,
             "period": null,
-            "mode": "rate",
-            "rate": 0.333,
+            "mode": "unit_per_amount",
+            "per_amount": 300,
+            "fixed": 1,
             "fixed_unit": "哩",
             "min": null,
             "cap_nt": null,

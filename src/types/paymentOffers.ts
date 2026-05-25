@@ -5,6 +5,7 @@ export type RebateMode =
   | 'rate'              // 單一回饋率
   | 'rate-tiered'       // 階梯回饋率（依金額）
   | 'fixed'             // 定額（NT$ 或紅利點數等價）
+  | 'unit_per_amount'   // 每 N 元累積 M 單位（floor）
   | 'installment_only'  // 僅分期，不算金額
   | 'fee_only'          // 僅手續費說明
 
@@ -51,7 +52,8 @@ export interface Offer {
 
   mode: RebateMode
   rate?: number                 // mode = 'rate' 必填
-  fixed?: number                // mode = 'fixed' 必填
+  fixed?: number                // mode = 'fixed' / 'unit_per_amount' 必填
+  per_amount?: number           // mode = 'unit_per_amount' 必填：每 N 元
   fixed_unit?: string           // 顯示單位字串（例：「元刷卡金」）
   min?: number | null           // 單筆門檻
   base_min?: number | null      // base_fixed 對應門檻
