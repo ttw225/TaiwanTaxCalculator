@@ -2455,7 +2455,7 @@
             "summary": "不限金額享 3／6 期 0 利率；滿 120,000 元享 12 期 0 利率",
             "min_amount": null
           },
-          "notes": "回饋與 0 利率分期可並用，須分別登錄；Richart 萬事達卡、JCB 全卡單筆滿 20 萬之加碼 0.1% 另列為獨立方案（campaign_id: richart_jcb_single_tx_bonus）；限信用卡固定額度內；行動支付／超商繳稅不適用",
+          "notes": "回饋與 0 利率分期可並用，須分別登錄；Richart 萬事達卡、JCB 全卡單筆滿 20 萬之加碼 0.1% 另列為獨立方案；限信用卡固定額度內；行動支付／超商繳稅不適用",
           "tags": [
             "credit_card",
             "installment"
@@ -2486,7 +2486,7 @@
             "cap_label": "每名持卡人合計上限 2,000 元"
           },
           "installment": null,
-          "notes": "與一般卡友 0 利率分期擇一，同時登錄以分期為準；Richart 萬事達卡、JCB 全卡單筆滿 20 萬之加碼 0.1% 另列為獨立方案（campaign_id: richart_jcb_single_tx_bonus）；預計 2026/9/30 前入帳。",
+          "notes": "與一般卡友 0 利率分期擇一，同時登錄以分期為準；Richart 萬事達卡、JCB 全卡單筆滿 20 萬之加碼 0.1% 另列為獨立方案；預計 2026/9/30 前入帳。",
           "tags": [
             "credit_card"
           ]
