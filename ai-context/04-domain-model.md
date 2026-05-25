@@ -185,6 +185,15 @@ This value is subtracted when calculating taxable income. Salary special deducti
 - Helpers **`findScenarioEquationResultAmount`**, **`findScenarioNetAmount`** (maps **不含…所得淨額** → **剩餘所得淨額**), and **`findScenarioBlockTaxAmount`** locate amounts in `formulaSections` for tests (split-tax tax rows use **…應納稅額**, not **…淨額稅額**).
 - **Scenario display titles** (e.g. married `joint` → **配偶所得合併計稅**) are produced in [`taxScenarios.ts`](../src/lib/taxScenarios.ts) and kept in sync with [`TaxSummaryPanel.tsx`](../src/components/TaxSummaryPanel.tsx) label maps for the combinations table.
 
+## Payment rewards eligibility
+
+[`src/data/tax_payment_rewards_114.json`](../src/data/tax_payment_rewards_114.json) campaign `eligibility_restrictions` uses:
+
+- `new_customer`: broad new-customer/new-application gates, including digital account or credit-card new customers, newly issued designated cards, installment new users, never-applied, or never-used conditions.
+- `special_member`: special bank relationship identities or memberships, including private banking, wealth-management tiers, VIP tiers, Asia-asset customers, depositors, payroll customers, and auto-debit customers.
+
+Do not tag reverse/general audiences such as 非私銀／財管會員. Do not tag pure card-product tiers such as world, premium, infinite, or designated high-tier cards unless the campaign explicitly makes the card a wealth-management/member card.
+
 ## Related docs
 
 - Content instances: [`06-content-modules.md`](./06-content-modules.md)
