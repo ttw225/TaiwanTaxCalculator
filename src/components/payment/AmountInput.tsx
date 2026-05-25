@@ -22,7 +22,7 @@ export function AmountInput({ amount, onChange }: AmountInputProps) {
   return (
     <section className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
       <label htmlFor="amt" className="block text-base font-medium text-gray-700 mb-3">
-        應繳納稅額
+        本次應繳稅額
       </label>
       <div
         className={`flex items-center gap-2 border-b transition-colors pb-3 ${
@@ -44,7 +44,7 @@ export function AmountInput({ amount, onChange }: AmountInputProps) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className="flex-1 min-w-0 !text-2xl font-bold text-gray-900 tabular-nums bg-transparent focus:outline-none placeholder:text-gray-300 placeholder:font-medium leading-tight"
-          aria-label="應繳納稅額（新台幣）"
+          aria-label="本次應繳稅額（新台幣）"
         />
         <button
           type="button"

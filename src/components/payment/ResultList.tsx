@@ -84,15 +84,15 @@ export function ResultList({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-base font-semibold text-blue-700 mb-0.5">
-              目前最高回饋
+              本次試算最高回饋
             </p>
             <p className="text-xl text-gray-700">
-              繳 <span className="font-semibold text-gray-900 tabular-nums">{fmtNT(amount)}</span>
-              ，使用
-              <span className="font-semibold text-gray-900 mx-1">
+              <span className="font-semibold text-gray-900 mr-1">
                 {top.o.bank} {top.o.card_name}
               </span>
-              可拿到約{' '}
+              ：以稅額{' '}
+              <span className="font-semibold text-gray-900 tabular-nums">{fmtNT(amount)}</span>{' '}
+              試算，預估可拿{' '}
               <span className="text-blue-700 font-bold tabular-nums">
                 {(() => {
                   const isNTUnit = !top.r.unit || top.r.unit === '元'
@@ -126,7 +126,7 @@ export function ResultList({
           ref={queryRef}
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="搜尋銀行名稱、卡別名稱、繳稅活動"
+          placeholder="搜尋銀行、卡別或活動"
           className="w-full pl-9 pr-9 py-2.5 text-base border border-gray-200 rounded-xl bg-white focus:border-gray-400 focus:outline-none placeholder:text-gray-400"
         />
         {query && (
@@ -149,7 +149,9 @@ export function ResultList({
       {ranked.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
           <p className="text-sm font-medium text-gray-700">
-            {query ? '查無符合方案，試試其他關鍵字' : '查無符合的方案'}
+            {query
+              ? '查無符合方案，試試其他關鍵字'
+              : '目前沒有符合條件的方案，試著放寬類型或卡別篩選'}
           </p>
         </div>
       ) : (
@@ -159,7 +161,7 @@ export function ResultList({
             <span className="font-semibold text-gray-700 tabular-nums">
               {ranked.length}
             </span>{' '}
-            個方案，依回饋金額排序
+            個方案，依預估回饋由高到低排序
           </p>
           <div className="space-y-3">
             {ranked.map((row, i) => {

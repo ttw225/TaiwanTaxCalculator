@@ -7,7 +7,7 @@ const TYPE_META: Array<{ key: OfferTag; label: string }> = [
   { key: 'credit_card', label: '信用卡回饋' },
   { key: 'debit_card', label: '金融卡回饋' },
   { key: 'installment', label: '分期 0 利率' },
-  { key: 'taiwan_pay', label: '台灣Pay' },
+  { key: 'taiwan_pay', label: '台灣 Pay' },
 ]
 
 interface TypeFilterProps {

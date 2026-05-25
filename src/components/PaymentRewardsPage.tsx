@@ -39,7 +39,7 @@ function AmountEmptyState() {
       <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 mx-auto flex items-center justify-center">
         <ArrowUp size={22} />
       </div>
-      <p className="mt-4 text-sm font-medium text-gray-700">輸入應繳納稅額後開始推薦</p>
+      <p className="mt-4 text-sm font-medium text-gray-700">先輸入應繳稅額，下方會列出可比較的方案</p>
     </div>
   )
 }
@@ -50,7 +50,7 @@ function TypeFilterEmptyState() {
       <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 mx-auto flex items-center justify-center">
         <ArrowUp size={22} />
       </div>
-      <p className="mt-4 text-sm font-medium text-gray-700">勾選至少一種回饋類型後開始推薦</p>
+      <p className="mt-4 text-sm font-medium text-gray-700">請至少勾選一種回饋類型</p>
     </div>
   )
 }
@@ -62,23 +62,23 @@ function Disclaimer() {
       <ul className="text-sm text-gray-600 leading-relaxed space-y-1.5">
         <li className="flex items-start gap-2">
           <span className="mt-2 w-1 h-1 rounded-full bg-gray-300 shrink-0"></span>
-          「估算回饋」＝你輸入的應繳納稅額 × 該活動公告的回饋率；若該活動有單筆／歸戶上限，自動以上限為準。
+          「預估回饋」＝稅額 × 活動公告回饋率；若活動有單筆或合計上限，會以上限為準。
         </li>
         <li className="flex items-start gap-2">
           <span className="mt-2 w-1 h-1 rounded-full bg-gray-300 shrink-0"></span>
-          金額階梯（例：合庫、富邦 J 卡）會依你輸入的應繳納稅額自動選擇適用級距。
+          含金額階梯的活動（例：合庫、富邦 J 卡）會依稅額自動套用對應級距。
         </li>
         <li className="flex items-start gap-2">
           <span className="mt-2 w-1 h-1 rounded-full bg-gray-300 shrink-0"></span>
-          客群限定（例：華南領航 4 級、富邦理財會員）會以各別卡列出；可一起比較，但你只能適用符合身分的那一張。
+          客群限定活動（例：華南領航 4 級、富邦理財會員）會分開列出；可同時比較，但實際只能用符合身分的那一張。
         </li>
         <li className="flex items-start gap-2">
           <span className="mt-2 w-1 h-1 rounded-full bg-gray-300 shrink-0"></span>
-          回饋／分期細節以各發卡行官方公告為準；本頁僅作試算與參考。
+          回饋與分期條件以發卡行官方公告為準；本頁僅供試算參考。
         </li>
         <li className="flex items-start gap-2">
           <span className="mt-2 w-1 h-1 rounded-full bg-gray-300 shrink-0"></span>
-          所有輸入資料保留在你的瀏覽器（localStorage），不會傳送到伺服器。
+          所有輸入資料只保留在本機瀏覽器，不會上傳。
         </li>
       </ul>
     </section>
@@ -120,7 +120,7 @@ export function PaymentRewardsPage() {
       <div className="-mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1">
         <PageHeading
           title="繳稅回饋"
-          description="輸入今年的應繳納稅額，將為您推薦合適的繳稅方式"
+          description="輸入本次應繳稅額，比較各家銀行的繳稅回饋與分期方案"
           className="[&_p]:mb-3 [&_p]:text-sm sm:[&_p]:text-base"
         />
       </div>
