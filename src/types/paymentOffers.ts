@@ -76,6 +76,7 @@ export interface ResolveResult {
   applicable: boolean
   kind: RebateMode
   value: number | null          // 估算回饋金額；null 表示無金額（如僅分期）
+  value_ntd: number | null      // 排序與輔助顯示用 NT$ 等值；非「官方回饋金額」
   rate?: number                 // 適用回饋率
   capped?: boolean              // 是否觸發上限
   cap?: number | null

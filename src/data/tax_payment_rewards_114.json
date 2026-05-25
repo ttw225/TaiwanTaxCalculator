@@ -1,6 +1,23 @@
 {
   "tax_year": "114",
   "schema_version": "v2.7",
+  "reward_units": {
+    "元": { "ntd_per_unit": 1, "kind": "face_value" },
+    "元刷卡金": { "ntd_per_unit": 1, "kind": "face_value" },
+    "元 SOGO 禮券": { "ntd_per_unit": 1, "kind": "face_value" },
+    "元即享券": { "ntd_per_unit": 1, "kind": "face_value" },
+    "元統一超商抵用券": { "ntd_per_unit": 1, "kind": "face_value" },
+    "元超商電子禮券": { "ntd_per_unit": 1, "kind": "face_value" },
+    "元電子禮券": { "ntd_per_unit": 1, "kind": "face_value" },
+    "點台灣 Pay 紅利": { "ntd_per_unit": 0.1, "kind": "cash_equivalent" },
+    "LINE POINTS": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
+    "OPEN POINTS": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
+    "小樹點": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
+    "街口幣": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
+    "e point": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
+    "和泰 Points": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
+    "哩": { "ntd_per_unit": 0.5, "kind": "cash_equivalent" }
+  },
   "banks": [
     {
       "bank_code": "004",
