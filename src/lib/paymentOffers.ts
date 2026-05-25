@@ -186,7 +186,17 @@ export function resolveOffer(o: Offer, amount: number): ResolveResult {
 
   if (o.mode === 'rate-tiered' && o.amount_tiers && o.amount_tiers.length > 0) {
     const tiers = [...o.amount_tiers].sort((a, b) => b.min - a.min)
-    const t = tiers.find((x) => amount >= x.min) ?? tiers[tiers.length - 1]
+    const matched = tiers.find((x) => amount >= x.min)
+    if (!matched && amount > 0) {
+      const lowestMin = tiers[tiers.length - 1].min
+      return {
+        applicable: false,
+        value: 0,
+        kind: o.mode,
+        reason: `需單筆滿 ${fmtNT(lowestMin)}`,
+      }
+    }
+    const t = matched ?? tiers[tiers.length - 1]
 
     if (t.kind === 'fixed') {
       const raw = t.fixed

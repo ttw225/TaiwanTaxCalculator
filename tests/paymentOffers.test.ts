@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { filterOffersByCards, loadOffers } from '../src/lib/paymentOffers'
+import { filterOffersByCards, loadOffers, resolveOffer } from '../src/lib/paymentOffers'
 
 const offers = loadOffers()
 
@@ -66,6 +66,44 @@ describe('filterOffersByCards 契約', () => {
     const out = filterOffersByCards(offers, new Set(['bank999_unknown']))
     // 未知 id 不對應任何 bank，全卡別 campaign 全不命中；限定卡也不命中
     expect(out.length).toBe(0)
+  })
+})
+
+describe('resolveOffer rate-tiered 門檻過濾', () => {
+  it('金額低於所有 tier 最低門檻時 applicable = false', () => {
+    const tiered = offers.find(
+      (o) => o.mode === 'rate-tiered' &&
+        o.amount_tiers &&
+        o.amount_tiers.length > 0 &&
+        Math.min(...o.amount_tiers.map((t) => t.min)) > 0,
+    )
+    expect(tiered).toBeTruthy()
+    const lowestMin = Math.min(...tiered!.amount_tiers!.map((t) => t.min))
+    const r = resolveOffer(tiered!, lowestMin - 1)
+    expect(r.applicable).toBe(false)
+    expect(r.reason).toBeTruthy()
+  })
+
+  it('金額達到 tier 門檻時 applicable = true', () => {
+    const tiered = offers.find(
+      (o) => o.mode === 'rate-tiered' && o.amount_tiers && o.amount_tiers.length > 0,
+    )
+    expect(tiered).toBeTruthy()
+    const highestMin = Math.max(...tiered!.amount_tiers!.map((t) => t.min))
+    const r = resolveOffer(tiered!, highestMin)
+    expect(r.applicable).toBe(true)
+  })
+
+  it('金額為 0 時 tiered offer 仍顯示（尚未輸入）', () => {
+    const tiered = offers.find(
+      (o) => o.mode === 'rate-tiered' &&
+        o.amount_tiers &&
+        o.amount_tiers.length > 0 &&
+        Math.min(...o.amount_tiers.map((t) => t.min)) > 0,
+    )
+    expect(tiered).toBeTruthy()
+    const r = resolveOffer(tiered!, 0)
+    expect(r.applicable).toBe(true)
   })
 })
 
