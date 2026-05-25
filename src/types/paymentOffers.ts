@@ -11,6 +11,8 @@ export type RebateMode =
 
 export type OfferTag = 'taiwan_pay' | 'credit_card' | 'debit_card' | 'installment'
 
+export type EligibilityRestriction = 'new_customer' | 'special_member'
+
 export interface CatalogCard {
   card_id: string
   bank_code: string
@@ -64,6 +66,8 @@ export interface Offer {
 
   eligible_card_ids: string[]   // 空陣列 = 全卡別；非空 = 限定 card_id
   is_card_specific: boolean     // 衍生：eligible_card_ids.length > 0
+
+  eligibility_restrictions: EligibilityRestriction[] // 身分限制；空陣列 = 無
 
   tags: OfferTag[]
   requires_registration?: boolean

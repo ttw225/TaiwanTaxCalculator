@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ResultList } from '../src/components/payment/ResultList'
 import type { TypeFilterValue } from '../src/components/payment/TypeFilter'
+import type { ExcludeFilterValue } from '../src/components/payment/ExcludeFilter'
 import type { Offer } from '../src/types/paymentOffers'
 
 let container: HTMLDivElement
@@ -56,6 +57,7 @@ function makeOffer(overrides: Partial<Offer>): Offer {
     amount_tiers: overrides.amount_tiers,
     eligible_card_ids: overrides.eligible_card_ids ?? [],
     is_card_specific: overrides.is_card_specific ?? false,
+    eligibility_restrictions: overrides.eligibility_restrictions ?? [],
     tags: overrides.tags ?? ['credit_card'],
     requires_registration: overrides.requires_registration ?? false,
     period: overrides.period ?? null,
@@ -65,7 +67,17 @@ function makeOffer(overrides: Partial<Offer>): Offer {
   }
 }
 
-function renderResultList({ offers, amount = 500, query = '' }: { offers: Offer[]; amount?: number; query?: string }) {
+function renderResultList({
+  offers,
+  amount = 500,
+  query = '',
+  excludeFilter = { newCustomer: false, specialMember: false },
+}: {
+  offers: Offer[]
+  amount?: number
+  query?: string
+  excludeFilter?: ExcludeFilterValue
+}) {
   const nextRoot = createRoot(container)
   root = nextRoot
   act(() => {
@@ -74,6 +86,7 @@ function renderResultList({ offers, amount = 500, query = '' }: { offers: Offer[
         offers,
         amount,
         typeFilter: ALL_TYPES_ON,
+        excludeFilter,
         selectedCardIds: new Set<string>(),
         query,
         onQueryChange: () => {},
@@ -194,5 +207,92 @@ describe('ResultList applicable filtering', () => {
     renderResultList({ offers, amount: 500 })
 
     expect(getFirstCapValueText()).toBe('每戶回饋上限 20,000 元')
+  })
+})
+
+describe('ResultList exclude filter', () => {
+  const sampleOffers = (): Offer[] => [
+    makeOffer({
+      id: 'plain',
+      campaign_title: '一般活動',
+      min: 100,
+    }),
+    makeOffer({
+      id: 'newbie',
+      campaign_title: '新戶限定活動',
+      min: 100,
+      eligibility_restrictions: ['new_customer'],
+    }),
+    makeOffer({
+      id: 'vip',
+      campaign_title: '理財會員活動',
+      min: 100,
+      eligibility_restrictions: ['special_member'],
+    }),
+  ]
+
+  it('預設不勾排除 → 三筆 offer 全顯示', () => {
+    renderResultList({ offers: sampleOffers(), amount: 500 })
+    expect(container.textContent).toContain('一般活動')
+    expect(container.textContent).toContain('新戶限定活動')
+    expect(container.textContent).toContain('理財會員活動')
+    expect(container.textContent).toContain('共 3 個方案')
+  })
+
+  it('勾排除新戶 → 僅隱藏 new_customer offer', () => {
+    renderResultList({
+      offers: sampleOffers(),
+      amount: 500,
+      excludeFilter: { newCustomer: true, specialMember: false },
+    })
+    expect(container.textContent).toContain('一般活動')
+    expect(container.textContent).not.toContain('新戶限定活動')
+    expect(container.textContent).toContain('理財會員活動')
+    expect(container.textContent).toContain('共 2 個方案')
+  })
+
+  it('勾排除特殊會員 → 僅隱藏 special_member offer', () => {
+    renderResultList({
+      offers: sampleOffers(),
+      amount: 500,
+      excludeFilter: { newCustomer: false, specialMember: true },
+    })
+    expect(container.textContent).toContain('一般活動')
+    expect(container.textContent).toContain('新戶限定活動')
+    expect(container.textContent).not.toContain('理財會員活動')
+    expect(container.textContent).toContain('共 2 個方案')
+  })
+
+  it('兩者皆勾且全部被排 → 顯示帶「排除條件」的 empty state', () => {
+    const restrictedOnly: Offer[] = [
+      makeOffer({
+        id: 'newbie',
+        campaign_title: '新戶限定活動',
+        min: 100,
+        eligibility_restrictions: ['new_customer'],
+      }),
+      makeOffer({
+        id: 'vip',
+        campaign_title: '理財會員活動',
+        min: 100,
+        eligibility_restrictions: ['special_member'],
+      }),
+    ]
+    renderResultList({
+      offers: restrictedOnly,
+      amount: 500,
+      excludeFilter: { newCustomer: true, specialMember: true },
+    })
+    expect(container.textContent).toContain('目前沒有符合條件的方案，試著放寬類型、卡別或排除條件')
+    expect(container.textContent).not.toContain('新戶限定活動')
+    expect(container.textContent).not.toContain('理財會員活動')
+  })
+
+  it('未勾排除時，empty state 維持原文案', () => {
+    renderResultList({
+      offers: [],
+      amount: 500,
+    })
+    expect(container.textContent).toContain('目前沒有符合條件的方案，試著放寬類型或卡別篩選')
   })
 })

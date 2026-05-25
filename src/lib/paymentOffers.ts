@@ -7,6 +7,7 @@ import { toNtd } from './rewardUnits'
 import type {
   AmountTier,
   BankListItem,
+  EligibilityRestriction,
   Offer,
   OfferTag,
   RebateMode,
@@ -40,6 +41,7 @@ interface RawCampaign {
   eligible_cards?: string | null
   eligible_card_types?: string[]
   eligible_card_ids?: string[]
+  eligibility_restrictions?: EligibilityRestriction[]
   channel?: string[] | null
   rebate?: RawRebate | null
   installment?: RawInstallment | null
@@ -121,6 +123,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     amount_tiers: r.amount_tiers,
     eligible_card_ids: eligibleCardIds,
     is_card_specific: eligibleCardIds.length > 0,
+    eligibility_restrictions: c.eligibility_restrictions ?? [],
     tags,
     requires_registration: r.requires_registration ?? false,
     period: r.period ?? null,

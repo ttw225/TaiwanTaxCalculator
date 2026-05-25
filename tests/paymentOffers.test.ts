@@ -157,3 +157,93 @@ describe('deriveTags via loadOffers', () => {
     }
   })
 })
+
+describe('eligibility_restrictions 標籤與排除篩選', () => {
+  function byCampaign(id: string) {
+    return offers.find((o) => o.id.endsWith(`_${id}`))
+  }
+
+  it('loader 預設無標註者為空陣列', () => {
+    const general = byCampaign('rebate_general')
+    expect(general).toBeTruthy()
+    expect(general!.eligibility_restrictions).toEqual([])
+  })
+
+  it('new_customer 標籤覆蓋預期 campaign', () => {
+    const ids = ['newnewbank_tax_rebate', 'jkopay_new_customer_bonus']
+    for (const id of ids) {
+      const o = byCampaign(id)
+      expect(o, `missing campaign ${id}`).toBeTruthy()
+      expect(o!.eligibility_restrictions).toContain('new_customer')
+    }
+  })
+
+  it('special_member 標籤涵蓋華南領航、富邦理財、台新財管等', () => {
+    const ids = [
+      'vip_rui',
+      'vip_meng',
+      'wealth_steady',
+      'wealth_rebate_installment',
+      'private_client',
+      'vip_top_tier',
+    ]
+    for (const id of ids) {
+      const o = byCampaign(id)
+      expect(o, `missing campaign ${id}`).toBeTruthy()
+      expect(o!.eligibility_restrictions).toContain('special_member')
+    }
+  })
+
+  it('「分期新戶」與「非私銀／財管會員」依規約不標', () => {
+    const installmentNewUser = byCampaign('online_installment_new_user')
+    expect(installmentNewUser).toBeTruthy()
+    expect(installmentNewUser!.eligibility_restrictions).toEqual([])
+
+    const taishinGeneral = byCampaign('general_rebate')
+    expect(taishinGeneral).toBeTruthy()
+    expect(taishinGeneral!.eligibility_restrictions).toEqual([])
+  })
+
+  function applyExclude(
+    src: typeof offers,
+    excludeNew: boolean,
+    excludeSpecial: boolean,
+  ) {
+    return src.filter((o) => {
+      if (excludeNew && o.eligibility_restrictions.includes('new_customer')) return false
+      if (excludeSpecial && o.eligibility_restrictions.includes('special_member'))
+        return false
+      return true
+    })
+  }
+
+  it('truth table: 兩 exclude 皆 false → 全集', () => {
+    expect(applyExclude(offers, false, false).length).toBe(offers.length)
+  })
+
+  it('truth table: 僅排除新戶 → 僅 new_customer offer 消失', () => {
+    const removed = offers.filter((o) =>
+      o.eligibility_restrictions.includes('new_customer'),
+    )
+    expect(removed.length).toBeGreaterThan(0)
+    const out = applyExclude(offers, true, false)
+    expect(out.length).toBe(offers.length - removed.length)
+    for (const r of removed) expect(out.find((o) => o.id === r.id)).toBeUndefined()
+  })
+
+  it('truth table: 僅排除特殊會員 → 僅 special_member offer 消失', () => {
+    const removed = offers.filter((o) =>
+      o.eligibility_restrictions.includes('special_member'),
+    )
+    expect(removed.length).toBeGreaterThan(0)
+    const out = applyExclude(offers, false, true)
+    expect(out.length).toBe(offers.length - removed.length)
+  })
+
+  it('truth table: 兩者皆排除 → 並集消失，殘餘皆無限制', () => {
+    const restricted = offers.filter((o) => o.eligibility_restrictions.length > 0)
+    const out = applyExclude(offers, true, true)
+    expect(out.length).toBe(offers.length - restricted.length)
+    for (const o of out) expect(o.eligibility_restrictions).toEqual([])
+  })
+})
