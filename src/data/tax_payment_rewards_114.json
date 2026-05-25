@@ -2236,14 +2236,14 @@
             "requires_registration": false,
             "period": "2026/5/1~2026/6/4",
             "mode": "rate",
-            "rate": 1,
+            "rate": 0.5,
             "fixed_unit": "元",
             "min": null,
             "cap_nt": 500,
             "cap_label": "玉山 0.5% 上限 500 點；首綁加碼 50 點"
           },
           "installment": null,
-          "notes": "不適用玉山官網繳稅分期優惠。綁卡繳稅成功後無法取消變更。最高約 1% 含首綁加碼（全支付活動）。",
+          "notes": "不適用玉山官網繳稅分期優惠。綁卡繳稅成功後無法取消變更。",
           "tags": [
             "credit_card"
           ]
