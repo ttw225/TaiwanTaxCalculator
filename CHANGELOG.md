@@ -1,3 +1,15 @@
+## 0.4.0 (2026-05-25)
+
+### Feat
+
+- launch payment rewards page with card-based filtering and data corrections (#89)
+- **payment-filter**: add eligibility exclusion toggles (新戶身分 / 特殊會員) (#88)
+
+### Fix
+
+- **payment**: correct Taishin Richart/JCB bonus campaign and 808 PxPay rate (#87)
+- **payment**: normalize reward values to NTD before sorting (#86)
+
 ## 0.3.2 (2026-05-25)
 
 ### Fix
