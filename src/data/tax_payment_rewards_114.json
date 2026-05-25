@@ -2486,7 +2486,7 @@
             "cap_label": "每名持卡人合計上限 2,000 元"
           },
           "installment": null,
-          "notes": "與一般卡友 0 利率分期擇一，同時登錄以分期為準；Richart 萬事達卡、JCB 全卡單筆滿 20 萬之加碼 0.1% 另列為獨立方案（campaign_id: richart_jcb_single_tx_bonus）；預計 2026/9/30 前入帳。",
+          "notes": "與一般卡友 0 利率分期擇一，同時登錄以分期為準；Richart 萬事達卡、JCB 全卡單筆滿 20 萬之加碼 0.1% 另列為獨立方案；預計 2026/9/30 前入帳。",
           "tags": [
             "credit_card"
           ]
