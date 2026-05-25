@@ -157,7 +157,7 @@ export function CardPicker({ value, onChange }: CardPickerProps) {
   return (
     <div ref={rootRef} className="relative">
       <div className="mb-2 flex items-baseline justify-between gap-3">
-        <p className="text-base font-medium leading-6 text-gray-700">我的卡片</p>
+        <p className="text-base font-medium leading-6 text-gray-700">持有卡片</p>
         <button
           type="button"
           onClick={clearAll}
@@ -208,7 +208,7 @@ export function CardPicker({ value, onChange }: CardPickerProps) {
             setOpen(true)
           }}
           onKeyDown={onInputKeyDown}
-          placeholder={value.size === 0 ? '輸入卡片名稱' : ''}
+          placeholder={value.size === 0 ? '輸入銀行或卡片名稱' : ''}
           className="flex-1 min-w-[8rem] py-1 text-base bg-transparent focus:outline-none placeholder:text-gray-400"
           aria-autocomplete="list"
           aria-activedescendant={

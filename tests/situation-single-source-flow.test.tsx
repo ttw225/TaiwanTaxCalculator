@@ -439,7 +439,7 @@ describe('situation single-source flow', () => {
     clickButtonByText('繳稅回饋')
 
     expect(currentPath).toBe('/payment-rewards')
-    expect(container.textContent).toContain('輸入今年的應繳納稅額')
+    expect(container.textContent).toContain('輸入本次應繳稅額')
   })
 
   it('goes to results from intro start button after checklist has been generated', () => {
