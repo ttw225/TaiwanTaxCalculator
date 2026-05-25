@@ -8,7 +8,7 @@ export function meta() {
     { title },
     {
       name: 'description',
-      content: '輸入 114 年度應繳納稅額，快速比較各銀行信用卡／台灣 Pay 繳稅回饋與分期方案。',
+      content: '輸入 114 年度應繳稅額，比較各家銀行信用卡、金融卡、台灣 Pay 的繳稅回饋與分期方案。',
     },
     { name: 'robots', content: 'index,follow,max-image-preview:large' },
     { tagName: 'link', rel: 'canonical', href: url },

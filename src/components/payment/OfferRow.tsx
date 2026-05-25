@@ -12,7 +12,7 @@ interface OfferRowProps {
 
 const TYPE_PILL_CLASS = 'bg-blue-50 text-blue-700 border-blue-200'
 const TYPE_PILL_LABEL: Record<OfferTag, string> = {
-  taiwan_pay: '台灣Pay',
+  taiwan_pay: '台灣 Pay',
   credit_card: '信用卡回饋',
   debit_card: '金融卡回饋',
   installment: '分期 0 利率',
@@ -50,9 +50,9 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
     isNTUnit ? fmtNT(v) : Math.round(v).toLocaleString('zh-TW')
   let headline: React.ReactNode
   if (isInstallmentOnly) {
-    headline = <p className="text-lg font-bold text-gray-900 leading-none">分期</p>
+    headline = <p className="text-lg font-bold text-gray-900 leading-none">分期繳稅</p>
   } else if (isFeeOnly) {
-    headline = <p className="text-lg font-bold text-gray-900 leading-none">手續費／解鎖</p>
+    headline = <p className="text-lg font-bold text-gray-900 leading-none">其他優惠</p>
   } else if (isFixed) {
     headline = (
       <p
@@ -76,7 +76,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
       </p>
     )
   } else {
-    headline = <p className="text-sm text-gray-500">需查官網</p>
+    headline = <p className="text-sm text-gray-500">見官方活動頁</p>
   }
 
   const rateLabel = (() => {
@@ -105,11 +105,11 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
           <p className="text-base text-gray-500 mt-0.5">
             {offer.is_card_specific ? (
               <>
-                限特定卡
+                指定卡才適用
                 <span className="block sm:inline sm:ml-2 text-gray-400">{offer.card_name}</span>
               </>
             ) : (
-              '全卡別適用'
+              '不限卡別'
             )}
           </p>
 
@@ -129,7 +129,7 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
           <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col divide-y divide-gray-100">
             <div className="flex items-baseline gap-3 py-2">
               <p className="text-base text-gray-500 shrink-0 w-20">
-                {isInstallmentOnly || isFeeOnly ? '形式' : isFixed ? '回饋' : '估算回饋'}
+                {isInstallmentOnly || isFeeOnly ? '回饋形式' : '預估回饋'}
               </p>
               <div className="min-w-0">
                 {headline}
@@ -140,9 +140,9 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
                   </p>
                 )}
                 {r.tier_label ? (
-                  <p className="text-base text-gray-500 mt-1">適用：{r.tier_label}</p>
+                  <p className="text-base text-gray-500 mt-1">條件：{r.tier_label}</p>
                 ) : r.threshold_label ? (
-                  <p className="text-base text-gray-500 mt-1">適用：{r.threshold_label}</p>
+                  <p className="text-base text-gray-500 mt-1">條件：{r.threshold_label}</p>
                 ) : null}
               </div>
             </div>
@@ -151,11 +151,11 @@ export function OfferRow({ offer, rank, amount, isTop }: OfferRowProps) {
               <p className="text-base text-gray-800 font-medium tabular-nums">{rateLabel}</p>
             </div>
             <div className="flex items-baseline gap-3 py-2">
-              <p className="text-base text-gray-500 shrink-0 w-20">回饋上限</p>
+              <p className="text-base text-gray-500 shrink-0 w-20">上限／名額</p>
               <p className="text-base text-gray-800 font-medium">{capLabel}</p>
             </div>
             <div className="flex items-baseline gap-3 py-2">
-              <p className="text-base text-gray-500 shrink-0 w-20">分期</p>
+              <p className="text-base text-gray-500 shrink-0 w-20">分期方案</p>
               <p className="text-base text-gray-800 font-medium">
                 {offer.installment_summary ?? '—'}
               </p>

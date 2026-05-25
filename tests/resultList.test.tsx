@@ -84,7 +84,7 @@ function renderResultList({ offers, amount = 500, query = '' }: { offers: Offer[
 
 function getFirstCapValueText() {
   const labels = Array.from(container.querySelectorAll('p'))
-  const capLabel = labels.find((p) => p.textContent?.trim() === '回饋上限')
+  const capLabel = labels.find((p) => p.textContent?.trim() === '上限／名額')
   return capLabel?.nextElementSibling?.textContent?.trim() ?? null
 }
 
