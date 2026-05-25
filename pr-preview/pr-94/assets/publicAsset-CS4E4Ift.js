@@ -1,1 +1,0 @@
-function e(e,t=`/TaiwanTaxCalculator/pr-preview/pr-94/`){return`${t&&t!==`/`?t.replace(/\/?$/,`/`):`/`}${e.replace(/^\/+/,``)}`}export{e as t};
