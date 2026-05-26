@@ -1,3 +1,9 @@
+## 0.6.0 (2026-05-26)
+
+### Feat
+
+- **payment-rewards**: add max_amount in data and web filter (#100)
+
 ## 0.5.0 (2026-05-26)
 
 ### Feat
