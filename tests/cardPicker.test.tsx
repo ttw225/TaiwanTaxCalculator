@@ -132,6 +132,14 @@ describe('CardPicker', () => {
     expect(container.textContent).toContain('合作金庫')
   })
 
+  it('matches Shanghai Commercial Bank cards', () => {
+    renderCardPicker()
+    typeInInput('小小兵')
+
+    expect(container.textContent).toContain('上海商銀小小兵回饋卡')
+    expect(container.textContent).toContain('上海商銀小小兵分期卡')
+  })
+
   it('shows DAWHO options and selected chip with 大戶 wording', () => {
     renderCardPickerWithState()
     typeInInput('dawho')

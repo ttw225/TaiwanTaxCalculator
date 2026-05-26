@@ -35,4 +35,15 @@ describe('cardCatalog', () => {
     expect(groups[0].bank_code <= groups[1].bank_code).toBe(true)
     for (const g of groups) expect(g.cards.length).toBeGreaterThan(0)
   })
+
+  it('includes Shanghai Commercial Bank world business card for targeted offers', () => {
+    expect(getCard('bank011_world_business')?.display_name_zh).toBe(
+      '上海商銀世界商務卡',
+    )
+    const shanghaiCommercialBank = groupByBank().find((g) => g.bank_code === '011')
+    expect(shanghaiCommercialBank?.bank_name).toBe('上海商銀')
+    expect(shanghaiCommercialBank?.cards.map((c) => c.card_id)).toEqual(
+      expect.arrayContaining(['bank011_world_business']),
+    )
+  })
 })
