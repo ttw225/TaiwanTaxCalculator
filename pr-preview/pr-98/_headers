@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────
+# Cloudflare Pages — Response Headers
+# ─────────────────────────────────────────────
+
+# Hashed Vite assets: never expire
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Intro / hero images: 30-day cache, revalidate
+/introduction-image/*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
+# Favicon: 7-day cache
+/favicon.svg
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
+
+# Hero image variants used for LCP: 30-day cache
+/Hero.*
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
+
+# Social-share (Open Graph / Twitter) images: shorter TTL because filenames
+# are unversioned and the design is still being iterated. Once visuals are
+# final, bump to 30 days (or add a content hash to the filename).
+/og/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# NOTE: HTML cache headers omitted — `_headers` matches request URLs, not file
+# paths, so `/*.html` wouldn't match clean URLs like `/about` or `/checklist`.
+# Cloudflare Pages already serves prerendered HTML with `max-age=0,
+# must-revalidate` by default, which is exactly what we want.
+
+# robots.txt & sitemap: short TTL so updates propagate quickly
+/robots.txt
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/sitemap.xml
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# ─── Security headers (applies to all paths) ───
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Frame-Options: DENY
+  # script-src 'unsafe-inline' is required for React Router v7 prerender output:
+  # boot scripts inject `window.__reactRouterContext` + Suspense stream-reveal
+  # ($RC/$RV) inline per-page, and their contents differ per route, so per-file
+  # CSP hashes are impractical. There is no user input or third-party JS on
+  # this static site, so the XSS surface is effectively zero.
+  # Cloudflare Insights (Web Analytics + CWV beacon) hosts script at
+  # static.cloudflareinsights.com and POSTs metrics to cloudflareinsights.com.
+  # Allowed unconditionally so the policy works whether or not the beacon is
+  # currently enabled in siteConfig.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
