@@ -7,6 +7,7 @@ import {
   fmtPct,
   resolveOffer,
 } from '../../lib/paymentOffers'
+import { getBankAliases, normalizeSearchText } from '../../lib/bankSearch'
 import { getUnitMeta, ratioHintText } from '../../lib/rewardUnits'
 import type { Offer, ResolveResult } from '../../types/paymentOffers'
 import type { TypeFilterValue } from './TypeFilter'
@@ -68,11 +69,13 @@ export function ResultList({
   const anyExclude = excludeFilter.newCustomer || excludeFilter.specialMember
 
   const searched = useMemo(() => {
-    const q = query.trim().toLowerCase()
+    const q = normalizeSearchText(query.trim())
     if (!q) return filtered
     return filtered.filter((o) => {
-      const hay =
-        `${o.bank} ${o.card_name} ${o.card_scope ?? ''} ${o.campaign_title}`.toLowerCase()
+      const bankAliases = getBankAliases(o.bank)
+      const hay = normalizeSearchText(
+        `${o.bank} ${bankAliases.join(' ')} ${o.card_name} ${o.card_scope ?? ''} ${o.campaign_title}`,
+      )
       return hay.includes(q)
     })
   }, [filtered, query])
