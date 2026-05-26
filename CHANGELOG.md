@@ -1,3 +1,9 @@
+## 0.5.0 (2026-05-26)
+
+### Feat
+
+- **seo**: add social preview metadata and images (#98)
+
 ## 0.4.2 (2026-05-26)
 
 ### Fix
