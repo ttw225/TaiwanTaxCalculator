@@ -1,6 +1,14 @@
+import { Link } from 'react-router'
 import { ClipboardList, ExternalLink, Mail } from 'lucide-react'
 import { getDeployInfo } from '../lib/deployInfo'
 import { SITE_CONFIG } from '../lib/siteConfig'
+
+const FOOTER_NAV_LINKS: Array<{ to: string; label: string }> = [
+  { to: '/', label: '節稅試算首頁' },
+  { to: '/payment-rewards', label: '繳稅回饋比較' },
+  { to: '/about', label: '關於本站' },
+  { to: '/methodology', label: '方法論' },
+]
 
 export function SiteFooter() {
   const {
@@ -31,6 +39,20 @@ export function SiteFooter() {
                 最後更新：{lastUpdated}
               </p>
             </div>
+
+            {/* Site navigation (SEO-friendly internal links; hidden in print) */}
+            <nav aria-label="網站導覽" className="pt-2 no-print">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">網站導覽</h3>
+              <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+                {FOOTER_NAV_LINKS.map((link) => (
+                  <li key={link.to}>
+                    <Link to={link.to} className="hover:text-gray-700 hover:underline">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
             {/* Disclaimer */}
             <div className="print-footer-section pt-2">

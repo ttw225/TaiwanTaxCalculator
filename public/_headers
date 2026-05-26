@@ -18,6 +18,12 @@
 /Hero.*
   Cache-Control: public, max-age=2592000, stale-while-revalidate=86400
 
+# Social-share (Open Graph / Twitter) images: shorter TTL because filenames
+# are unversioned and the design is still being iterated. Once visuals are
+# final, bump to 30 days (or add a content hash to the filename).
+/og/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
 # NOTE: HTML cache headers omitted — `_headers` matches request URLs, not file
 # paths, so `/*.html` wouldn't match clean URLs like `/about` or `/checklist`.
 # Cloudflare Pages already serves prerendered HTML with `max-age=0,
