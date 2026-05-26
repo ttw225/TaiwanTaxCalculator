@@ -210,6 +210,63 @@ describe('ResultList applicable filtering', () => {
   })
 })
 
+describe('ResultList search query', () => {
+  const bankOffers = (): Offer[] => [
+    makeOffer({
+      id: 'bot',
+      bank: '臺灣銀行',
+      card_name: '某卡',
+      campaign_title: '臺銀活動',
+      min: 100,
+    }),
+    makeOffer({
+      id: 'landbank',
+      bank: '土地銀行',
+      card_name: '某卡',
+      campaign_title: '土銀活動',
+      min: 100,
+    }),
+    makeOffer({
+      id: 'esun',
+      bank: '玉山銀行',
+      card_name: 'Smart 卡',
+      campaign_title: '玉山活動',
+      min: 100,
+    }),
+  ]
+
+  it('輸入「台灣銀行」（簡寫 台）能找到資料中「臺灣銀行」的 offer', () => {
+    renderResultList({ offers: bankOffers(), amount: 500, query: '台灣銀行' })
+    expect(container.textContent).toContain('臺銀活動')
+    expect(container.textContent).not.toContain('土銀活動')
+    expect(container.textContent).not.toContain('玉山活動')
+  })
+
+  it('輸入「臺灣銀行」（原字 臺）也能找到（回歸）', () => {
+    renderResultList({ offers: bankOffers(), amount: 500, query: '臺灣銀行' })
+    expect(container.textContent).toContain('臺銀活動')
+    expect(container.textContent).not.toContain('土銀活動')
+  })
+
+  it('輸入別名「台銀」能找到臺灣銀行的 offer', () => {
+    renderResultList({ offers: bankOffers(), amount: 500, query: '台銀' })
+    expect(container.textContent).toContain('臺銀活動')
+    expect(container.textContent).not.toContain('玉山活動')
+  })
+
+  it('輸入別名「土銀」能找到土地銀行的 offer', () => {
+    renderResultList({ offers: bankOffers(), amount: 500, query: '土銀' })
+    expect(container.textContent).toContain('土銀活動')
+    expect(container.textContent).not.toContain('臺銀活動')
+  })
+
+  it('對 card_name 與 campaign_title 的搜尋維持原行為', () => {
+    renderResultList({ offers: bankOffers(), amount: 500, query: 'Smart' })
+    expect(container.textContent).toContain('玉山活動')
+    expect(container.textContent).not.toContain('臺銀活動')
+  })
+})
+
 describe('ResultList exclude filter', () => {
   const sampleOffers = (): Offer[] => [
     makeOffer({

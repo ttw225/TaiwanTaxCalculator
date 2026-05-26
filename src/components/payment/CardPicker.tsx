@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent, MouseEvent } from 'react'
 import { X } from 'lucide-react'
 import { getAllCards, getCard } from '../../lib/cardCatalog'
+import { getBankAliases, normalizeSearchText } from '../../lib/bankSearch'
 import type { CatalogCard } from '../../types/paymentOffers'
 
 interface CardPickerProps {
@@ -10,19 +11,6 @@ interface CardPickerProps {
 }
 
 const MAX_MENU_ITEMS = 30
-const BANK_ALIASES_BY_NORMALIZED_NAME = new Map<string, string[]>([
-  ['台灣銀行', ['台灣銀行', '台銀']],
-  ['土地銀行', ['土銀']],
-  ['合作金庫', ['合庫']],
-])
-
-function normalizeSearchText(value: string): string {
-  return value.normalize('NFKC').toLowerCase().replaceAll('臺', '台').replace(/\s+/g, '')
-}
-
-function getBankAliases(bankName: string): string[] {
-  return BANK_ALIASES_BY_NORMALIZED_NAME.get(normalizeSearchText(bankName)) ?? []
-}
 
 function formatCardDisplayName(displayName: string): string {
   if (!displayName.includes('DAWHO') || displayName.includes('大戶')) return displayName
