@@ -1,3 +1,9 @@
+## 0.4.2 (2026-05-26)
+
+### Fix
+
+- **payment**: event url and search normalize (#96)
+
 ## 0.4.1 (2026-05-25)
 
 ### Fix
