@@ -1,7 +1,35 @@
 import { describe, it, expect } from 'vitest'
 import { filterOffersByCards, loadOffers, resolveOffer } from '../src/lib/paymentOffers'
+import type { Offer } from '../src/types/paymentOffers'
 
 const offers = loadOffers()
+
+function makeOffer(overrides: Partial<Offer>): Offer {
+  return {
+    id: 'synthetic-offer',
+    bank_code: '999',
+    bank: '測試銀行',
+    card_name: '測試卡',
+    card_scope: null,
+    campaign_title: '測試活動',
+    source_url: 'https://example.com',
+    source_id: null,
+    mode: 'rate',
+    rate: 1,
+    eligible_card_ids: [],
+    is_card_specific: false,
+    eligibility_restrictions: [],
+    tags: ['credit_card'],
+    requires_registration: false,
+    period: null,
+    installment_summary: null,
+    installment_min_amount: null,
+    installment_max_amount: null,
+    note: null,
+    channel: null,
+    ...overrides,
+  }
+}
 
 describe('loadOffers', () => {
   it('returns expected count and shape', () => {
@@ -149,6 +177,38 @@ describe('resolveOffer unit_per_amount', () => {
   })
 })
 
+describe('resolveOffer installment_only / fee_only 門檻過濾', () => {
+  it('installment_only 套用 installment 金額區間', () => {
+    const installment = makeOffer({
+      mode: 'installment_only',
+      rate: undefined,
+      tags: ['installment'],
+      installment_min_amount: 30000,
+      installment_max_amount: 5000000,
+    })
+
+    expect(resolveOffer(installment, 0).applicable).toBe(true)
+    expect(resolveOffer(installment, 29999).applicable).toBe(false)
+    expect(resolveOffer(installment, 30000).applicable).toBe(true)
+    expect(resolveOffer(installment, 5000000).applicable).toBe(true)
+    expect(resolveOffer(installment, 5000001).applicable).toBe(false)
+  })
+
+  it('fee_only 套用 rebate min 門檻但不計算回饋金額', () => {
+    const feeOnly = makeOffer({
+      mode: 'fee_only',
+      rate: undefined,
+      min: 5000000,
+    })
+
+    expect(resolveOffer(feeOnly, 0).applicable).toBe(true)
+    expect(resolveOffer(feeOnly, 4999999).applicable).toBe(false)
+    const matched = resolveOffer(feeOnly, 5000000)
+    expect(matched.applicable).toBe(true)
+    expect(matched.value_ntd).toBeNull()
+  })
+})
+
 describe('deriveTags via loadOffers', () => {
   it('每個 offer tags 是 4 種已知值的子集', () => {
     const allowed = new Set(['taiwan_pay', 'credit_card', 'debit_card', 'installment'])
@@ -194,7 +254,6 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
       'private_client',
       'vip_top_tier',
       'fb_depositor',
-      'auto_debit_rebate',
       'salary_installment',
       'yongfu_world_newcard_bonus',
     ]
@@ -202,6 +261,19 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
       const o = byCampaign(id)
       expect(o, `missing campaign ${id}`).toBeTruthy()
       expect(o!.eligibility_restrictions).toContain('special_member')
+    }
+  })
+
+  it('單純自動扣繳設定不標 special_member', () => {
+    const ids = [
+      'installment_autopay',
+      'spending_bonus_autopay',
+      'auto_debit_rebate',
+    ]
+    for (const id of ids) {
+      const o = byCampaign(id)
+      expect(o, `missing campaign ${id}`).toBeTruthy()
+      expect(o!.eligibility_restrictions).not.toContain('special_member')
     }
   })
 
@@ -229,7 +301,7 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
   it('資料完整性：新戶與銀行身份關鍵字不應漏標', () => {
     const newCustomerPattern = /新戶|新辦|新申辦|未辦過|從未申辦|首次申辦|成功開立/
     const specialMemberPattern =
-      /存戶|薪轉戶|自扣|自動扣繳|理財客戶|私銀|私人|財管|理財|會員|VIP|貴賓|尊榮|領航|穩富|恆富|智富|桂冠|亞資|豐盛|翡翠|金鑽|千萬|尊爵|富裕|登峰|菁英|優先理財/
+      /存戶|薪轉戶|理財客戶|私銀|私人|財管|理財|會員|VIP|貴賓|尊榮|領航|穩富|恆富|智富|桂冠|亞資|豐盛|翡翠|金鑽|千萬|尊爵|富裕|登峰|菁英|優先理財/
     const specialAllowlist = new Set([
       '812_general_rebate',
       '812_general_installment_0',

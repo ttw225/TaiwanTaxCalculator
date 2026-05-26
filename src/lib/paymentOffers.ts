@@ -32,6 +32,7 @@ interface RawRebate {
 interface RawInstallment {
   summary?: string
   min_amount?: number | null
+  max_amount?: number | null
 }
 interface RawCampaign {
   campaign_id: string
@@ -129,6 +130,7 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
     period: r.period ?? null,
     installment_summary: c.installment?.summary ?? null,
     installment_min_amount: c.installment?.min_amount ?? null,
+    installment_max_amount: c.installment?.max_amount ?? null,
     note: c.notes ?? null,
     channel: c.channel ?? null,
   }
@@ -136,30 +138,47 @@ function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
 
 // ── resolveOffer（移植自原型 Personalized Comparison.html L54-92） ───────────
 export function resolveOffer(o: Offer, amount: number): ResolveResult {
-  if (o.mode === 'installment_only') {
-    return { applicable: true, value: null, value_ntd: null, kind: 'installment_only' }
-  }
-  if (o.mode === 'fee_only') {
-    return { applicable: true, value: null, value_ntd: null, kind: 'fee_only' }
-  }
+  const min = o.mode === 'installment_only' ? (o.installment_min_amount ?? null) : (o.min ?? null)
+  const max = o.mode === 'installment_only' ? (o.installment_max_amount ?? null) : null
+  const thresholdLabel = formatThresholdLabel(min, max)
 
-  const min = o.min ?? null
   if (min != null && amount > 0 && amount < min) {
     return {
       applicable: false,
       value: 0,
       value_ntd: 0,
       kind: o.mode,
-      reason: `需單筆滿 ${fmtNT(min)}`,
+      reason: thresholdLabel ? `需${thresholdLabel}` : `需單筆滿 ${fmtNT(min)}`,
+    }
+  }
+  if (max != null && amount > 0 && amount > max) {
+    return {
+      applicable: false,
+      value: 0,
+      value_ntd: 0,
+      kind: o.mode,
+      reason: thresholdLabel ? `需${thresholdLabel}` : `需單筆不超過 ${fmtNT(max)}`,
     }
   }
 
-  const thresholdLabel =
-    (o.mode === 'fixed' || o.mode === 'rate' || o.mode === 'unit_per_amount') &&
-    o.min != null &&
-    o.min > 0
-      ? `單筆滿 ${fmtNT(o.min)}`
-      : null
+  if (o.mode === 'installment_only') {
+    return {
+      applicable: true,
+      value: null,
+      value_ntd: null,
+      kind: 'installment_only',
+      threshold_label: thresholdLabel,
+    }
+  }
+  if (o.mode === 'fee_only') {
+    return {
+      applicable: true,
+      value: null,
+      value_ntd: null,
+      kind: 'fee_only',
+      threshold_label: thresholdLabel,
+    }
+  }
 
   if (o.mode === 'unit_per_amount') {
     const per = o.per_amount ?? 0
@@ -309,6 +328,16 @@ export function getBankList(): BankListItem[] {
 export function fmtNT(n: number | null | undefined): string {
   if (n == null || !isFinite(n)) return '—'
   return `NT$ ${Math.round(n).toLocaleString('zh-TW')}`
+}
+
+function formatThresholdLabel(
+  min: number | null | undefined,
+  max: number | null | undefined,
+): string | null {
+  if (min != null && max != null) return `單筆 ${fmtNT(min)} 至 ${fmtNT(max)}`
+  if (min != null) return `單筆滿 ${fmtNT(min)}`
+  if (max != null) return `單筆不超過 ${fmtNT(max)}`
+  return null
 }
 
 export function fmtPct(n: number | null | undefined): string {

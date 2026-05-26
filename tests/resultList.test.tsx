@@ -62,6 +62,8 @@ function makeOffer(overrides: Partial<Offer>): Offer {
     requires_registration: overrides.requires_registration ?? false,
     period: overrides.period ?? null,
     installment_summary: overrides.installment_summary ?? null,
+    installment_min_amount: overrides.installment_min_amount ?? null,
+    installment_max_amount: overrides.installment_max_amount ?? null,
     note: overrides.note ?? null,
     channel: overrides.channel ?? null,
   }
@@ -165,6 +167,60 @@ describe('ResultList applicable filtering', () => {
     expect(container.textContent).toContain('手續費活動')
     expect(container.textContent).not.toContain('高門檻活動')
     expect(container.textContent).toContain('共 2 個方案')
+  })
+
+  it('hides installment_only offers outside installment amount bounds', () => {
+    const offers = [
+      makeOffer({
+        id: 'installment-ok',
+        campaign_title: '分期符合門檻',
+        mode: 'installment_only',
+        tags: ['installment'],
+        rate: undefined,
+        installment_min_amount: 30000,
+        installment_max_amount: 5000000,
+      }),
+    ]
+
+    renderResultList({ offers, amount: 29999 })
+
+    expect(container.textContent).not.toContain('分期符合門檻')
+
+    act(() => {
+      root?.unmount()
+    })
+    root = null
+    container.innerHTML = ''
+    renderResultList({ offers, amount: 30000 })
+
+    expect(container.textContent).toContain('分期符合門檻')
+    expect(container.textContent).toContain('共 1 個方案')
+
+    act(() => {
+      root?.unmount()
+    })
+    root = null
+    container.innerHTML = ''
+    renderResultList({ offers, amount: 5000001 })
+
+    expect(container.textContent).not.toContain('分期符合門檻')
+  })
+
+  it('hides fee_only offers below their min threshold', () => {
+    const offers = [
+      makeOffer({
+        id: 'fee-too-low',
+        campaign_title: '非現金優惠低於門檻',
+        mode: 'fee_only',
+        tags: ['credit_card'],
+        rate: undefined,
+        min: 5000000,
+      }),
+    ]
+    renderResultList({ offers, amount: 4999999 })
+
+    expect(container.textContent).not.toContain('非現金優惠低於門檻')
+    expect(container.textContent).toContain('目前沒有符合條件的方案')
   })
 
   it('shows "—" when both cap_label and cap_nt are missing', () => {

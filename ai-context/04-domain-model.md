@@ -194,6 +194,13 @@ This value is subtracted when calculating taxable income. Salary special deducti
 
 Do not tag reverse/general audiences such as 非私銀／財管會員. Do not tag pure card-product tiers such as world, premium, infinite, or designated high-tier cards unless the campaign explicitly makes the card a wealth-management/member card.
 
+Payment reward applicability:
+
+- Numeric rebate modes use `rebate.min` or `amount_tiers[].min` for tax-payment thresholds.
+- `fee_only` offers also use `rebate.min` for applicability filtering, but never calculate a reward value. Use this for non-tax-amount benefits such as fee pages, drawings, later general-spending rebates, or airport-transfer benefits.
+- `installment_only` offers use `installment.min_amount` and optional `installment.max_amount` for applicability filtering; these fields do not create a monetary reward value.
+- `cap_nt` and `cap_label` are for caps, quota, and limit display only. Do not encode a "spend at least N" threshold in `cap_label`; encode it in `rebate.min` or the installment amount bounds and describe the benefit in `title` / `notes`.
+
 ## Related docs
 
 - Content instances: [`06-content-modules.md`](./06-content-modules.md)
