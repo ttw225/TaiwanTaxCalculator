@@ -5,17 +5,16 @@ const URL = `${SITE_CONFIG.siteUrl}/about`
 
 export function meta() {
   const title = `關於 ${SITE_CONFIG.name}｜資料來源與隱私`
+  const description = `${SITE_CONFIG.name} 的資料來源、計算前提、隱私政策與免責聲明。所有運算在瀏覽器完成，不收集或上傳個人資料。`
   return [
     { title },
-    {
-      name: 'description',
-      content: `${SITE_CONFIG.name} 的資料來源、計算前提、隱私政策與免責聲明。所有運算皆在瀏覽器完成，不上傳個人資料。`,
-    },
+    { name: 'description', content: description },
     { name: 'robots', content: 'index,follow,max-image-preview:large' },
     { tagName: 'link', rel: 'canonical', href: URL },
     { property: 'og:type', content: 'website' },
     { property: 'og:url', content: URL },
     { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
     {
       'script:ld+json': {
         '@context': 'https://schema.org',

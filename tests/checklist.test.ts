@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { MemoryRouter } from 'react-router'
 import { CHECKLIST_ITEMS, SITUATIONS, SITUATION_GROUPS } from '../src/content/deductions'
 import { getValidYear } from '../src/lib/numbers'
 import {
@@ -928,7 +929,9 @@ describe('ChecklistResult export panel', () => {
   })
 
   it('footer marks the four main sections as print atomic blocks', () => {
-    const footerHtml = renderToStaticMarkup(createElement(SiteFooter))
+    const footerHtml = renderToStaticMarkup(
+      createElement(MemoryRouter, null, createElement(SiteFooter)),
+    )
     const sectionHooks = footerHtml.match(/print-footer-section/g) ?? []
 
     expect(footerHtml).toContain('site-footer')

@@ -45,14 +45,34 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="author" content="Taiwan Tax Calculator" />
         {/* `robots` is set per-route via meta() so /404 can declare noindex
             without producing two conflicting tags. */}
-        {/* OG globals (route may override og:url / og:title / og:description / og:type) */}
+        {/* Truly invariant OG / Twitter globals (apply to every page). */}
         <meta property="og:site_name" content={SITE_NAME} />
         <meta property="og:locale" content="zh_TW" />
-        {/* Favicon */}
-        <link rel="icon" type="image/svg+xml" href={createPublicAssetUrl('favicon.svg')} />
-        {/* Per-route Meta + Links append here */}
+        <meta name="twitter:card" content="summary_large_image" />
+        {/* Per-route Meta + Links FIRST so route-specific tags (og:image,
+            twitter:title, etc.) appear before the Layout fallbacks below.
+            Most OG / Twitter Card crawlers use the *first* occurrence of a
+            given property, so this order makes route overrides win cleanly
+            while Layout defaults serve any route that doesn't set its own. */}
         <Meta />
         <Links />
+        {/* Layout fallbacks for OG / Twitter image — routes that need a custom
+            social share image set og:image / twitter:image earlier (via <Meta />
+            above); the first occurrence wins for crawlers, so these defaults
+            only kick in for routes that don't override.
+            Keep the og:image* group adjacent — some crawlers pair width/height
+            to the nearest preceding og:image. */}
+        <meta property="og:image" content={`${SITE_URL}/og/default.png`} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="台灣節稅資訊平台：114 年度綜合所得稅試算與節稅清單" />
+        <meta property="og:description" content={SITE_CONFIG.shortDescription} />
+        <meta name="twitter:image" content={`${SITE_URL}/og/default.png`} />
+        <meta name="twitter:image:alt" content="台灣節稅資訊平台：114 年度綜合所得稅試算與節稅清單" />
+        <meta name="twitter:title" content={SITE_NAME} />
+        <meta name="twitter:description" content={SITE_CONFIG.defaultDescription} />
+        {/* Favicon */}
+        <link rel="icon" type="image/svg+xml" href={createPublicAssetUrl('favicon.svg')} />
         {/* Site-wide JSON-LD */}
         <script
           type="application/ld+json"

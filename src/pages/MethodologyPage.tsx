@@ -5,17 +5,16 @@ const URL = `${SITE_CONFIG.siteUrl}/methodology`
 
 export function meta() {
   const title = `計算方法與資料更新｜${SITE_CONFIG.name}`
+  const description = `${SITE_CONFIG.taxYear} 年度（${SITE_CONFIG.dataYear} 申報）綜合所得稅試算邏輯：各項免稅額、扣除額計算公式、政府公告數值來源與年度更新流程。`
   return [
     { title },
-    {
-      name: 'description',
-      content: `${SITE_CONFIG.name} 的所得稅試算邏輯、${SITE_CONFIG.dataYear} 年度數值來源與更新流程說明。`,
-    },
+    { name: 'description', content: description },
     { name: 'robots', content: 'index,follow,max-image-preview:large' },
     { tagName: 'link', rel: 'canonical', href: URL },
     { property: 'og:type', content: 'article' },
     { property: 'og:url', content: URL },
     { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
     {
       'script:ld+json': {
         '@context': 'https://schema.org',
