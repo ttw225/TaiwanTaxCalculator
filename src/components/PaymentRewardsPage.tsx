@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import { ArrowUp } from 'lucide-react'
 import { PageHeading } from './ui/PageHeading'
 import { AmountInput } from './payment/AmountInput'
@@ -9,6 +10,7 @@ import type { ExcludeFilterValue } from './payment/ExcludeFilter'
 import { CardPicker } from './payment/CardPicker'
 import { ResultList } from './payment/ResultList'
 import { loadOffers } from '../lib/paymentOffers'
+import { SITE_CONFIG } from '../lib/siteConfig'
 
 const LS_KEY = 'tax.payment.rewards.v2'
 
@@ -63,10 +65,19 @@ function TypeFilterEmptyState() {
   )
 }
 
+const OFFICIAL_PAYMENT_LINKS: Array<{ label: string; url: string }> = [
+  { label: '財政部稅務入口網繳稅專區', url: 'https://www.etax.nat.gov.tw/etwmain/etw113w/etw113w1' },
+  { label: '台灣 Pay 繳稅', url: 'https://www.taiwanpay.com.tw' },
+]
+
 function Disclaimer() {
   return (
     <section className="mt-10 rounded-xl border border-gray-200 bg-gray-50 p-5">
       <h2 className="text-sm font-semibold text-gray-900 mb-2">試算說明</h2>
+      <p className="text-xs text-gray-500 mb-3">
+        適用 {SITE_CONFIG.taxYear} 年度（{SITE_CONFIG.dataYear} 年 5 月申報）
+        ・資料更新：{SITE_CONFIG.lastUpdated}
+      </p>
       <ul className="text-sm text-gray-600 leading-relaxed space-y-1.5">
         <li className="flex items-start gap-2">
           <span className="mt-2 w-1 h-1 rounded-full bg-gray-300 shrink-0"></span>
@@ -89,6 +100,30 @@ function Disclaimer() {
           所有輸入資料只保留在本機瀏覽器，不會上傳。
         </li>
       </ul>
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <p className="text-xs font-medium text-gray-700 mb-1.5">官方資料來源</p>
+        <ul className="text-xs text-gray-600 space-y-1">
+          {OFFICIAL_PAYMENT_LINKS.map((link) => (
+            <li key={link.url}>
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-gray-500">
+          也可以回到{' '}
+          <Link to="/" className="text-blue-600 hover:underline">
+            節稅試算首頁
+          </Link>
+          {' '}先試算今年的應繳稅額。
+        </p>
+      </div>
     </section>
   )
 }
@@ -153,15 +188,18 @@ export function PaymentRewardsPage() {
           </section>
 
           {anyType ? (
-            <ResultList
-              offers={offers}
-              amount={amount}
-              typeFilter={typeFilter}
-              excludeFilter={excludeFilter}
-              selectedCardIds={selectedCardIds}
-              query={query}
-              onQueryChange={setQuery}
-            />
+            <>
+              <h2 className="sr-only">推薦結果</h2>
+              <ResultList
+                offers={offers}
+                amount={amount}
+                typeFilter={typeFilter}
+                excludeFilter={excludeFilter}
+                selectedCardIds={selectedCardIds}
+                query={query}
+                onQueryChange={setQuery}
+              />
+            </>
           ) : (
             <TypeFilterEmptyState />
           )}

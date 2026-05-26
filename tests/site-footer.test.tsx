@@ -1,6 +1,7 @@
 import { act, createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { MemoryRouter } from 'react-router'
 import { SiteFooter } from '../src/components/SiteFooter'
 
 let container: HTMLDivElement
@@ -24,7 +25,9 @@ afterEach(() => {
 function renderFooter() {
   const nextRoot = createRoot(container)
   root = nextRoot
-  act(() => { nextRoot.render(createElement(SiteFooter)) })
+  act(() => {
+    nextRoot.render(createElement(MemoryRouter, null, createElement(SiteFooter)))
+  })
   return nextRoot
 }
 

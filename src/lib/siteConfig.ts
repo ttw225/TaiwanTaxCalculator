@@ -12,8 +12,9 @@ export const SITE_CONFIG = {
   lastUpdatedIso: '2026-05-01',
   siteUrl: 'https://taiwantaxcalculator.com',
   defaultDescription:
-    '互動式 114 年度（2026 申報）綜合所得稅試算與節稅清單，輸入家庭情況即可估算可用之免稅額、扣除額與稅額減免，全程在瀏覽器運算，不上傳任何個資。',
-  shortDescription: '互動式綜合所得稅節稅試算，全程在瀏覽器運算，不上傳個資。',
+    '互動式 114 年度（2026 申報）綜合所得稅試算，估算免稅額與扣除額，可比較配偶合併申報、股利單獨／分開申報的稅額組合，找出最低稅負方案。',
+  shortDescription:
+    '互動式 114 年度（2026 申報）綜合所得稅試算，估算免稅額與扣除額，可比較配偶合併申報、股利單獨／分開申報的稅額組合，找出最低稅負方案。',
   twitterHandle: '',
 
   // Cloudflare Web Analytics token. Free site analytics + Core Web Vitals,
