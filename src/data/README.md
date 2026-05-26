@@ -10,14 +10,14 @@
 
 舊架構（`../_legacy/`）把 paytax 名單、卡別清冊、活動表、Tier 規則拆成 8 個 JSON 加 8-phase 校對流程，維護成本高。v2 改以**銀行為主軸**、單一 JSON 承載活動；收集期曾用 `verification` 區分覆核進度，**v2.5 起已移除**，複核與變更紀錄改由 git commit 歷史追蹤。
 
-## Schema（v2.8）
+## Schema（v2.9）
 
 每家銀行可有**多個 campaigns**（不同活動、不同卡別、不同 URL）。每個 campaign 自帶 source URL、適用卡別，內含可選的 `rebate` 與 `installment` 子物件。
 
 ```jsonc
 {
   "tax_year": "114",
-  "schema_version": "v2.8",
+  "schema_version": "v2.9",
   "banks": [
     {
       "bank_code": "005",                       // 三位數金融機構代號
@@ -64,7 +64,8 @@
           },
           "installment": {                      // 無分期則整個物件設 null
             "summary": "...",
-            "min_amount": 3000                  // 選填：分期最低金額（元）；缺省視同無限制
+            "min_amount": 3000,                 // 選填：分期最低金額（元）；缺省視同無下限
+            "max_amount": 5000000               // 選填：分期最高金額（元）；缺省視同無上限
           },
           "notes": null
         }
@@ -83,8 +84,10 @@
 
 **v2.8 新增**：campaign 加 optional `eligibility_restrictions: ("new_customer" | "special_member")[]`，描述身分門檻，前端「排除活動」 toggle 用。缺省或空陣列＝無限制。
 
+**v2.9 新增**：`installment.max_amount` optional 欄位，和既有 `installment.min_amount` 一起供前端判斷分期方案是否符合使用者輸入金額；缺省視同無上限。
+
 - `new_customer`：限廣義新戶或新辦客群，包含首次申辦數位帳戶／信用卡新戶、指定卡新辦、分期新戶、從未申辦／未曾使用等門檻。
-- `special_member`：限該行特殊銀行關係身份或會員，包含私銀／私人銀行、財管／理財會員（含華南領航、富邦穩富恆富智富、永豐尊榮、台新私銀／財管、中信財管鼎鑽、聯邦財管桂冠、星展新晉豐盛／私人客戶 等）、VIP 星等、亞資客戶、存戶、薪轉戶、自扣戶等。**不**含「非私銀／財管會員」這類反向定義的普通客群，也**不**含純卡別等級（如世界卡、頂級卡、無限卡、指定高階卡），除非該卡別本身明確為財管／會員卡。
+- `special_member`：限該行特殊銀行關係身份或會員，包含私銀／私人銀行、財管／理財會員（含華南領航、富邦穩富恆富智富、永豐尊榮、台新私銀／財管、中信財管鼎鑽、聯邦財管桂冠、星展新晉豐盛／私人客戶 等）、VIP 星等、亞資客戶、存戶、薪轉戶等。**不**含「非私銀／財管會員」這類反向定義的普通客群，也**不**含純卡別等級（如世界卡、頂級卡、無限卡、指定高階卡），除非該卡別本身明確為財管／會員卡；也**不**含只要設定本行帳戶或信用卡費自動扣繳／自動扣帳即可符合的活動。
 
 **列表文案規則**：`title` 是前端列表掃描用短標籤，預期由卡別／客群／管道加優惠類型組成；銀行名稱、綜所稅、繳稅等頁面上下文通常不重複寫入。`installment.summary` 是一行摘要，優先放主要門檻、期數與上限；登錄、管道限制、互斥、入帳與資格細節放 `period`、`channel`、`requires_registration` 或 `campaign.notes`。摘要目標 35–55 字，階梯式優惠可較長但不應遺失門檻。
 
@@ -102,7 +105,17 @@
 → 符合則顯示該 campaign
 ```
 
-## 前端試算契約（v2.7）
+## 適用金額門檻
+
+前端會依使用者輸入稅額判斷方案是否適用；金額為 `0` 時視為尚未輸入，保留方案顯示。
+
+- 可計算回饋（`rate`／`rate-tiered`／`fixed`／`unit_per_amount`）：用 `rebate.min` 或 `amount_tiers[].min` 判斷最低門檻。
+- `fee_only`：用 `rebate.min` 判斷最低門檻，但不計算回饋金額；適合手續費、抽獎、後續一般消費回饋、機場接送等非稅款金額回饋。
+- `installment_only`：用 `installment.min_amount`／`installment.max_amount` 判斷分期適用金額區間。
+
+`cap_nt`／`cap_label` 只描述回饋上限、名額或封頂資訊，不應拿來放「滿 N 元」門檻。若是「滿 500 萬送機場接送」這類條件，應放 `rebate.min: 5000000`，活動內容寫在 `notes` 或 `title`。
+
+## 前端試算契約（v2.9）
 
 前端依 `rebate.mode` 對使用者輸入金額 `amount` 解算「估算回饋金額」，五種模式：
 
@@ -114,7 +127,7 @@
 | `installment_only` | 不算回饋金額，僅顯示分期資訊 | — |
 | `fee_only` | 不算回饋金額（例：手續費頁、抽獎、間接回饋） | — |
 
-**門檻**：若指定 `min` 且 `amount < min`，前端標示「不符門檻」並排在最後。
+**門檻**：若指定門檻且 `amount` 不符合，前端會將方案排除；細節見「適用金額門檻」。
 **上限**：`cap_nt` 觸發時顯示「已達上限 NT$ {cap_nt}」。
 **多卡別／多客群同公告**：若同公告的不同卡或客群採用**不同 rate**，需在 JSON 拆成多個 campaign（各自 `eligible_card_ids` 或在 `eligible_cards` 描述客群），**不要**塞進 `amount_tiers`。`amount_tiers` 僅用於「同一張卡、依繳稅金額切級距」。
 
