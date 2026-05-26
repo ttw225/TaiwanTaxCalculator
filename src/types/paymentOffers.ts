@@ -74,6 +74,7 @@ export interface Offer {
   period?: string | null
   installment_summary?: string | null
   installment_min_amount?: number | null
+  installment_max_amount?: number | null
   note?: string | null
   channel?: string[] | null
 }

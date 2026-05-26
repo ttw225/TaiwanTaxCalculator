@@ -1,7 +1,35 @@
 import { describe, it, expect } from 'vitest'
 import { filterOffersByCards, loadOffers, resolveOffer } from '../src/lib/paymentOffers'
+import type { Offer } from '../src/types/paymentOffers'
 
 const offers = loadOffers()
+
+function makeOffer(overrides: Partial<Offer>): Offer {
+  return {
+    id: 'synthetic-offer',
+    bank_code: '999',
+    bank: '測試銀行',
+    card_name: '測試卡',
+    card_scope: null,
+    campaign_title: '測試活動',
+    source_url: 'https://example.com',
+    source_id: null,
+    mode: 'rate',
+    rate: 1,
+    eligible_card_ids: [],
+    is_card_specific: false,
+    eligibility_restrictions: [],
+    tags: ['credit_card'],
+    requires_registration: false,
+    period: null,
+    installment_summary: null,
+    installment_min_amount: null,
+    installment_max_amount: null,
+    note: null,
+    channel: null,
+    ...overrides,
+  }
+}
 
 describe('loadOffers', () => {
   it('returns expected count and shape', () => {
@@ -146,6 +174,38 @@ describe('resolveOffer unit_per_amount', () => {
       expect(o.fixed && o.fixed > 0).toBeTruthy()
       expect(o.fixed_unit).toBeTruthy()
     }
+  })
+})
+
+describe('resolveOffer installment_only / fee_only 門檻過濾', () => {
+  it('installment_only 套用 installment 金額區間', () => {
+    const installment = makeOffer({
+      mode: 'installment_only',
+      rate: undefined,
+      tags: ['installment'],
+      installment_min_amount: 30000,
+      installment_max_amount: 5000000,
+    })
+
+    expect(resolveOffer(installment, 0).applicable).toBe(true)
+    expect(resolveOffer(installment, 29999).applicable).toBe(false)
+    expect(resolveOffer(installment, 30000).applicable).toBe(true)
+    expect(resolveOffer(installment, 5000000).applicable).toBe(true)
+    expect(resolveOffer(installment, 5000001).applicable).toBe(false)
+  })
+
+  it('fee_only 套用 rebate min 門檻但不計算回饋金額', () => {
+    const feeOnly = makeOffer({
+      mode: 'fee_only',
+      rate: undefined,
+      min: 5000000,
+    })
+
+    expect(resolveOffer(feeOnly, 0).applicable).toBe(true)
+    expect(resolveOffer(feeOnly, 4999999).applicable).toBe(false)
+    const matched = resolveOffer(feeOnly, 5000000)
+    expect(matched.applicable).toBe(true)
+    expect(matched.value_ntd).toBeNull()
   })
 })
 
