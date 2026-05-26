@@ -9,6 +9,7 @@
     "元統一超商抵用券": { "ntd_per_unit": 1, "kind": "face_value" },
     "元超商電子禮券": { "ntd_per_unit": 1, "kind": "face_value" },
     "元電子禮券": { "ntd_per_unit": 1, "kind": "face_value" },
+    "元數位券": { "ntd_per_unit": 1, "kind": "face_value" },
     "點台灣 Pay 紅利": { "ntd_per_unit": 0.1, "kind": "cash_equivalent" },
     "LINE POINTS": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
     "OPEN POINTS": { "ntd_per_unit": 1, "kind": "cash_equivalent" },
@@ -661,7 +662,7 @@
       "campaigns": [
         {
           "campaign_id": "installment_autopay",
-          "eligibility_restrictions": ["special_member"],
+          "eligibility_restrictions": [],
           "title": "自扣戶｜6／12 期 0 利率",
           "source_url": "https://www.scsb.com.tw/content/card/hotPage/4345",
           "source_id": null,
@@ -672,7 +673,11 @@
           "eligible_card_ids": [],
           "channel": null,
           "registration_status": "open",
-          "rebate": null,
+          "rebate": {
+            "requires_registration": true,
+            "period": null,
+            "mode": "installment_only"
+          },
           "installment": {
             "summary": "稅款 3 萬至 500 萬元，登錄享 6／12 期 0 利率",
             "min_amount": 30000,
@@ -686,7 +691,7 @@
         },
         {
           "campaign_id": "spending_bonus_autopay",
-          "eligibility_restrictions": ["special_member"],
+          "eligibility_restrictions": [],
           "title": "自扣戶｜一次付清消費加碼",
           "source_url": "https://www.scsb.com.tw/content/card/hotPage/4345",
           "source_id": null,
@@ -708,6 +713,37 @@
           "notes": "登錄活動前需已完成本行帳戶自動扣帳設定；須選擇一次付清且與分期活動限擇一；一般消費請款須於 2026/9/10 前完成，稅款本金不提供回饋。",
           "tags": [
             "credit_card"
+          ]
+        },
+        {
+          "campaign_id": "twpay_digital_voucher",
+          "title": "台灣 Pay｜50 元數位券",
+          "source_url": "https://www.scsb.com.tw/content/news/news_2600415.html",
+          "source_id": null,
+          "eligible_cards": "上海商銀臺幣存款帳戶／金融卡／信用卡（限本國自然人客戶）",
+          "eligible_card_types": [
+            "credit",
+            "debit"
+          ],
+          "eligible_card_ids": [],
+          "channel": [
+            "台灣 Pay"
+          ],
+          "rebate": {
+            "requires_registration": false,
+            "period": "2026/4/20~2026/6/30",
+            "mode": "fixed",
+            "fixed": 50,
+            "fixed_unit": "元數位券",
+            "min": null,
+            "cap_label": "首次連結前 1,000 名／非首次連結前 500 名；每 ID 限 1 張"
+          },
+          "installment": null,
+          "notes": "須於台灣行動支付 App 開通數位券券匣並選擇上海商銀支援數位券功能；信用卡以首筆授權時間、金融卡／帳戶以首筆交易時序核算，符合資格後次月月底前發送至數位券券匣；數位券使用期限至 2027/3/31。",
+          "tags": [
+            "taiwan_pay",
+            "credit_card",
+            "debit_card"
           ]
         },
         {
@@ -1585,7 +1621,7 @@
         },
         {
           "campaign_id": "auto_debit_rebate",
-          "eligibility_restrictions": ["special_member"],
+          "eligibility_restrictions": [],
           "title": "自扣客戶｜0.2% 回饋",
           "source_url": "https://ecard.feib.com.tw/Activity/2026Tax/index.do",
           "source_id": null,

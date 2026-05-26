@@ -254,7 +254,6 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
       'private_client',
       'vip_top_tier',
       'fb_depositor',
-      'auto_debit_rebate',
       'salary_installment',
       'yongfu_world_newcard_bonus',
     ]
@@ -262,6 +261,19 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
       const o = byCampaign(id)
       expect(o, `missing campaign ${id}`).toBeTruthy()
       expect(o!.eligibility_restrictions).toContain('special_member')
+    }
+  })
+
+  it('單純自動扣繳設定不標 special_member', () => {
+    const ids = [
+      'installment_autopay',
+      'spending_bonus_autopay',
+      'auto_debit_rebate',
+    ]
+    for (const id of ids) {
+      const o = byCampaign(id)
+      expect(o, `missing campaign ${id}`).toBeTruthy()
+      expect(o!.eligibility_restrictions).not.toContain('special_member')
     }
   })
 
@@ -289,7 +301,7 @@ describe('eligibility_restrictions 標籤與排除篩選', () => {
   it('資料完整性：新戶與銀行身份關鍵字不應漏標', () => {
     const newCustomerPattern = /新戶|新辦|新申辦|未辦過|從未申辦|首次申辦|成功開立/
     const specialMemberPattern =
-      /存戶|薪轉戶|自扣|自動扣繳|理財客戶|私銀|私人|財管|理財|會員|VIP|貴賓|尊榮|領航|穩富|恆富|智富|桂冠|亞資|豐盛|翡翠|金鑽|千萬|尊爵|富裕|登峰|菁英|優先理財/
+      /存戶|薪轉戶|理財客戶|私銀|私人|財管|理財|會員|VIP|貴賓|尊榮|領航|穩富|恆富|智富|桂冠|亞資|豐盛|翡翠|金鑽|千萬|尊爵|富裕|登峰|菁英|優先理財/
     const specialAllowlist = new Set([
       '812_general_rebate',
       '812_general_installment_0',
