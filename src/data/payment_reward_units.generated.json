@@ -28,6 +28,10 @@
       "ntd_per_unit": 1,
       "kind": "face_value"
     },
+    "元數位券": {
+      "ntd_per_unit": 1,
+      "kind": "face_value"
+    },
     "點台灣 Pay 紅利": {
       "ntd_per_unit": 0.1,
       "kind": "cash_equivalent"
