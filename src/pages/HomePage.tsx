@@ -7,7 +7,12 @@ import { SiteFooter } from '../components/SiteFooter'
 import { BackToTopButton } from '../components/BackToTopButton'
 import { SITE_CONFIG } from '../lib/siteConfig'
 import { PageHeading } from '../components/ui/PageHeading'
-import { HOME_HERO_IMAGE_PRELOAD_SRC, warmHomeHeroImage } from '../lib/homeHeroImage'
+import {
+  HOME_HERO_IMAGE_PRELOAD_SRC,
+  HOME_HERO_IMAGE_SIZES,
+  HOME_HERO_IMAGE_WEBP_SRC_SET,
+  warmHomeHeroImage,
+} from '../lib/homeHeroImage'
 import {
   createChecklistNavigationState,
   getChecklistEntryPathFromSnapshot,
@@ -21,6 +26,8 @@ export function links() {
       as: 'image',
       href: HOME_HERO_IMAGE_PRELOAD_SRC,
       type: 'image/webp',
+      imageSrcSet: HOME_HERO_IMAGE_WEBP_SRC_SET,
+      imageSizes: HOME_HERO_IMAGE_SIZES,
       fetchPriority: 'high',
     },
   ]
