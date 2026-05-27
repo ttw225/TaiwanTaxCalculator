@@ -1,3 +1,9 @@
+## 0.7.1 (2026-05-27)
+
+### Fix
+
+- **perf**: responsive hero srcset for LCP (#104)
+
 ## 0.7.0 (2026-05-27)
 
 ### Feat
