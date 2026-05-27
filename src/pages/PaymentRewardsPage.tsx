@@ -34,25 +34,28 @@ export function meta() {
   const ogImage = `${SITE_CONFIG.siteUrl}/og/payment-rewards.png`
   const ogAlt = '繳稅回饋比較：信用卡、金融卡、台灣 Pay、分期 0 利率方案'
 
-  // ItemList + CreditCard：純機器可讀的「繳稅信用卡精選試算範例」結構化資料。
+  // ItemList + FinancialProduct：純機器可讀的「繳稅方案精選試算範例」結構化資料。
   // 視覺上不顯示；對 crawler、Google Rich Results 提供可索引內容。
   // 來源：scripts/generate-payment-top-offers.ts 預先計算的 top-N JSON。
-  // 故意不用 Offer + price/priceCurrency（會被 Google Merchant 當售價誤解）；
-  // 改用 CreditCard（FinancialProduct subType）+ provider，語意精確且不違反規範。
+  //
+  // Schema 選擇：用通用 FinancialProduct（信用卡 / 金融卡 / 綁定街口支付的存款帳戶都涵蓋），
+  // 不寫 CreditCard——因為 top-N 可能含 debit-card 或 deposit-account+wallet 組合
+  // （例：「將來銀行存款帳戶（綁定街口支付）」就不是信用卡）。
+  // 故意不用 Offer + price/priceCurrency（會被 Google Merchant 當售價誤解）。
   const flatOffers = topOffers.tiers.flatMap((tier) =>
     tier.offers.map((o) => ({ tier, o })),
   )
   const itemList = {
     '@type': 'ItemList',
     '@id': `${url}#sample-offers`,
-    name: '繳稅信用卡精選試算範例',
+    name: '繳稅方案精選試算範例',
     description: `${topOffers.data_updated} 資料：依稅額金額階段試算的精選回饋方案`,
     numberOfItems: flatOffers.length,
     itemListElement: flatOffers.map(({ tier, o }, idx) => ({
       '@type': 'ListItem',
       position: idx + 1,
       item: {
-        '@type': 'CreditCard',
+        '@type': 'FinancialProduct',
         name: `${o.bank} ${o.card_name}`,
         url: o.source_url,
         provider: {

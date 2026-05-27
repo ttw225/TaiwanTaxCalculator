@@ -106,15 +106,19 @@ function summarizeCue(o: Offer, ntdValue: number): string | null {
 }
 
 // ── 排序與挑選 ──────────────────────────────────────────────────────────────
-// 主鍵：value_ntd desc；tiebreak: bank_code asc → id asc（deterministic、跨 runtime 一致）
+// 主鍵：value_ntd desc；tiebreak: bank_code asc → id asc。
+// 用 strict `<`/`>` 比較（不依賴 localeCompare 在不同 locale / ICU 版本可能的差異），
+// 確保 cross-runtime / cross-Node-version 完全 deterministic。
 function compareOffers(
   a: { offer: Offer; value_ntd: number },
   b: { offer: Offer; value_ntd: number },
 ): number {
   if (b.value_ntd !== a.value_ntd) return b.value_ntd - a.value_ntd
-  const bc = a.offer.bank_code.localeCompare(b.offer.bank_code)
-  if (bc !== 0) return bc
-  return a.offer.id.localeCompare(b.offer.id)
+  if (a.offer.bank_code < b.offer.bank_code) return -1
+  if (a.offer.bank_code > b.offer.bank_code) return 1
+  if (a.offer.id < b.offer.id) return -1
+  if (a.offer.id > b.offer.id) return 1
+  return 0
 }
 
 function pickTopForAmount(allOffers: Offer[], amount: number): TopOfferEntry[] {
