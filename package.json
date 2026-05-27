@@ -11,7 +11,8 @@
   "scripts": {
     "dev": "react-router dev",
     "dev:clean": "rm -rf node_modules/.vite && react-router dev",
-    "build": "react-router build && tsx scripts/generate-sitemap.ts",
+    "build": "tsx scripts/generate-payment-top-offers.ts && react-router build && tsx scripts/generate-sitemap.ts",
+    "check:generated": "tsx scripts/generate-payment-top-offers.ts && git diff --exit-code src/data/payment_top_offers.generated.json src/data/payment_reward_units.generated.json",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run -c vitest.config.ts",
     "test:watch": "vitest -c vitest.config.ts",

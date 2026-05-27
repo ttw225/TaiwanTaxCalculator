@@ -1,7 +1,22 @@
-import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { beforeAll, describe, it, expect } from 'vitest'
 import { fmtNtRatio, getUnitMeta, toNtd } from '../src/lib/rewardUnits'
 import { loadOffers, resolveOffer } from '../src/lib/paymentOffers'
-import rawData from '../src/data/tax_payment_rewards_114.json'
+import { prefetchPaymentData } from '../src/lib/paymentDataLoader'
+
+// 直接從 public/data/ 讀，避免依賴 paymentDataLoader（這個 fixture 是「資料完整性」測試，
+// 用最直接的方式存取 raw catalog）。
+const rawData = JSON.parse(
+  readFileSync(
+    resolve(__dirname, '..', 'public', 'data', 'tax_payment_rewards_114.json'),
+    'utf8',
+  ),
+) as { reward_units?: Record<string, { ntd_per_unit: number | null; kind: string }> }
+
+beforeAll(async () => {
+  await prefetchPaymentData()
+})
 
 describe('toNtd', () => {
   it('台灣 Pay 紅利 10:1 → 600 點 = NT$60', () => {
@@ -61,11 +76,7 @@ describe('fmtNtRatio', () => {
 })
 
 describe('資料完整性：JSON 內所有 fixed_unit 必須在 catalog', () => {
-  const catalog = (
-    rawData as unknown as {
-      reward_units: Record<string, { ntd_per_unit: number | null; kind: string }>
-    }
-  ).reward_units
+  const catalog = rawData.reward_units ?? {}
 
   it('catalog 存在且非空', () => {
     expect(catalog).toBeTruthy()
@@ -102,9 +113,9 @@ describe('資料完整性：JSON 內所有 fixed_unit 必須在 catalog', () => 
 })
 
 describe('resolveOffer value_ntd', () => {
-  const offers = loadOffers()
-
+  // loadOffers() 是 sync 但需 prefetch 後才能呼叫；包進 it 內以保證執行序在 beforeAll 之後。
   it('fixed 模式：value_ntd 反映 unit 換算', () => {
+    const offers = loadOffers()
     const twPay = offers.find(
       (o) => o.mode === 'fixed' && o.fixed_unit === '點台灣 Pay 紅利',
     )
@@ -115,6 +126,7 @@ describe('resolveOffer value_ntd', () => {
   })
 
   it('rate 模式：value_ntd = value（NT$）', () => {
+    const offers = loadOffers()
     const rate = offers.find((o) => o.mode === 'rate')
     expect(rate, '需有 rate offer').toBeTruthy()
     const r = resolveOffer(rate!, 60000)
@@ -122,6 +134,7 @@ describe('resolveOffer value_ntd', () => {
   })
 
   it('installment_only / fee_only：value_ntd = null', () => {
+    const offers = loadOffers()
     const inst = offers.find((o) => o.mode === 'installment_only')
     if (inst) {
       const r = resolveOffer(inst, 60000)
