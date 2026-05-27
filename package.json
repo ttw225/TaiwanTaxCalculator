@@ -9,10 +9,11 @@
     "pnpm": "^11.0.0"
   },
   "scripts": {
-    "dev": "react-router dev",
-    "dev:clean": "rm -rf node_modules/.vite && react-router dev",
-    "build": "tsx scripts/generate-payment-top-offers.ts && react-router build && tsx scripts/generate-sitemap.ts",
-    "check:generated": "tsx scripts/generate-payment-top-offers.ts && git diff --exit-code src/data/payment_top_offers.generated.json src/data/payment_reward_units.generated.json",
+    "dev": "pnpm generate:payment-data && react-router dev",
+    "build": "pnpm generate:payment-data && react-router build && tsx scripts/generate-sitemap.ts",
+    "generate:payment-data": "tsx scripts/generate-payment-top-offers.ts --write",
+    "check:generated": "tsx scripts/generate-payment-top-offers.ts --check",
+    "check": "pnpm check:generated && pnpm typecheck && pnpm lint && pnpm test",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run -c vitest.config.ts",
     "test:watch": "vitest -c vitest.config.ts",

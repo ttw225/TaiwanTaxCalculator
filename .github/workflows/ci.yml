@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check generated data
+        run: pnpm check:generated
+
       - name: Typecheck
         run: pnpm typecheck
 

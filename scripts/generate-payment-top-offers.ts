@@ -7,8 +7,12 @@
 //
 // 同時提供 build_id（源 JSON content hash 前 8 字）給 paymentDataLoader.ts 當 cache buster。
 //
-// 執行：pnpm tsx scripts/generate-payment-top-offers.ts
-// CI idempotency check：再跑一次後 `git diff --exit-code src/data/payment_top_offers.generated.json` 應無差異。
+// 執行：
+//   pnpm tsx scripts/generate-payment-top-offers.ts --write
+//   pnpm tsx scripts/generate-payment-top-offers.ts --check
+//
+// 預設為 --write，避免破壞既有直接執行方式。
+// --check 只比較現有檔案，不寫檔；給 CI 擋 stale generated artifact。
 
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -27,6 +31,23 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const PROJECT_ROOT = join(__dirname, '..')
 const OUT_PATH = join(PROJECT_ROOT, 'src', 'data', 'payment_top_offers.generated.json')
 const UNITS_OUT_PATH = join(PROJECT_ROOT, 'src', 'data', 'payment_reward_units.generated.json')
+
+type Mode = 'write' | 'check'
+
+interface GeneratedFile {
+  path: string
+  content: string
+  summary: string
+}
+
+function parseMode(argv: string[]): Mode {
+  if (argv.length === 0) return 'write'
+  if (argv.length === 1 && argv[0] === '--write') return 'write'
+  if (argv.length === 1 && argv[0] === '--check') return 'check'
+  throw new Error(
+    'Usage: pnpm tsx scripts/generate-payment-top-offers.ts [--write|--check]',
+  )
+}
 
 // §3.1a 的路徑切換點：§3.2a 把 JSON 搬到 public/data/ 後，這兩行更新即可。
 function readDataFile(name: string): string {
@@ -155,8 +176,8 @@ function pickTopForAmount(
   }))
 }
 
-// ── 主流程 ──────────────────────────────────────────────────────────────────
-function main(): void {
+// ── 產生內容 ────────────────────────────────────────────────────────────────
+function buildGeneratedFiles(): GeneratedFile[] {
   const offersRaw = readDataFile('tax_payment_rewards_114.json')
   const catalogRaw = readDataFile('card_catalog_114.json')
 
@@ -208,18 +229,82 @@ function main(): void {
 
   // 穩定序列化：固定 key order（依 TopOffersOutput / TopOfferTier / TopOfferEntry 宣告順序）+ 2-space indent。
   // JSON.stringify 對 object 依插入順序輸出，我們組 output 時已是固定順序，沒問題。
-  const serialized = JSON.stringify(output, null, 2) + '\n'
-  writeFileSync(OUT_PATH, serialized, 'utf8')
-
-  console.log(`Wrote ${OUT_PATH} (build_id=${buildId}; ${tiers.reduce((n, t) => n + t.offers.length, 0)} offers across ${tiers.length} tiers)`)
+  const topOffersSerialized = JSON.stringify(output, null, 2) + '\n'
+  const topOffersCount = tiers.reduce((n, t) => n + t.offers.length, 0)
 
   // Reward units catalog 也抽出來成獨立小檔，給 rewardUnits.ts static import 用。
   // 從原本的 tax_payment_rewards_114.json 拆出，避免整支 raw JSON 仍被 bundle。
   // Stable key order：依 catalog 內原始順序 serialize，避免 commit noise。
   const rewardUnits = payment.reward_units ?? {}
   const unitsOutput = { reward_units: rewardUnits }
-  writeFileSync(UNITS_OUT_PATH, JSON.stringify(unitsOutput, null, 2) + '\n', 'utf8')
-  console.log(`Wrote ${UNITS_OUT_PATH} (${Object.keys(rewardUnits).length} units)`)
+  const unitsSerialized = JSON.stringify(unitsOutput, null, 2) + '\n'
+
+  return [
+    {
+      path: OUT_PATH,
+      content: topOffersSerialized,
+      summary: `build_id=${buildId}; ${topOffersCount} offers across ${tiers.length} tiers`,
+    },
+    {
+      path: UNITS_OUT_PATH,
+      content: unitsSerialized,
+      summary: `${Object.keys(rewardUnits).length} units`,
+    },
+  ]
+}
+
+function writeGeneratedFiles(files: GeneratedFile[]): void {
+  for (const file of files) {
+    writeFileSync(file.path, file.content, 'utf8')
+    console.log(`Wrote ${file.path} (${file.summary})`)
+  }
+}
+
+function checkGeneratedFiles(files: GeneratedFile[]): boolean {
+  const stale: string[] = []
+  for (const file of files) {
+    try {
+      const current = readFileSync(file.path, 'utf8')
+      if (current !== file.content) {
+        stale.push(`${file.path} (stale; expected ${file.summary})`)
+      }
+    } catch {
+      stale.push(`${file.path} (missing; expected ${file.summary})`)
+    }
+  }
+
+  if (stale.length === 0) {
+    console.log('Generated payment data is up to date.')
+    return true
+  }
+
+  console.error('Generated payment data is stale. Run:')
+  console.error('  pnpm generate:payment-data')
+  console.error('Then commit the updated generated files:')
+  for (const item of stale) console.error(`  - ${item}`)
+  return false
+}
+
+// ── 主流程 ──────────────────────────────────────────────────────────────────
+function main(): void {
+  let mode: Mode
+  try {
+    mode = parseMode(process.argv.slice(2))
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err))
+    process.exitCode = 1
+    return
+  }
+
+  const files = buildGeneratedFiles()
+  if (mode === 'write') {
+    writeGeneratedFiles(files)
+    return
+  }
+
+  if (!checkGeneratedFiles(files)) {
+    process.exitCode = 1
+  }
 }
 
 main()
