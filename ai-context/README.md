@@ -17,6 +17,7 @@ Machine- and human-oriented documentation for this repository. Read this folder 
 | [03-repo-layout.md](./03-repo-layout.md) | Directory roles |
 | [04-domain-model.md](./04-domain-model.md) | Shared TypeScript types |
 | [05-tax-numbers.md](./05-tax-numbers.md) | `numbers_2026.json`, `getNumber`, brackets |
+| [payment-rewards-schema.md](./payment-rewards-schema.md) | Payment rewards JSON schema (zh-TW); `public/data` v2.9, maintenance |
 | [06-content-modules.md](./06-content-modules.md) | Situations, checklist items, inline fields |
 | [07-app-flow-and-state.md](./07-app-flow-and-state.md) | Checklist routes, `ChecklistFlow` state, and effects |
 | [08-checklist-engine.md](./08-checklist-engine.md) | Publication gate, situation filter, category grouping |

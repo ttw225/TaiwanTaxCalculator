@@ -8,6 +8,8 @@ When you change behavior or contracts, update the **English** docs in [`ai-conte
 |--------|--------|
 | New / removed `SituationId`, situation group, or checklist item | [`04-domain-model.md`](./04-domain-model.md), [`06-content-modules.md`](./06-content-modules.md), [`08-checklist-engine.md`](./08-checklist-engine.md), [`MAP.json`](./MAP.json) keywords if new domain words |
 | `numbers_2026.json` keys or values | [`05-tax-numbers.md`](./05-tax-numbers.md); grep other `ai-context` files for stale literals |
+| `public/data/tax_payment_rewards_114.json` / `card_catalog_114.json` schema or field semantics | [`payment-rewards-schema.md`](./payment-rewards-schema.md); if eligibility / solver rules change, also [`04-domain-model.md`](./04-domain-model.md) § Payment rewards |
+| Payment reward content-only edits (no schema change) | Re-run `pnpm generate:payment-data` and commit generated files if changed; schema doc usually unchanged |
 | `ChecklistFlow.tsx` state, removal rules, `cardInputMap`, route URLs | [`07-app-flow-and-state.md`](./07-app-flow-and-state.md) |
 | React Router routes, prerender list, build output dir (`dist/client`) | [`03-repo-layout.md`](./03-repo-layout.md), [`14-ci-and-deploy.md`](./14-ci-and-deploy.md), [`.github/workflows/pages-preview.yml`](../.github/workflows/pages-preview.yml) |
 | Storage key format or legacy cleanup | [`11-storage-and-persistence.md`](./11-storage-and-persistence.md) |

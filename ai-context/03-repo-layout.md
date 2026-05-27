@@ -33,9 +33,9 @@ Paths are relative to repo root unless noted.
 | [`src/components/`](../src/components/) | UI: header/footer, `IntroPage`, situation selector, results, cards |
 | [`src/content/`](../src/content/) | Structured zh-TW content: checklist and inline field defs |
 | [`src/data/numbers_2026.json`](../src/data/numbers_2026.json) | Canonical numeric snapshot for deployed year |
-| [`src/data/payment_top_offers.generated.json`](../src/data/payment_top_offers.generated.json), [`src/data/payment_reward_units.generated.json`](../src/data/payment_reward_units.generated.json) | Generated payment summary/reward-unit artifacts committed for review transparency |
-| [`public/data/tax_payment_rewards_114.json`](../public/data/tax_payment_rewards_114.json) | 114-year tax payment reward campaigns and eligibility restrictions |
-| [`public/data/card_catalog_114.json`](../public/data/card_catalog_114.json) | Card catalog joined by `eligible_card_ids` in payment reward data |
+| [`src/data/payment_top_offers.generated.json`](../src/data/payment_top_offers.generated.json), [`src/data/payment_reward_units.generated.json`](../src/data/payment_reward_units.generated.json) | Generated payment summary/reward-unit artifacts from `pnpm generate:payment-data` (reads `public/data/`) |
+| [`public/data/tax_payment_rewards_114.json`](../public/data/tax_payment_rewards_114.json) | 114-year tax payment reward campaigns and eligibility restrictions — schema: [`payment-rewards-schema.md`](./payment-rewards-schema.md) |
+| [`public/data/card_catalog_114.json`](../public/data/card_catalog_114.json) | Card catalog joined by `eligible_card_ids` in payment reward data — schema: [`payment-rewards-schema.md`](./payment-rewards-schema.md) |
 | [`src/lib/`](../src/lib/) | Domain logic — see table below |
 | [`src/types/`](../src/types/) | Shared content/types |
 

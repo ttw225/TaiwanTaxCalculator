@@ -1,5 +1,6 @@
 // 繳稅回饋頁的「攤平」型別：一張卡 × 一個優惠 = 一個 Offer。
-// 由 src/lib/paymentOffers.ts 從 src/data/tax_payment_rewards_114.json 載入。
+// Raw JSON：paymentDataLoader runtime fetch from public/data/.
+// Flatten / resolve: paymentOffers.ts + paymentOfferCore.ts (call prefetchPaymentData first).
 
 export type RebateMode =
   | 'rate'              // 單一回饋率

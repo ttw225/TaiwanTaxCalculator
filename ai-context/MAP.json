@@ -29,6 +29,17 @@
       "keywords": ["numbers_2026.json", "getNumber", "getBrackets", "TWD", "brackets"]
     },
     {
+      "id": "payment-rewards-schema",
+      "file": "payment-rewards-schema.md",
+      "keywords": [
+        "tax_payment_rewards_114.json",
+        "card_catalog_114.json",
+        "eligibility_restrictions",
+        "rebate.mode",
+        "payment_top_offers.generated.json"
+      ]
+    },
+    {
       "id": "content",
       "file": "06-content-modules.md",
       "keywords": ["deductions.ts", "CHECKLIST_ITEMS", "SITUATIONS", "inlineFields", "interest income", "other income"]

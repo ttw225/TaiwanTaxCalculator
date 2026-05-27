@@ -153,7 +153,8 @@ http://localhost:4173/TaiwanTaxCalculator/pr-preview/pr-123/
 - `src/components/` — 介面元件  
 - `src/content/` — 文案與結構化內容  
 - `src/lib/` — 邏輯、設定（如 `siteConfig.ts`）  
-- `src/data/` — 站內年度數值等 JSON  
+- `src/data/` — 年度稅額 snapshot（`numbers_2026.json`）與 payment generated 摘要  
+- `public/data/` — 繳稅回饋 raw JSON（schema 見 [`ai-context/payment-rewards-schema.md`](./ai-context/payment-rewards-schema.md)）  
 - `tests/` — Vitest 測試  
 
 ## Authors
