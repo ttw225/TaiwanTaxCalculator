@@ -1,3 +1,9 @@
+## 0.7.0 (2026-05-27)
+
+### Feat
+
+- **payment**: public data fetch, generated top-N, and payment SEO (#102)
+
 ## 0.6.0 (2026-05-26)
 
 ### Feat
