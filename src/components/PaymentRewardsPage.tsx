@@ -9,7 +9,10 @@ import { ExcludeFilter } from './payment/ExcludeFilter'
 import type { ExcludeFilterValue } from './payment/ExcludeFilter'
 import { CardPicker } from './payment/CardPicker'
 import { ResultList } from './payment/ResultList'
+import { PaymentSkeleton } from './payment/PaymentSkeleton'
+import { PaymentLoadError } from './payment/PaymentLoadError'
 import { loadOffers } from '../lib/paymentOffers'
+import { isPaymentDataReady, prefetchPaymentData } from '../lib/paymentDataLoader'
 import { SITE_CONFIG } from '../lib/siteConfig'
 
 const LS_KEY = 'tax.payment.rewards.v2'
@@ -128,9 +131,12 @@ function Disclaimer() {
   )
 }
 
-export function PaymentRewardsPage() {
+// 互動式區塊：所有依賴 payment data 的 sync 呼叫（loadOffers / getAllCards / getCard）
+// 都在這支元件內。只在 LoadState === 'ready' 時被 mount，所以呼叫時 cache 必已 hydrated。
+// 嚴禁把這支元件搬到外層 unconditional render，否則 prerender 階段會在 component body 觸發
+// loadOffers() → getRawOffers() → throw 而 build fail。
+function InteractiveSection() {
   const offers = useMemo(() => loadOffers(), [])
-
   const saved = useMemo(() => loadSaved(), [])
 
   const [amount, setAmount] = useState<number>(saved?.amount ?? 10000)
@@ -164,15 +170,7 @@ export function PaymentRewardsPage() {
   const anyType = Object.values(typeFilter).some(Boolean)
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="-mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1">
-        <PageHeading
-          title="繳稅回饋"
-          description="輸入本次應繳稅額，比較各家銀行的繳稅回饋與分期方案"
-          className="[&_p]:mb-3 [&_p]:text-sm sm:[&_p]:text-base"
-        />
-      </div>
-
+    <>
       <AmountInput amount={amount} onChange={setAmount} />
 
       {amount > 0 ? (
@@ -207,6 +205,58 @@ export function PaymentRewardsPage() {
       ) : (
         <AmountEmptyState />
       )}
+    </>
+  )
+}
+
+type LoadState = 'loading' | 'ready' | 'error'
+
+export function PaymentRewardsPage() {
+  // prerender (Node) 與 client 第一次 hydration 都拿 'loading'：
+  //   prerender 時 isPaymentDataReady() === false（cache 從 module scope 開始空白）
+  //   client mount 時 fetch 還沒回 → 也 'loading'
+  // 兩端起始值一致，無 hydration mismatch。
+  // 後續 useEffect 觸發 prefetch、resolve 後 setState('ready') 才 mount InteractiveSection。
+  const [state, setState] = useState<LoadState>(() =>
+    isPaymentDataReady() ? 'ready' : 'loading',
+  )
+
+  useEffect(() => {
+    if (state !== 'loading') return
+    let cancelled = false
+    prefetchPaymentData()
+      .then(() => {
+        if (!cancelled) setState('ready')
+      })
+      .catch((err) => {
+        console.error('Failed to prefetch payment data', err)
+        if (!cancelled) setState('error')
+      })
+    return () => {
+      cancelled = true
+    }
+    // state 從 'error' retry 時被 onRetry 重設為 'loading'，會觸發 prefetch 重跑。
+  }, [state])
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="-mx-4 mb-2 border-b border-gray-200 bg-gray-50/95 px-4 pt-2 pb-1">
+        <PageHeading
+          title="繳稅回饋"
+          description="輸入本次應繳稅額，比較各家銀行的繳稅回饋與分期方案"
+          className="[&_p]:mb-3 [&_p]:text-sm sm:[&_p]:text-base"
+        />
+      </div>
+
+      {/* SEO 可索引內容透過 src/pages/PaymentRewardsPage.tsx 的 meta() 內
+          ItemList + CreditCard JSON-LD 提供（純機器可讀，不影響視覺）。 */}
+      <section>
+        {state === 'ready' && <InteractiveSection />}
+        {state === 'loading' && <PaymentSkeleton />}
+        {state === 'error' && (
+          <PaymentLoadError onRetry={() => setState('loading')} />
+        )}
+      </section>
 
       <Disclaimer />
     </div>

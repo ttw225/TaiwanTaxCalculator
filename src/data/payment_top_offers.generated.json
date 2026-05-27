@@ -1,0 +1,56 @@
+{
+  "data_updated": "2026-05",
+  "build_id": "77ddd0c3",
+  "tiers": [
+    {
+      "amount": 10000,
+      "label": "1 萬元",
+      "offers": [
+        {
+          "bank": "臺灣銀行",
+          "bank_code": "004",
+          "card_name": "臺灣銀行信用卡（全卡別）",
+          "source_url": "https://www.bot.com.tw/tw/other-pages/more-offers/detail/ee681cff-6344-f111-a70e-98f2b3145f40",
+          "estimated_value": 200,
+          "mode": "fixed",
+          "requires_registration": false,
+          "cue": "單筆滿 200"
+        }
+      ]
+    },
+    {
+      "amount": 50000,
+      "label": "5 萬元",
+      "offers": [
+        {
+          "bank": "將來銀行",
+          "bank_code": "823",
+          "card_name": "將來銀行存款帳戶（綁定街口支付）",
+          "source_url": "https://www.nextbank.com.tw/announcement/45c1e31fa40000000285cadc56793797/event1125",
+          "estimated_value": 500,
+          "rate": 1,
+          "mode": "rate",
+          "requires_registration": false,
+          "cue": "已達上限 500"
+        }
+      ]
+    },
+    {
+      "amount": 300000,
+      "label": "30 萬元",
+      "offers": [
+        {
+          "bank": "土地銀行",
+          "bank_code": "005",
+          "card_name": "土銀 JCB 極緻卡",
+          "source_url": "https://www.landbank.com.tw/Bulletin/Detail/5b3c9939-205c-44fe-a898-b162001ce095",
+          "estimated_value": 1600,
+          "rate": 0.5,
+          "mode": "rate",
+          "requires_registration": false,
+          "cue": "單筆滿 100"
+        }
+      ]
+    }
+  ]
+}

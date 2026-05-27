@@ -48,9 +48,10 @@
 - `vitest.config.ts` uses a separate standalone `react()` plugin (`@vitejs/plugin-react`) — Vitest does not go through the React Router framework plugin.
 - `react-router.config.ts`: `ssr: false`, `prerender` list — builds fully static HTML to `dist/client/` at build time. No runtime server required.
 
-## Makefile
+## Local verification
 
-Optional wrapper: [`Makefile`](../Makefile) — `make check` runs `typecheck && lint && test`.
+Use `pnpm check` for local verification. It runs generated-data freshness checks,
+typecheck, lint, and the Vitest suite.
 
 ## Related docs
 

@@ -187,7 +187,9 @@ This value is subtracted when calculating taxable income. Salary special deducti
 
 ## Payment rewards eligibility
 
-[`src/data/tax_payment_rewards_114.json`](../src/data/tax_payment_rewards_114.json) campaign `eligibility_restrictions` uses:
+Full JSON schema, field examples, and maintenance workflow: [`payment-rewards-schema.md`](./payment-rewards-schema.md) (zh-TW).
+
+[`public/data/tax_payment_rewards_114.json`](../public/data/tax_payment_rewards_114.json) campaign `eligibility_restrictions` uses:
 
 - `new_customer`: broad new-customer/new-application gates, including digital account or credit-card new customers, newly issued designated cards, installment new users, never-applied, or never-used conditions.
 - `special_member`: special bank relationship identities or memberships, including private banking, wealth-management tiers, VIP tiers, Asia-asset customers, depositors, payroll customers, and auto-debit customers.
