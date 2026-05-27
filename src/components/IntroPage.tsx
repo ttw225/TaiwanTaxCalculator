@@ -1,9 +1,11 @@
 import { getNumber } from '../lib/numbers'
 import {
   HOME_HERO_IMAGE_HEIGHT,
-  HOME_HERO_IMAGE_AVIF_SRC,
+  HOME_HERO_IMAGE_AVIF_SRC_SET,
+  HOME_HERO_IMAGE_PNG_SRC_SET,
+  HOME_HERO_IMAGE_SIZES,
   HOME_HERO_IMAGE_SRC,
-  HOME_HERO_IMAGE_WEBP_SRC,
+  HOME_HERO_IMAGE_WEBP_SRC_SET,
   HOME_HERO_IMAGE_WIDTH,
 } from '../lib/homeHeroImage'
 import { getIntroImage } from '../lib/introImages'
@@ -192,10 +194,12 @@ export function IntroPage({ onStart }: Props) {
             </div>
             <div className="mt-7 sm:mt-8">
               <picture>
-                <source type="image/webp" srcSet={HOME_HERO_IMAGE_WEBP_SRC} />
-                <source type="image/avif" srcSet={HOME_HERO_IMAGE_AVIF_SRC} />
+                <source type="image/webp" srcSet={HOME_HERO_IMAGE_WEBP_SRC_SET} sizes={HOME_HERO_IMAGE_SIZES} />
+                <source type="image/avif" srcSet={HOME_HERO_IMAGE_AVIF_SRC_SET} sizes={HOME_HERO_IMAGE_SIZES} />
                 <img
                   src={HOME_HERO_IMAGE_SRC}
+                  srcSet={HOME_HERO_IMAGE_PNG_SRC_SET}
+                  sizes={HOME_HERO_IMAGE_SIZES}
                   alt="報稅流程示意圖"
                   width={HOME_HERO_IMAGE_WIDTH}
                   height={HOME_HERO_IMAGE_HEIGHT}

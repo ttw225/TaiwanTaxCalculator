@@ -4,10 +4,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { IntroPage } from '../src/components/IntroPage'
 import {
   HOME_HERO_IMAGE_HEIGHT,
-  HOME_HERO_IMAGE_AVIF_SRC,
+  HOME_HERO_IMAGE_AVIF_SRC_SET,
   HOME_HERO_IMAGE_PRELOAD_SRC,
+  HOME_HERO_IMAGE_PNG_SRC_SET,
+  HOME_HERO_IMAGE_SIZES,
   HOME_HERO_IMAGE_SRC,
-  HOME_HERO_IMAGE_WEBP_SRC,
+  HOME_HERO_IMAGE_WEBP_SRC_SET,
   HOME_HERO_IMAGE_WIDTH,
   resetHomeHeroImageWarmupForTest,
   warmHomeHeroImage,
@@ -32,9 +34,13 @@ describe('home hero image loading', () => {
     const heroImage = container.querySelector<HTMLImageElement>('img[alt="報稅流程示意圖"]')
     const heroWebpSource = container.querySelector<HTMLSourceElement>('source[type="image/webp"]')
     const heroAvifSource = container.querySelector<HTMLSourceElement>('source[type="image/avif"]')
-    expect(heroWebpSource?.getAttribute('srcset')).toBe(HOME_HERO_IMAGE_WEBP_SRC)
-    expect(heroAvifSource?.getAttribute('srcset')).toBe(HOME_HERO_IMAGE_AVIF_SRC)
+    expect(heroAvifSource?.getAttribute('srcset')).toBe(HOME_HERO_IMAGE_AVIF_SRC_SET)
+    expect(heroAvifSource?.getAttribute('sizes')).toBe(HOME_HERO_IMAGE_SIZES)
+    expect(heroWebpSource?.getAttribute('srcset')).toBe(HOME_HERO_IMAGE_WEBP_SRC_SET)
+    expect(heroWebpSource?.getAttribute('sizes')).toBe(HOME_HERO_IMAGE_SIZES)
     expect(heroImage?.getAttribute('src')).toBe(HOME_HERO_IMAGE_SRC)
+    expect(heroImage?.getAttribute('srcset')).toBe(HOME_HERO_IMAGE_PNG_SRC_SET)
+    expect(heroImage?.getAttribute('sizes')).toBe(HOME_HERO_IMAGE_SIZES)
     expect(heroImage?.getAttribute('loading')).toBe('eager')
     expect(heroImage?.getAttribute('fetchpriority')).toBe('high')
     expect(heroImage?.getAttribute('decoding')).toBe('async')
@@ -53,6 +59,8 @@ describe('home hero image loading', () => {
       as: 'image',
       href: HOME_HERO_IMAGE_PRELOAD_SRC,
       type: 'image/webp',
+      imageSrcSet: HOME_HERO_IMAGE_WEBP_SRC_SET,
+      imageSizes: HOME_HERO_IMAGE_SIZES,
       fetchPriority: 'high',
     })
   })
@@ -64,6 +72,8 @@ describe('home hero image loading', () => {
       loading = ''
       decoding = ''
       fetchPriority = ''
+      sizes = ''
+      srcset = ''
       src = ''
       decode = vi.fn(() => Promise.resolve())
 
@@ -81,6 +91,8 @@ describe('home hero image loading', () => {
     expect(createdImages[0].loading).toBe('eager')
     expect(createdImages[0].decoding).toBe('async')
     expect(createdImages[0].fetchPriority).toBe('high')
+    expect(createdImages[0].sizes).toBe(HOME_HERO_IMAGE_SIZES)
+    expect(createdImages[0].srcset).toBe(HOME_HERO_IMAGE_WEBP_SRC_SET)
     expect(createdImages[0].src).toBe(HOME_HERO_IMAGE_PRELOAD_SRC)
     expect(createdImages[0].decode).toHaveBeenCalledTimes(1)
     expect(secondWarmup).toBe(firstWarmup)
@@ -99,6 +111,8 @@ describe('home hero image loading', () => {
       loading = ''
       decoding = ''
       fetchPriority = ''
+      sizes = ''
+      srcset = ''
       src = ''
       decode = vi.fn(() => decodeResults.shift() ?? Promise.resolve())
 
