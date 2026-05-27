@@ -2,13 +2,13 @@
 
 114 年度（2026 年 5 月申報）各銀行綜所稅繳稅回饋／分期資料集。
 
-- **唯一 SSOT**：[`tax_payment_rewards_114.json`](tax_payment_rewards_114.json)
-- **卡別目錄**：[`card_catalog_114.json`](card_catalog_114.json)（`eligible_card_ids` 指定卡別的 metadata，透過 `card_id` 與 rewards JSON join）
-- **舊資料**：[`../_legacy/`](../_legacy/)（2026-05-20 起停用，僅供查閱）
+- **唯一 SSOT**：[`public/data/tax_payment_rewards_114.json`](../public/data/tax_payment_rewards_114.json)
+- **卡別目錄**：[`public/data/card_catalog_114.json`](../public/data/card_catalog_114.json)（`eligible_card_ids` 指定卡別的 metadata，透過 `card_id` 與 rewards JSON join）
+- **舊版多檔架構**：本 repo 無 `_legacy/` 目錄；若 maintainer 本機有 private `tax` 研究 repo，舊資料可於該處查閱（路徑見 gitignored [`AGENTS.local.md`](../AGENTS.local.md)）
 
 ## 為什麼有 v2
 
-舊架構（`../_legacy/`）把 paytax 名單、卡別清冊、活動表、Tier 規則拆成 8 個 JSON 加 8-phase 校對流程，維護成本高。v2 改以**銀行為主軸**、單一 JSON 承載活動；收集期曾用 `verification` 區分覆核進度，**v2.5 起已移除**，複核與變更紀錄改由 git commit 歷史追蹤。
+舊架構把 paytax 名單、卡別清冊、活動表、Tier 規則拆成 8 個 JSON 加 8-phase 校對流程，維護成本高。v2 改以**銀行為主軸**、單一 JSON 承載活動；收集期曾用 `verification` 區分覆核進度，**v2.5 起已移除**，複核與變更紀錄改由 git commit 歷史追蹤。
 
 ## Schema（v2.9）
 
@@ -165,22 +165,34 @@
 }
 ```
 
-新增卡別：若 campaign 指定特定卡面，在 `card_catalog_114.json` 補上對應條目後 commit。
+新增卡別：若 campaign 指定特定卡面，在 [`public/data/card_catalog_114.json`](../public/data/card_catalog_114.json) 補上對應條目後 commit。
+
+## tax-web 中的程式對應
+
+| 模組 | 角色 |
+| --- | --- |
+| [`src/lib/paymentDataLoader.ts`](../src/lib/paymentDataLoader.ts) | Runtime `fetch` `public/data/` 兩支 JSON，module cache；`build_id` 來自 generated top-N |
+| [`src/lib/paymentOfferCore.ts`](../src/lib/paymentOfferCore.ts) | 攤平 raw → `Offer`、試算 `resolveOffer`；與 generator script 共用，避免邏輯漂移 |
+| [`src/lib/paymentOffers.ts`](../src/lib/paymentOffers.ts) | 同步 API：`loadOffers`、卡別篩選、格式化；須先 `prefetchPaymentData()` |
+| [`scripts/generate-payment-top-offers.ts`](../scripts/generate-payment-top-offers.ts) | 讀 `public/data/`，寫入 `src/data/payment_top_offers.generated.json`、`payment_reward_units.generated.json` |
+| [`tests/paymentOffers.test.ts`](../tests/paymentOffers.test.ts) | Loader／solver／`eligibility_restrictions` 契約 |
+
+英文 eligibility 摘要：[`04-domain-model.md`](./04-domain-model.md) § Payment rewards eligibility。
 
 ## 日常維護流程
 
 1. 開銀行官網／活動頁核對。
-2. 編輯 [`tax_payment_rewards_114.json`](tax_payment_rewards_114.json) 對應銀行物件：新增、修改或移除 `campaigns[]`；更新各 campaign 的 `source_url` 與內容欄位。
-3. 有指定卡別時，同步 [`card_catalog_114.json`](card_catalog_114.json)。
-4. `git commit -m "update bank_XXX 繳稅回饋"`。
+2. 編輯 [`public/data/tax_payment_rewards_114.json`](../public/data/tax_payment_rewards_114.json) 對應銀行物件：新增、修改或移除 `campaigns[]`；更新各 campaign 的 `source_url` 與內容欄位。
+3. 有指定卡別時，同步 [`public/data/card_catalog_114.json`](../public/data/card_catalog_114.json)。
+4. 執行 `pnpm generate:payment-data`（`dev`／`build` 亦會跑；CI 用 `pnpm check:generated` 驗證）。
+5. 若 generated 檔有變動，一併 commit；`git commit -m "update bank_XXX 繳稅回饋"`。
 
 **沒有 phase、沒有 checkpoint script、沒有 bundle finalize。**
 
-## 與外部前端的契約
+## 本 repo 的角色
 
-本 repo 的角色：產出 `tax_payment_rewards_114.json`；外部前端專案自行讀取。本 repo 不再維護 `apps/web/public/data/payment_rewards_114.bundle.json` 的衍生複本。
+**tax-web** 為公開前端：執行時自 `public/data/` 載入 raw JSON，並以 committed generated 檔提供 top-N 摘要與 `build_id` cache buster。資料維護即編輯 `public/data/` 並重跑 generator，無需另建 bundle 複本。
 
 ## 與其他研究文件的關係
 
-- source id 仍可追溯到 [`../../../Z0_sources/notes/sources.yaml`](../../../Z0_sources/notes/sources.yaml)。
-- 產品設計：[`research/product/payment_rewards_entry.md`](../../../product/payment_rewards_entry.md)（其資料模型段落待對齊 v2，後續另開小修）。
+完整產品研究、source id 對照表等若在 private `tax` monorepo，路徑請寫入 gitignored [`AGENTS.local.md`](../AGENTS.local.md)（範本 [`AGENTS.local.md.example`](../AGENTS.local.md.example)）。本檔為 tax-web 內可部署資料的 schema 與維護契約。

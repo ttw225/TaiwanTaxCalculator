@@ -1,292 +1,27 @@
-// 載入 src/data/tax_payment_rewards_114.json，攤平成「一張卡 × 一個優惠」的 Offer[]。
-// 也提供 resolveOffer(offer, amount) 給排序與 OfferRow 渲染用。
+// Payment offers 同步 API：攤平、篩選、銀行清單。
+// raw JSON 不再 static import；改由 paymentDataLoader 透過 runtime fetch 載入。
+// 呼叫前須先 await prefetchPaymentData()，否則 getRawOffers() 會 throw。
+// 純函式（resolveOffer / fmtNT / fmtPct / clampAmount / toOffer / deriveTags）在 paymentOfferCore.ts。
 
-import rawData from '../data/tax_payment_rewards_114.json'
 import { getCard } from './cardCatalog'
-import { toNtd } from './rewardUnits'
-import type {
-  AmountTier,
-  BankListItem,
-  EligibilityRestriction,
-  Offer,
-  OfferTag,
-  RebateMode,
-  ResolveResult,
-} from '../types/paymentOffers'
+import { getRawOffers } from './paymentDataLoader'
+import {
+  flattenPaymentData,
+  resolveOffer as coreResolveOffer,
+  fmtNT as coreFmtNT,
+  fmtPct as coreFmtPct,
+  clampAmount as coreClampAmount,
+} from './paymentOfferCore'
+import type { BankListItem, Offer } from '../types/paymentOffers'
 
-// ── JSON 形狀（最小型別，只標 loader 用到的欄位） ────────────────────────────
-interface RawRebate {
-  requires_registration?: boolean
-  period?: string | null
-  mode?: RebateMode
-  rate?: number
-  fixed?: number
-  per_amount?: number
-  fixed_unit?: string
-  min?: number | null
-  base_fixed?: number | null
-  cap_nt?: number | null
-  cap_label?: string | null
-  amount_tiers?: AmountTier[]
-}
-interface RawInstallment {
-  summary?: string
-  min_amount?: number | null
-  max_amount?: number | null
-}
-interface RawCampaign {
-  campaign_id: string
-  title: string
-  source_url: string
-  source_id: string | null
-  eligible_cards?: string | null
-  eligible_card_types?: string[]
-  eligible_card_ids?: string[]
-  eligibility_restrictions?: EligibilityRestriction[]
-  channel?: string[] | null
-  rebate?: RawRebate | null
-  installment?: RawInstallment | null
-  tags?: OfferTag[]
-  notes?: string | null
-}
-interface RawBank {
-  bank_code: string
-  bank_name: string
-  campaigns: RawCampaign[]
-}
-interface RawData {
-  banks: RawBank[]
-}
-
-const data = rawData as unknown as RawData
-
-// ── tag 推導（campaign.tags 缺項時的 fallback） ──────────────────────────────
-function deriveTags(c: RawCampaign): OfferTag[] {
-  const tags = new Set<OfferTag>()
-  const ch = (c.channel ?? []).join(' ')
-  if (/台灣\s*Pay|台灣行動支付/.test(ch) || /台灣\s*Pay/.test(c.title)) {
-    tags.add('taiwan_pay')
-  }
-  const isDebit =
-    (c.eligible_card_types ?? []).includes('debit') ||
-    (c.eligible_card_ids ?? []).some((id) => getCard(id)?.type === 'debit')
-  const mode = c.rebate?.mode
-  if (mode && mode !== 'installment_only' && mode !== 'fee_only') {
-    if (isDebit) tags.add('debit_card')
-    else tags.add('credit_card')
-  } else if (isDebit) {
-    // 即使 mode 缺漏，金融卡身分仍應反映
-    tags.add('debit_card')
-  }
-  if (c.installment) tags.add('installment')
-  return Array.from(tags)
+// 卡別查詢 adapter：把 cardCatalog.getCard 包成 deriveTags 期望的形式。
+function getCardType(cardId: string): 'credit' | 'debit' | null {
+  return getCard(cardId)?.type ?? null
 }
 
 // ── 載入 + 攤平 ─────────────────────────────────────────────────────────────
 export function loadOffers(): Offer[] {
-  const offers: Offer[] = []
-  for (const bank of data.banks) {
-    for (const c of bank.campaigns) {
-      // 有 rebate 且有 mode → 算一筆 rebate offer
-      if (c.rebate && c.rebate.mode) {
-        offers.push(toOffer(bank, c, c.rebate.mode))
-      } else if (c.installment) {
-        // 無 rebate 但有 installment → 一筆 installment-only offer
-        offers.push(toOffer(bank, c, 'installment_only'))
-      }
-    }
-  }
-  return offers
-}
-
-function toOffer(bank: RawBank, c: RawCampaign, mode: RebateMode): Offer {
-  const r = c.rebate ?? {}
-  const tags = c.tags && c.tags.length > 0 ? c.tags : deriveTags(c)
-  const eligibleCardIds = c.eligible_card_ids ?? []
-  return {
-    id: `${bank.bank_code}_${c.campaign_id}`,
-    bank_code: bank.bank_code,
-    bank: bank.bank_name,
-    card_name: c.eligible_cards ?? bank.bank_name,
-    card_scope: null,
-    campaign_title: c.title,
-    source_url: c.source_url,
-    source_id: c.source_id ?? null,
-    mode,
-    rate: r.rate,
-    fixed: r.fixed,
-    per_amount: r.per_amount,
-    fixed_unit: r.fixed_unit,
-    min: r.min ?? null,
-    base_fixed: r.base_fixed ?? null,
-    cap_nt: r.cap_nt ?? null,
-    cap_label: r.cap_label ?? null,
-    amount_tiers: r.amount_tiers,
-    eligible_card_ids: eligibleCardIds,
-    is_card_specific: eligibleCardIds.length > 0,
-    eligibility_restrictions: c.eligibility_restrictions ?? [],
-    tags,
-    requires_registration: r.requires_registration ?? false,
-    period: r.period ?? null,
-    installment_summary: c.installment?.summary ?? null,
-    installment_min_amount: c.installment?.min_amount ?? null,
-    installment_max_amount: c.installment?.max_amount ?? null,
-    note: c.notes ?? null,
-    channel: c.channel ?? null,
-  }
-}
-
-// ── resolveOffer（移植自原型 Personalized Comparison.html L54-92） ───────────
-export function resolveOffer(o: Offer, amount: number): ResolveResult {
-  const min = o.mode === 'installment_only' ? (o.installment_min_amount ?? null) : (o.min ?? null)
-  const max = o.mode === 'installment_only' ? (o.installment_max_amount ?? null) : null
-  const thresholdLabel = formatThresholdLabel(min, max)
-
-  if (min != null && amount > 0 && amount < min) {
-    return {
-      applicable: false,
-      value: 0,
-      value_ntd: 0,
-      kind: o.mode,
-      reason: thresholdLabel ? `需${thresholdLabel}` : `需單筆滿 ${fmtNT(min)}`,
-    }
-  }
-  if (max != null && amount > 0 && amount > max) {
-    return {
-      applicable: false,
-      value: 0,
-      value_ntd: 0,
-      kind: o.mode,
-      reason: thresholdLabel ? `需${thresholdLabel}` : `需單筆不超過 ${fmtNT(max)}`,
-    }
-  }
-
-  if (o.mode === 'installment_only') {
-    return {
-      applicable: true,
-      value: null,
-      value_ntd: null,
-      kind: 'installment_only',
-      threshold_label: thresholdLabel,
-    }
-  }
-  if (o.mode === 'fee_only') {
-    return {
-      applicable: true,
-      value: null,
-      value_ntd: null,
-      kind: 'fee_only',
-      threshold_label: thresholdLabel,
-    }
-  }
-
-  if (o.mode === 'unit_per_amount') {
-    const per = o.per_amount ?? 0
-    const step = o.fixed ?? 0
-    const raw = per > 0 ? Math.floor(amount / per) * step : 0
-    const cap = o.cap_nt ?? null
-    const capped = cap != null && raw > cap
-    const value = capped ? cap! : raw
-    const unit = o.fixed_unit ?? '元'
-    return {
-      applicable: true,
-      kind: 'unit_per_amount',
-      value,
-      value_ntd: toNtd(value, unit),
-      unit,
-      capped,
-      cap,
-      threshold_label: thresholdLabel,
-    }
-  }
-
-  if (o.mode === 'fixed') {
-    const unit = o.fixed_unit ?? '元'
-    const value = o.fixed ?? null
-    return {
-      applicable: true,
-      kind: 'fixed',
-      value,
-      value_ntd: toNtd(value, unit),
-      unit,
-      threshold_label: thresholdLabel,
-    }
-  }
-
-  if (o.mode === 'rate') {
-    const rate = o.rate ?? 0
-    let raw = (amount * rate) / 100
-    if (o.base_fixed) raw += o.base_fixed
-    let capped = false
-    let value = raw
-    if (o.cap_nt != null && raw > o.cap_nt + (o.base_fixed ?? 0)) {
-      value = o.cap_nt + (o.base_fixed ?? 0)
-      capped = true
-    }
-    const unit = o.fixed_unit ?? '元'
-    return {
-      applicable: true,
-      kind: 'rate',
-      value,
-      value_ntd: toNtd(value, unit),
-      rate,
-      capped,
-      cap: o.cap_nt,
-      unit,
-      threshold_label: thresholdLabel,
-    }
-  }
-
-  if (o.mode === 'rate-tiered' && o.amount_tiers && o.amount_tiers.length > 0) {
-    const tiers = [...o.amount_tiers].sort((a, b) => b.min - a.min)
-    const matched = tiers.find((x) => amount >= x.min)
-    if (!matched && amount > 0) {
-      const lowestMin = tiers[tiers.length - 1].min
-      return {
-        applicable: false,
-        value: 0,
-        value_ntd: 0,
-        kind: o.mode,
-        reason: `需單筆滿 ${fmtNT(lowestMin)}`,
-      }
-    }
-    const t = matched ?? tiers[tiers.length - 1]
-
-    if (t.kind === 'fixed') {
-      const raw = t.fixed
-      const cap = t.cap_nt ?? null
-      const capped = cap != null && raw > cap
-      const value = capped ? cap : raw
-      return {
-        applicable: true,
-        kind: 'rate-tiered',
-        value,
-        value_ntd: toNtd(value, t.fixed_unit),
-        capped,
-        cap,
-        tier_label: t.label,
-        unit: t.fixed_unit,
-      }
-    }
-
-    const raw = (amount * t.rate) / 100
-    const capped = t.cap_nt != null && raw > t.cap_nt
-    const value = capped ? t.cap_nt! : raw
-    const unit = o.fixed_unit ?? '元'
-    return {
-      applicable: true,
-      kind: 'rate-tiered',
-      value,
-      value_ntd: toNtd(value, unit),
-      rate: t.rate,
-      capped,
-      cap: t.cap_nt,
-      tier_label: t.label,
-      unit,
-    }
-  }
-
-  return { applicable: true, value: null, value_ntd: null, kind: o.mode }
+  return flattenPaymentData(getRawOffers(), getCardType)
 }
 
 // ── 卡 picker 篩選契約 ──────────────────────────────────────────────────────
@@ -315,7 +50,7 @@ export function filterOffersByCards(
 export function getBankList(): BankListItem[] {
   const seen = new Set<string>()
   const out: BankListItem[] = []
-  for (const b of data.banks) {
+  for (const b of getRawOffers().banks) {
     if (b.campaigns.length === 0) continue
     if (seen.has(b.bank_code)) continue
     seen.add(b.bank_code)
@@ -324,38 +59,10 @@ export function getBankList(): BankListItem[] {
   return out.sort((a, b) => a.code.localeCompare(b.code))
 }
 
-// ── 格式化工具 ───────────────────────────────────────────────────────────────
-export function fmtNT(n: number | null | undefined): string {
-  if (n == null || !isFinite(n)) return '—'
-  return `NT$ ${Math.round(n).toLocaleString('zh-TW')}`
-}
-
-function formatThresholdLabel(
-  min: number | null | undefined,
-  max: number | null | undefined,
-): string | null {
-  if (min != null && max != null) return `單筆 ${fmtNT(min)} 至 ${fmtNT(max)}`
-  if (min != null) return `單筆滿 ${fmtNT(min)}`
-  if (max != null) return `單筆不超過 ${fmtNT(max)}`
-  return null
-}
-
-export function fmtPct(n: number | null | undefined): string {
-  if (n == null) return '—'
-  return `${n}%`
-}
-
-export function clampAmount(n: number): number {
-  if (!isFinite(n) || n < 0) return 0
-  return n
-}
-
-// ── 資料版本 metadata（給 Disclaimer 顯示） ─────────────────────────────────
-interface DataMeta {
-  tax_year: string
-  schema_version: string
-}
-export const DATA_META: DataMeta = {
-  tax_year: (rawData as unknown as { tax_year: string }).tax_year,
-  schema_version: (rawData as unknown as { schema_version: string }).schema_version,
+// ── 重新匯出 core 純函式，保持既有 API ─────────────────────────────────────
+export {
+  coreResolveOffer as resolveOffer,
+  coreFmtNT as fmtNT,
+  coreFmtPct as fmtPct,
+  coreClampAmount as clampAmount,
 }

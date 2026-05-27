@@ -24,6 +24,15 @@
 /og/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
+# Payment data JSON: 1-year immutable.
+# fetch URL 帶 ?v=<build_id>（content hash 前 8 字，由
+# scripts/generate-payment-top-offers.ts 寫進 payment_top_offers.generated.json
+# 並由 src/lib/paymentDataLoader.ts 同步讀取後拼到 URL）。
+# 新 build 走新 URL，舊 URL 永不再被請求，等同檔名 hashing 的效果，
+# 不需 SWR 也不會 stale，edge 與 browser 都可全力 cache。
+/data/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # NOTE: HTML cache headers omitted — `_headers` matches request URLs, not file
 # paths, so `/*.html` wouldn't match clean URLs like `/about` or `/checklist`.
 # Cloudflare Pages already serves prerendered HTML with `max-age=0,
