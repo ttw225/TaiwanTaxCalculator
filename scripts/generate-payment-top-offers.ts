@@ -18,6 +18,7 @@ import {
   flattenPaymentData,
   resolveOffer,
   type RawPaymentData,
+  type ToNtdFn,
 } from '../src/lib/paymentOfferCore'
 import { SITE_CONFIG } from '../src/lib/siteConfig'
 import type { CatalogCard, Offer } from '../src/types/paymentOffers'
@@ -121,10 +122,14 @@ function compareOffers(
   return 0
 }
 
-function pickTopForAmount(allOffers: Offer[], amount: number): TopOfferEntry[] {
+function pickTopForAmount(
+  allOffers: Offer[],
+  amount: number,
+  toNtd: ToNtdFn,
+): TopOfferEntry[] {
   // 計算 + 過濾：可適用、有可比較金額（value_ntd > 0）。
   const scored = allOffers
-    .map((o) => ({ offer: o, result: resolveOffer(o, amount) }))
+    .map((o) => ({ offer: o, result: resolveOffer(o, amount, { toNtd }) }))
     .filter((x) => x.result.applicable && x.result.value_ntd != null && x.result.value_ntd > 0)
     .map((x) => ({ offer: x.offer, value_ntd: x.result.value_ntd as number, result: x.result }))
 
@@ -165,10 +170,26 @@ function main(): void {
 
   const offers = flattenPaymentData(payment, getCardType)
 
+  // freshToNtd 用本次 raw payment.reward_units 建表，避免「raw 改動 reward_units 後
+  // 第一次 generator run 仍讀到上一次的 payment_reward_units.generated.json」的依賴順序 bug。
+  // 行為複製 src/lib/rewardUnits.ts toNtd + getUnitMeta：
+  //   - value 為 null/undefined → null
+  //   - unit 為空 → 視為 face_value（NT$ 1:1）
+  //   - catalog 內 ntd_per_unit 為 null → non_comparable → null
+  //   - 其餘 → value * ntd_per_unit
+  const freshUnits = payment.reward_units ?? {}
+  const freshToNtd: ToNtdFn = (value, unit) => {
+    if (value == null) return null
+    if (!unit) return value
+    const meta = freshUnits[unit]
+    if (!meta) return null
+    return meta.ntd_per_unit == null ? null : value * meta.ntd_per_unit
+  }
+
   const tiers: TopOfferTier[] = TIERS.map((t) => ({
     amount: t.amount,
     label: t.label,
-    offers: pickTopForAmount(offers, t.amount),
+    offers: pickTopForAmount(offers, t.amount, freshToNtd),
   }))
 
   // build_id：兩支源 JSON content concat 後 sha256 取前 8 hex（≈ 32 bit），

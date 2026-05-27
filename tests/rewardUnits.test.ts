@@ -148,6 +148,58 @@ describe('resolveOffer value_ntd', () => {
   })
 })
 
+describe('resolveOffer opts.toNtd 注入（保護 generator script 不踩 stale catalog bug）', () => {
+  // 場景：rewardUnits.ts 在 module init 載入「上一次 commit 的」payment_reward_units.generated.json，
+  // 當 raw payment.reward_units 新增 unit 時，第一次 generator run 走 default toNtd
+  // 會把該新 unit 視為 non_comparable → 該 offer value_ntd null → 被誤過濾掉。
+  // 解法：generator 自己建 freshToNtd 注入 resolveOffer。本測試確認注入 path 生效。
+  it('opts.toNtd 注入時 → 使用注入版而非 default', () => {
+    const offers = loadOffers()
+    // 找一個有 fixed_unit 的 offer（不要挑 mode=rate；rate 的 value 已經是 NT$）
+    const fixed = offers.find((o) => o.mode === 'fixed' && o.fixed_unit && o.fixed != null)
+    expect(fixed, '需有 fixed 模式且 fixed_unit 非空的 offer').toBeTruthy()
+
+    // 注入：永遠把 value 乘 7.77（顯然不會跟 catalog 任何一筆相等）
+    const injectedToNtd = (value: number | null | undefined): number | null =>
+      value == null ? null : value * 7.77
+    const r = resolveOffer(fixed!, 60000, { toNtd: injectedToNtd })
+
+    expect(r.value).toBe(fixed!.fixed)
+    expect(r.value_ntd).toBeCloseTo((fixed!.fixed ?? 0) * 7.77, 6)
+  })
+
+  it('opts 省略時 → fallback 到 default toNtd（行為與 rewardUnits.toNtd 一致）', () => {
+    const offers = loadOffers()
+    const twPay = offers.find(
+      (o) => o.mode === 'fixed' && o.fixed_unit === '點台灣 Pay 紅利',
+    )
+    expect(twPay, '需有 fixed_unit=點台灣 Pay 紅利 的 offer').toBeTruthy()
+    // 不傳 opts → 應走 default catalog（點台灣 Pay 紅利 = 0.1 NT$/點）
+    const r = resolveOffer(twPay!, 60000)
+    expect(r.value_ntd).toBe((twPay!.fixed ?? 0) * 0.1)
+  })
+
+  it('注入「假新單位」回 NT$ 等值；default 回 null → 證明注入確實打斷 stale catalog 依賴', () => {
+    // 模擬：generator 剛拿到 raw JSON 含新 unit「測試新點數」，但 default catalog 還沒有它
+    const offers = loadOffers()
+    const sample = offers.find((o) => o.mode === 'fixed' && o.fixed != null)
+    expect(sample).toBeTruthy()
+
+    // 沒注入：default catalog 不認得「測試新點數」→ null
+    const fakeUnitOffer = { ...sample!, fixed_unit: '測試新點數' }
+    expect(resolveOffer(fakeUnitOffer, 60000).value_ntd).toBeNull()
+
+    // 注入 fresh：認得它 → 算得出來
+    const injected = (v: number | null | undefined, u: string | undefined | null) => {
+      if (v == null) return null
+      if (u === '測試新點數') return v * 0.3
+      return v // 其他 fallback
+    }
+    const r = resolveOffer(fakeUnitOffer, 60000, { toNtd: injected })
+    expect(r.value_ntd).toBeCloseTo((fakeUnitOffer.fixed ?? 0) * 0.3, 6)
+  })
+})
+
 describe('排序：依 NT$ 等值排，而非原始 value', () => {
   // 對應原 bug：600 點台灣 Pay 紅利 (≈ NT$60) 不應排到 100 元刷卡金之前。
   // 構造 mock ResolveResult 走真實的 sort 比較邏輯（與 ResultList.sortRanked 同義）。

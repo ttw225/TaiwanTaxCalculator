@@ -1,7 +1,7 @@
 // 純函式 + raw JSON 型別。可在 Node script 與瀏覽器執行；無 module-level 資料相依。
 // 由 paymentOffers.ts 與 scripts/generate-payment-top-offers.ts 共用，避免邏輯漂移。
 
-import { toNtd } from './rewardUnits'
+import { toNtd as defaultToNtd } from './rewardUnits'
 import type {
   AmountTier,
   EligibilityRestriction,
@@ -10,6 +10,15 @@ import type {
   RebateMode,
   ResolveResult,
 } from '../types/paymentOffers'
+
+// 單位 → NT$ 換算函式 type。
+// production 路徑用 rewardUnits.toNtd（讀 module-init 載入的 generated catalog）；
+// build script 用自己建的 toNtd（讀本次 raw JSON 的 reward_units），
+// 避免「raw reward_units 更新後第一次 generator run 用到舊 catalog」的 bug。
+export type ToNtdFn = (
+  value: number | null | undefined,
+  unit: string | undefined | null,
+) => number | null
 
 // ── JSON 形狀（只標 loader 用到的欄位） ────────────────────────────────────────
 export interface RawRebate {
@@ -179,7 +188,17 @@ export function clampAmount(n: number): number {
 }
 
 // ── resolveOffer（移植自原型 Personalized Comparison.html L54-92；pure） ─────
-export function resolveOffer(o: Offer, amount: number): ResolveResult {
+// opts.toNtd 是給 build script 注入「以本次 raw catalog 為準」的換算函式用——
+// 因為 rewardUnits.toNtd 在 module init 才載入 generated catalog，
+// script 第一次跑時拿到的會是上一個 build 的舊版本（見 scripts/generate-payment-top-offers.ts
+// 內 freshToNtd 的說明）。production 路徑省略 opts 即可（default 走 rewardUnits.toNtd）。
+export function resolveOffer(
+  o: Offer,
+  amount: number,
+  opts?: { toNtd?: ToNtdFn },
+): ResolveResult {
+  const toNtd = opts?.toNtd ?? defaultToNtd
+
   // installment_only 取 installment_min/max_amount；其他模式取 r.min（max 不適用）。
   // dev #100 加 max_amount 後，門檻判斷統一在最上面，避免在各 mode 內重複處理。
   const min = o.mode === 'installment_only' ? (o.installment_min_amount ?? null) : (o.min ?? null)
