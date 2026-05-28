@@ -17,12 +17,9 @@ permissions:
   pull-requests: write
 
 jobs:
-  deploy-dev:
+  build-dev:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    concurrency:
-      group: github-pages-previews
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6
 
@@ -53,6 +50,32 @@ jobs:
           VITE_DEPLOY_LABEL: DEV
           VITE_COMMIT_SHA: ${{ github.sha }}
 
+      - name: Upload dev build
+        uses: actions/upload-artifact@v7
+        with:
+          name: pages-build-dev
+          path: dist/client
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+
+  publish-dev:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: build-dev
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-previews
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download dev build
+        uses: actions/download-artifact@v7
+        with:
+          name: pages-build-dev
+          path: pages-build
+
       - name: Deploy dev test site
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -73,7 +96,7 @@ jobs:
           mkdir -p pages-worktree/dev
           rm -rf pages-worktree/dev
           mkdir -p pages-worktree/dev
-          cp -R dist/client/. pages-worktree/dev/
+          cp -R pages-build/. pages-worktree/dev/
           touch pages-worktree/.nojekyll
           bash .github/scripts/render-pages-index.sh pages-worktree
           cd pages-worktree
@@ -85,12 +108,9 @@ jobs:
             git push origin HEAD:gh-pages
           fi
 
-  deploy-pr-preview:
+  build-pr-preview:
     if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    concurrency:
-      group: github-pages-previews
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6
 
@@ -121,6 +141,32 @@ jobs:
           VITE_PR_NUMBER: ${{ github.event.pull_request.number }}
           VITE_COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
 
+      - name: Upload PR preview build
+        uses: actions/upload-artifact@v7
+        with:
+          name: pages-build-pr-${{ github.event.pull_request.number }}
+          path: dist/client
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+
+  publish-pr-preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: build-pr-preview
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-previews
+      cancel-in-progress: false
+      queue: max
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download PR preview build
+        uses: actions/download-artifact@v7
+        with:
+          name: pages-build-pr-${{ github.event.pull_request.number }}
+          path: pages-build
+
       - name: Deploy PR preview
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -142,7 +188,7 @@ jobs:
           mkdir -p "$preview_path"
           rm -rf "$preview_path"
           mkdir -p "$preview_path"
-          cp -R dist/client/. "$preview_path/"
+          cp -R pages-build/. "$preview_path/"
           touch pages-worktree/.nojekyll
           bash .github/scripts/render-pages-index.sh pages-worktree
           cd pages-worktree
@@ -192,6 +238,7 @@ jobs:
     concurrency:
       group: github-pages-previews
       cancel-in-progress: false
+      queue: max
     steps:
       - uses: actions/checkout@v6
         with:
