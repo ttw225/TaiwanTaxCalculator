@@ -53,6 +53,12 @@ jobs:
           else
             echo "bumped=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: Sync bump back to dev
+        if: steps.detect.outputs.bumped == 'true'
+        run: |
+          git checkout dev
+          git merge origin/main --no-edit
+          git push origin dev
       - name: Release
         if: steps.detect.outputs.bumped == 'true'
         uses: ncipollo/release-action@v1
