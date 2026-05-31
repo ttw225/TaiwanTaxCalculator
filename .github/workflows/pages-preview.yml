@@ -66,17 +66,40 @@ jobs:
     concurrency:
       group: github-pages-previews
       cancel-in-progress: false
-      queue: max
     steps:
       - uses: actions/checkout@v6
 
+      - name: Guard against stale dev build
+        id: guard
+        uses: actions/github-script@v9
+        with:
+          script: |
+            if (context.eventName === 'workflow_dispatch') {
+              core.setOutput('should_publish', 'true')
+              return
+            }
+            const { data: branch } = await github.rest.repos.getBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: 'dev',
+            })
+            const liveSha = branch.commit.sha
+            const wantSha = context.sha
+            const shouldPublish = liveSha === wantSha
+            if (!shouldPublish) {
+              core.info(`Skipping deploy: dev HEAD=${liveSha} is newer than this run ${wantSha}`)
+            }
+            core.setOutput('should_publish', String(shouldPublish))
+
       - name: Download dev build
+        if: steps.guard.outputs.should_publish == 'true'
         uses: actions/download-artifact@v7
         with:
           name: pages-build-dev
           path: pages-build
 
       - name: Deploy dev test site
+        if: steps.guard.outputs.should_publish == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -157,17 +180,35 @@ jobs:
     concurrency:
       group: github-pages-previews
       cancel-in-progress: false
-      queue: max
     steps:
       - uses: actions/checkout@v6
 
+      - name: Guard against closed or stale PR
+        id: guard
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.pull_request.number }},
+            })
+            const wantSha = '${{ github.event.pull_request.head.sha }}'
+            const shouldPublish = pr.state === 'open' && pr.head.sha === wantSha
+            if (!shouldPublish) {
+              core.info(`Skipping deploy: PR state=${pr.state} head=${pr.head.sha} want=${wantSha}`)
+            }
+            core.setOutput('should_publish', String(shouldPublish))
+
       - name: Download PR preview build
+        if: steps.guard.outputs.should_publish == 'true'
         uses: actions/download-artifact@v7
         with:
           name: pages-build-pr-${{ github.event.pull_request.number }}
           path: pages-build
 
       - name: Deploy PR preview
+        if: steps.guard.outputs.should_publish == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
@@ -201,6 +242,7 @@ jobs:
           fi
 
       - name: Comment preview URL
+        if: steps.guard.outputs.should_publish == 'true'
         uses: actions/github-script@v9
         with:
           script: |
@@ -238,7 +280,6 @@ jobs:
     concurrency:
       group: github-pages-previews
       cancel-in-progress: false
-      queue: max
     steps:
       - uses: actions/checkout@v6
         with:
