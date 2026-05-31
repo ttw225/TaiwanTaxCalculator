@@ -7,7 +7,6 @@ updates:
     target-branch: "dev"
     cooldown:
       default-days: 3
-      semver-major-days: 7
 
   - package-ecosystem: "npm"
     directory: "/"
