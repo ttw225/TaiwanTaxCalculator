@@ -93,7 +93,7 @@ jobs:
 
       - name: Download dev build
         if: steps.guard.outputs.should_publish == 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: pages-build-dev
           path: pages-build
@@ -202,7 +202,7 @@ jobs:
 
       - name: Download PR preview build
         if: steps.guard.outputs.should_publish == 'true'
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: pages-build-pr-${{ github.event.pull_request.number }}
           path: pages-build
