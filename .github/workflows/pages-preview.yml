@@ -21,7 +21,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v6
 
@@ -67,7 +67,7 @@ jobs:
       group: github-pages-previews
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Guard against stale dev build
         id: guard
@@ -135,7 +135,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v6
 
@@ -181,7 +181,7 @@ jobs:
       group: github-pages-previews
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Guard against closed or stale PR
         id: guard
@@ -281,7 +281,7 @@ jobs:
       group: github-pages-previews
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: dev
 
