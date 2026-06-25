@@ -25,7 +25,7 @@ jobs:
       sha: ${{ steps.detect.outputs.sha }}
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
           fetch-depth: 0
@@ -80,7 +80,7 @@ jobs:
     name: "Deploy to Cloudflare Pages"
     steps:
       - name: Check out
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           # Production only ships main: manual dispatch always deploys main HEAD;
           # auto path deploys the post-bump SHA captured by bump-version.
