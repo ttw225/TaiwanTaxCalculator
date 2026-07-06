@@ -1,7 +1,7 @@
 import type { Config } from '@react-router/dev/config'
 
 const basePath = process.env.VITE_BASE_PATH ?? '/'
-const basename = basePath === '/' ? '/' : basePath.replace(/\/$/, '')
+const basename = basePath.endsWith('/') ? basePath : `${basePath}/`
 
 // Build-time prerender of every route to static HTML. No runtime SSR.
 // Output goes to dist/client/ (Cloudflare Pages reads
