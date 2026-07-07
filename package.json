@@ -21,7 +21,7 @@
     "preview": "vite preview --outDir dist/client"
   },
   "dependencies": {
-    "@react-router/node": "^7.18.0",
+    "@react-router/node": "^8.1.0",
     "@tailwindcss/vite": "^4.3.2",
     "isbot": "^5",
     "lucide-react": "^1.22.0",
