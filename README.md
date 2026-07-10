@@ -2,7 +2,7 @@
 
 > 114 年度報稅季已結束。115 年度見！
 
-網站：<https://TaiwanTaxCalculate.com>
+網站：<https://TaiwanTaxCalculator.com>
 
 開源網站，協助理解台灣 **綜合所得稅** 常見節稅方向與檢核。
 
