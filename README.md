@@ -16,7 +16,7 @@ React Router v7、Vite 8、React 19、TypeScript、Tailwind CSS、Vitest、ESLin
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/) **24+** (see `engines` in [`package.json`](./package.json))
+- [Node.js](https://nodejs.org/) **24.15+（24.x）** (see `engines` in [`package.json`](./package.json))
 - [pnpm](https://pnpm.io/) **11+** (see `engines` and `packageManager` in [`package.json`](./package.json))
 
 ### 基本安裝流程（nvm → Node → pnpm）
@@ -25,7 +25,7 @@ React Router v7、Vite 8、React 19、TypeScript、Tailwind CSS、Vitest、ESLin
 
 推薦使用 nvm 管理本機 node 版本；
 如不使用 nvm，可改由 [Node.js 官網](https://nodejs.org/) 安裝程式取得符合版本的 Node，並跳至 **步驟 3** 。
-Node 版本來源以 [`package.json`](./package.json) `engines.node` 為準（目前為 24+）。
+Node 版本來源以 [`package.json`](./package.json) `engines.node` 為準（目前為 24.15+，限 24.x）。
 
 **1. 安裝 nvm**
 

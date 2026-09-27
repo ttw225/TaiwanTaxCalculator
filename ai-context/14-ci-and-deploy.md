@@ -20,7 +20,7 @@ Canonical URL is always the apex (`https://taiwantaxcalculator.com/`). `www` is 
 
 - **Build command**: `pnpm build` (`react-router build && tsx scripts/generate-sitemap.ts`)，在 Actions runner 上跑
 - **Output directory**: `dist/client/` (set in [`wrangler.toml`](../wrangler.toml): `pages_build_output_dir = "dist/client"`)
-- **Node version**: 24（在 `release.yml` 中由 `actions/setup-node` + `node-version-file: package.json` 解析）
+- **Node version**: `^24.15.0`（在 `release.yml` 中由 `actions/setup-node` + `node-version-file: package.json` 解析）
 
 ### Static file handling
 
